@@ -1,0 +1,1 @@
+export { EditorJSComponent } from './EditorJS'
