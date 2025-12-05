@@ -42,7 +42,7 @@ const ProjectAssignment = () => {
       setSearchResults([])
       setShowSearchDropdown(false)
     }
-  }, 500)
+  }, 0.25) // set
 
   console.log('searchResults', searchResults)
 
