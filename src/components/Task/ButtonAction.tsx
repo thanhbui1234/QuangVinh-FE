@@ -93,15 +93,15 @@ export const ButtonAction = ({
   }, [currentStatus])
 
   return (
-    <div className="flex items-center gap-2 mb-6">
+    <div className="flex flex-wrap items-center gap-2 mb-6">
       <Button
         variant="ghost"
         size="sm"
         onClick={() => setEditOpen(true)}
         className="text-gray-700 hover:bg-gray-100 bg-gray-200"
       >
-        <Pencil className="w-4 h-4 mr-1" />
-        Chỉnh sửa
+        <Pencil className="w-4 h-4 sm:mr-1" />
+        <span className="hidden sm:inline">Chỉnh sửa</span>
       </Button>
       <Button
         variant="ghost"
@@ -112,8 +112,8 @@ export const ButtonAction = ({
           commentSection?.scrollIntoView({ behavior: 'smooth' })
         }}
       >
-        <MessageCircle className="w-4 h-4 mr-1" />
-        Thêm bình luận
+        <MessageCircle className="w-4 h-4 sm:mr-1" />
+        <span className="hidden sm:inline">Thêm bình luận</span>
       </Button>
       <DialogAssignee memberTask={memberTask} task={projectAssignmentDetail} />
       <Select
@@ -123,7 +123,7 @@ export const ButtonAction = ({
         }}
       >
         <SelectTrigger
-          className={`${statusInfo.bgColor} ${statusInfo.hoverColor} ${statusInfo.borderColor} text-white min-w-[180px]`}
+          className={`${statusInfo.bgColor} ${statusInfo.hoverColor} ${statusInfo.borderColor} text-white min-w-[120px] sm:min-w-[180px]`}
         >
           <SelectValue>{statusInfo.label}</SelectValue>
         </SelectTrigger>

@@ -1,5 +1,4 @@
 import { Controller, useForm } from 'react-hook-form'
-import { Input } from '@/components/ui/input.tsx'
 import { Textarea } from '@/components/ui/textarea.tsx'
 import {
   Select,
@@ -18,6 +17,8 @@ import { useCreateLeaves } from '@/hooks/leaves/useCreateLeaves.ts'
 import { useUpdateLeaves } from '@/hooks/leaves/useUpdateLeaves.ts'
 import { convertToISO } from '@/utils/CommonUtils.ts'
 import { useEffect } from 'react'
+import { DatePicker } from '@/components/ui/datePicker'
+import { parseDate, formatToDateString } from '@/utils/CommonUtils'
 
 type CreateLeaveSheetMobileProps = {
   open: boolean
@@ -223,11 +224,10 @@ export default function CreateLeaveSheetMobile({
                       >
                         Từ ngày <span className="text-red-500">*</span>
                       </Label>
-                      <Input
-                        id="mobile-start"
-                        type="date"
-                        {...field}
-                        className="h-12 rounded-xl border-gray-200 dark:border-gray-700"
+                      <DatePicker
+                        value={parseDate(field.value)}
+                        onChange={(date) => field.onChange(date ? formatToDateString(date) : '')}
+                        placeholder="Chọn ngày bắt đầu"
                       />
                     </div>
                   )}
@@ -243,12 +243,10 @@ export default function CreateLeaveSheetMobile({
                       >
                         Đến ngày <span className="text-red-500">*</span>
                       </Label>
-                      <Input
-                        id="mobile-end"
-                        type="date"
-                        {...field}
-                        min={formValues.offFrom}
-                        className="h-12 rounded-xl border-gray-200 dark:border-gray-700"
+                      <DatePicker
+                        value={parseDate(field.value)}
+                        onChange={(date) => field.onChange(date ? formatToDateString(date) : '')}
+                        placeholder="Chọn ngày kết thúc"
                       />
                     </div>
                   )}
@@ -266,11 +264,10 @@ export default function CreateLeaveSheetMobile({
                     >
                       Ngày nghỉ <span className="text-red-500">*</span>
                     </Label>
-                    <Input
-                      id="mobile-date"
-                      type="date"
-                      {...field}
-                      className="h-12 rounded-xl border-gray-200 dark:border-gray-700"
+                    <DatePicker
+                      value={parseDate(field.value)}
+                      onChange={(date) => field.onChange(date ? formatToDateString(date) : '')}
+                      placeholder="Chọn ngày nghỉ"
                     />
                   </div>
                 )}
