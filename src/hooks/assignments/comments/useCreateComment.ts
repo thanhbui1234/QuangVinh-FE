@@ -6,9 +6,10 @@ import { listCommentKey } from '@/constants'
 
 export interface CreateCommentPayload {
   taskId: number
-  message: string
+  message?: string
+  imageUrls?: string[]
   commentType: number
-  mentionIds: number[]
+  mentionIds?: number[]
 }
 
 export const useCreateComment = () => {

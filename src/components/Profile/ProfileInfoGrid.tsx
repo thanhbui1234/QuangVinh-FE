@@ -20,32 +20,34 @@ export const ProfileInfoGrid = ({
   const disabled = !isOwnProfile || !!isLoading
 
   return (
-    <div className="mt-2 grid w-full max-w-3xl grid-cols-1 gap-3 md:grid-cols-2">
-      <FormInlineField
-        control={control}
-        name="email"
-        placeholder="Email"
-        disabled={disabled}
-        saving={isSaving}
-        onUpdate={() => onUpdateField('email')}
-      />
-      <FormInlineField
-        control={control}
-        name="phone"
-        placeholder="Số điện thoại"
-        disabled={disabled}
-        saving={isSaving}
-        onUpdate={() => onUpdateField('phone')}
-      />
-      <FormInlineField
-        control={control}
-        name="position"
-        placeholder="Chức vụ"
-        disabled={disabled}
-        saving={isSaving}
-        onUpdate={() => onUpdateField('position')}
-      />
-    </div>
+    <>
+      <div className="mt-2 grid w-full max-w-3xl grid-cols-1 gap-3 md:grid-cols-2">
+        <FormInlineField
+          control={control}
+          name="email"
+          placeholder="Email"
+          disabled={disabled}
+          saving={isSaving}
+          onUpdate={() => onUpdateField('email')}
+        />
+        <FormInlineField
+          control={control}
+          name="phone"
+          placeholder="Số điện thoại"
+          disabled={disabled}
+          saving={isSaving}
+          onUpdate={() => onUpdateField('phone')}
+        />
+        <FormInlineField
+          control={control}
+          name="position"
+          placeholder="Chức vụ"
+          disabled={disabled}
+          saving={isSaving}
+          onUpdate={() => onUpdateField('position')}
+        />
+      </div>
+    </>
   )
 }
 

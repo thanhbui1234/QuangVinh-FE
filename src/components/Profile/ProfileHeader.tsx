@@ -1,11 +1,7 @@
 import { Avatar, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { FormInlineField } from './FormInlineField'
-import type { Control } from 'react-hook-form'
-import type { ProfileFormData } from '@/schemas/profileSchema'
 
 interface ProfileHeaderProps {
-  control: Control<ProfileFormData>
   isOwnProfile: boolean
   avatarUrl?: string
   isSaving?: boolean
@@ -16,14 +12,12 @@ interface ProfileHeaderProps {
 }
 
 export const ProfileHeader = ({
-  control,
   isOwnProfile,
   avatarUrl,
   isSaving,
   hasNewFile,
   onPickAvatar,
   onUpdateAvatar,
-  onUpdateName,
 }: ProfileHeaderProps) => {
   return (
     <>
@@ -55,14 +49,14 @@ export const ProfileHeader = ({
           {isOwnProfile && hasNewFile ? (
             <div className="absolute -bottom-10 right-0 flex gap-2">
               <Button size="sm" onClick={onUpdateAvatar} disabled={isSaving}>
-                Cập nhật ảnh
+                Cập nhật ảnh 1
               </Button>
             </div>
           ) : null}
         </div>
 
         {/* Name Field */}
-        <div className="mt-4 flex w-full flex-col items-center gap-3">
+        {/* <div className="mt-4 flex w-full flex-col items-center gap-3">
           <div className="relative w-full max-w-md">
             <FormInlineField
               control={control}
@@ -73,7 +67,7 @@ export const ProfileHeader = ({
               onUpdate={onUpdateName}
             />
           </div>
-        </div>
+        </div> */}
       </div>
     </>
   )

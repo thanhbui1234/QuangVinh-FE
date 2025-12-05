@@ -166,7 +166,7 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
         onClick={() => !isLoading && onOpenChange(false)}
         className="absolute inset-0 bg-black/40 backdrop-blur-sm z-0"
       />
-      <div className="relative w-full max-w-2xl mx-4 bg-white rounded-xl shadow-2xl border border-gray-100 max-h-[90vh] overflow-y-auto z-10">
+      <div className="relative w-full max-w-2xl mx-4 bg-white rounded-xl shadow-2xl border border-gray-100 max-h-[80vh] overflow-y-auto z-10">
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between rounded-t-xl">
           <div>
@@ -344,7 +344,12 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                 {...register('imageUrl')}
                 placeholder="https://example.com/image.jpg"
               />
-              <FileUploadValidationDemo />
+              <FileUploadValidationDemo
+                onUploadSuccess={(url) => {
+                  setValue('imageUrl', url)
+                  console.log('📸 Image URL set to form:', url)
+                }}
+              />
             </div>
 
             {/* Checklist */}

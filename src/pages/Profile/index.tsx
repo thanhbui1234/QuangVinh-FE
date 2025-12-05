@@ -95,7 +95,6 @@ export const Profile = () => {
   return (
     <div className="w-full">
       <ProfileHeader
-        control={control}
         isOwnProfile={isOwnProfile}
         avatarUrl={avatarUrl}
         isSaving={isSaving}
@@ -129,20 +128,6 @@ export const Profile = () => {
             </Button>
           </div>
         ) : null}
-
-        {/* Optional sections similar to FB: intro and tabs placeholder */}
-        <div className="mt-6 grid w-full grid-cols-1 gap-4 md:grid-cols-3">
-          <div className="rounded-md border p-4">
-            <div className="font-semibold">Giới thiệu</div>
-            <div className="mt-2 text-sm text-muted-foreground">
-              Cập nhật thông tin cá nhân của bạn để mọi người biết bạn hơn.
-            </div>
-          </div>
-          <div className="md:col-span-2 rounded-md border p-4">
-            <div className="font-semibold">Bài viết</div>
-            <div className="mt-2 text-sm text-muted-foreground">Đang cập nhật...</div>
-          </div>
-        </div>
       </div>
     </div>
   )
