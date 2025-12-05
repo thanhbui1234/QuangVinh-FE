@@ -18,6 +18,7 @@ import { useUpdateDescription } from '@/hooks/assignments/task/useUpdateDescript
 import { ButtonAction } from '@/components/Task/ButtonAction'
 import { DescriptionTask } from '@/components/Task/DescriptionTask'
 import { BreadcrumbTask } from '@/components/ui/breadcrumbTask'
+import { ShowFileTask } from '@/components/Task/ShowFileTask'
 
 export const DetailTask = () => {
   const { id } = useParams()
@@ -145,6 +146,7 @@ export const DetailTask = () => {
                 />
               </CardContent>
             </Card>
+            <ShowFileTask files={projectAssignmentDetail?.imageUrls || []} />
 
             {/* Comments Card */}
             <div className="comments-section">

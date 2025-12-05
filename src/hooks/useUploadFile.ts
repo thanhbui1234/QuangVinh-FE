@@ -4,14 +4,8 @@ import { useMutation } from '@tanstack/react-query'
 import { API_ENDPOINT } from '@/common'
 
 interface UploadFileResponse {
-  requestId: string
-  actionUserId: number
-  actionUser: string
-  requestPath: string
-  data: {
-    viewUrl: string
-    downloadUrl: string
-  }
+  viewUrl: string
+  downloadUrl: string
 }
 
 export const useUploadFile = () => {

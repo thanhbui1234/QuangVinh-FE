@@ -10,6 +10,7 @@ export const API_ENDPOINT = {
   UPDATE_PROJECT: '/api/task-group/update',
   DELETE_PROJECT: '/api/task-group/delete',
   GET_PROJECT_DETAIL: '/api/task-group/get-detail',
+  SEARCH_PROJECT: '/api/task-group/name-search',
   // task
   CREATE_TASK: '/api/task/create',
   GET_TASKS: '/api/task/get-list',
@@ -40,7 +41,7 @@ export const API_ENDPOINT = {
   GET_USER_APPROVE_LEAVES: '/api/absence-request/get_approvable_users',
   REMOVE_LEAVES: '/api/absence-request/remove',
   // profile
-  GET_PROFILE: '/api/user/get-profile',
+  GET_PROFILE: '/api/user/get-info',
   // dashboard
   DASHBOARD_LEAVES: '/api/dashboard/team-stats',
   DASHBOARD_OVERVIEW: '/api/dashboard/stats',
@@ -51,5 +52,5 @@ export const API_ENDPOINT = {
   NOTIFICATION_SUBSCRIBE: '/api/notifications/webpush/subscribe',
   NOTIFICATION_TEST_PUSH: '/api/notifications/webpush/test',
   // upload file
-  UPLOAD_FILE: '/api/file/upload',
+  UPLOAD_FILE: '/api/upload/file',
 }

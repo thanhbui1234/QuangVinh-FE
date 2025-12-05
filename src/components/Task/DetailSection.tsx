@@ -49,7 +49,7 @@ export const DetailSection = ({ projectAssignmentDetail }: { projectAssignmentDe
       <details open className="group">
         <summary className="flex items-center gap-2 cursor-pointer list-none font-semibold text-sm text-gray-900 mb-4">
           <ChevronDown className="w-4 h-4 transition-transform group-open:rotate-0 -rotate-90" />
-          Details
+          Chi tiết
         </summary>
 
         <div className="space-y-3 ml-6">

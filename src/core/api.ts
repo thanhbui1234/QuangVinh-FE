@@ -55,8 +55,6 @@ api.interceptors.response.use(
     const status = error.response?.status
 
     if (status === 401 && !isLoginRequest) {
-      console.log('🔴 Token hết hạn (403), bắt đầu refresh...')
-
       if (originalRequest._retry) {
         return Promise.reject(error)
       }

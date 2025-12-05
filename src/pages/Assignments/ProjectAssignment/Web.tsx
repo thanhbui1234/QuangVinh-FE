@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useDebouncedCallback } from 'use-debounce'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import AssignmentsSheet from '@/components/Assignments/Sheet'
@@ -7,6 +8,8 @@ import { useGetProjectList } from '@/hooks/assignments/useGetProjectList'
 import { useCreateProject } from '@/hooks/assignments/useCreateProject'
 import { useUpdateProject } from '@/hooks/assignments/useUpdateProject'
 import type { IProject, IProjectAssignment } from '@/types/project'
+import { useSearchProject } from '@/hooks/assignments/useSearchProject'
+import { Link } from 'react-router'
 
 const ProjectAssignment = () => {
   const [search, setSearch] = useState('')
@@ -23,6 +26,29 @@ const ProjectAssignment = () => {
   const { updateProjectMutation } = useUpdateProject()
   const [open, setOpen] = useState(false)
   const [editingProject, setEditingProject] = useState<IProjectAssignment | null>(null)
+  const { createSearchMutation } = useSearchProject()
+  const [searchResults, setSearchResults] = useState<IProjectAssignment[]>([])
+  const [showSearchDropdown, setShowSearchDropdown] = useState(false)
+
+  const debouncedSearch = useDebouncedCallback((searchValue: string) => {
+    if (searchValue.trim()) {
+      createSearchMutation.mutate(searchValue, {
+        onSuccess: (data) => {
+          setSearchResults(data?.taskGroups || [])
+          setShowSearchDropdown(true)
+        },
+      })
+    } else {
+      setSearchResults([])
+      setShowSearchDropdown(false)
+    }
+  }, 500)
+
+  console.log('searchResults', searchResults)
+
+  useEffect(() => {
+    debouncedSearch(search)
+  }, [search])
 
   const handleSubmit = (data: IProject) => {
     if (editingProject) {
@@ -63,12 +89,49 @@ const ProjectAssignment = () => {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-semibold">Dự án</h1>
         <div className="flex gap-2 w-full sm:w-auto">
-          <Input
-            placeholder="Tìm kiếm dự án..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="sm:w-64"
-          />
+          {/* Search Input with Dropdown */}
+          <div className="relative sm:w-64 w-full">
+            <Input
+              placeholder="Tìm kiếm dự án..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onFocus={() => searchResults.length > 0 && setShowSearchDropdown(true)}
+              className="w-full"
+            />
+
+            {/* Search Results Dropdown */}
+            {showSearchDropdown && searchResults.length > 0 && (
+              <div className="absolute top-full mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-[300px] overflow-y-auto">
+                {createSearchMutation.isPending ? (
+                  <div className="p-4 text-center text-gray-500">Đang tìm kiếm...</div>
+                ) : searchResults.length === 0 ? (
+                  <div className="p-4 text-center text-gray-500">Không tìm thấy dự án</div>
+                ) : (
+                  <ul className="py-1">
+                    {searchResults.map((project) => (
+                      <li
+                        key={project.taskGroupId}
+                        onClick={() => {
+                          setShowSearchDropdown(false)
+                        }}
+                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer transition-colors"
+                      >
+                        <Link to={`/assignments/${project.taskGroupId}`}>
+                          <p className="font-medium text-gray-900">{project.name}</p>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+
+            {/* Overlay to close dropdown when clicking outside */}
+            {showSearchDropdown && (
+              <div className="fixed inset-0 z-40" onClick={() => setShowSearchDropdown(false)} />
+            )}
+          </div>
+
           <Button onClick={handleCreate}>Tạo dự án</Button>
           <AssignmentsSheet
             open={open}
