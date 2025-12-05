@@ -1,5 +1,4 @@
 import { Controller, useForm } from 'react-hook-form'
-import { Input } from '@/components/ui/input.tsx'
 import { Textarea } from '@/components/ui/textarea.tsx'
 import { Button } from '@/components/ui/button.tsx'
 import { Label } from '@/components/ui/label.tsx'
@@ -34,6 +33,8 @@ import { useCreateLeaves } from '@/hooks/leaves/useCreateLeaves.ts'
 import { useUpdateLeaves } from '@/hooks/leaves/useUpdateLeaves.ts'
 import { convertToISO } from '@/utils/CommonUtils.ts'
 import { useEffect } from 'react'
+import { DatePicker } from '@/components/ui/datePicker'
+import { parseDate, formatToDateString } from '@/utils/CommonUtils'
 
 type CreateLeaveDialogProps = {
   open: boolean
@@ -235,7 +236,13 @@ export default function CreateLeaveDialog({
                           <Label htmlFor="start-date">
                             Từ ngày <span className="text-destructive">*</span>
                           </Label>
-                          <Input id="start-date" type="date" {...field} className="w-full" />
+                          <DatePicker
+                            value={parseDate(field.value)}
+                            onChange={(date) =>
+                              field.onChange(date ? formatToDateString(date) : '')
+                            }
+                            placeholder="Chọn ngày bắt đầu"
+                          />
                         </div>
                       )}
                     />
@@ -247,12 +254,12 @@ export default function CreateLeaveDialog({
                           <Label htmlFor="end-date">
                             Đến ngày <span className="text-destructive">*</span>
                           </Label>
-                          <Input
-                            id="end-date"
-                            type="date"
-                            {...field}
-                            min={formValues.offFrom}
-                            className="w-full"
+                          <DatePicker
+                            value={parseDate(field.value)}
+                            onChange={(date) =>
+                              field.onChange(date ? formatToDateString(date) : '')
+                            }
+                            placeholder="Chọn ngày kết thúc"
                           />
                         </div>
                       )}
@@ -267,7 +274,11 @@ export default function CreateLeaveDialog({
                         <Label htmlFor="leave-date">
                           Ngày nghỉ <span className="text-destructive">*</span>
                         </Label>
-                        <Input id="leave-date" type="date" {...field} className="w-full" />
+                        <DatePicker
+                          value={parseDate(field.value)}
+                          onChange={(date) => field.onChange(date ? formatToDateString(date) : '')}
+                          placeholder="Chọn ngày nghỉ"
+                        />
                       </div>
                     )}
                   />

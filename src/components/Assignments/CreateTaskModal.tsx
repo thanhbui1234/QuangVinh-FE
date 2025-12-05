@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -11,12 +12,16 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { TASK_PRIORITY_LABELS, TASK_TYPE_LABELS, TASK_STATUS } from '@/constants/assignments/task'
-import { X, Calendar, Image as ImageIcon, ListChecks } from 'lucide-react'
+import { X, Image as ImageIcon, ListChecks } from 'lucide-react'
 import { EditorJSComponent } from '../Editor'
 import { useState } from 'react'
 import { convertHTMLToEditorJS, convertEditorJSToHTML } from '@/utils/editorjs'
 import type { OutputData } from '@editorjs/editorjs'
 import { FileUploadValidationDemo } from '../ui/uploadFile'
+import { DatePicker } from '../ui/datePicker'
+import { CreateTaskFormSchema, type CreateTaskFormData as FormValues } from '@/schemas/taskSchema'
+import { parseDate, formatToDateTimeLocal, timestampToDateTimeLocal } from '@/utils/CommonUtils'
+
 export type CreateTaskFormData = {
   description: string
   priority: number
@@ -40,18 +45,6 @@ export type CreateTaskModalProps = {
   isLoading?: boolean
 }
 
-type FormValues = {
-  description: string
-  priority: string
-  taskType: string
-  status: string
-  startDate: string
-  estimateDate: string
-  assigneeId: string
-  imageUrl: string
-  checkList: string
-}
-
 export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
   open,
   onOpenChange,
@@ -67,10 +60,9 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
     reset,
     watch,
     setValue,
-    setError,
-    clearErrors,
     formState: { errors },
   } = useForm<FormValues>({
+    resolver: zodResolver(CreateTaskFormSchema),
     defaultValues: {
       description: '',
       priority: '2',
@@ -86,17 +78,17 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
   const [editedDescription, setEditedDescription] = useState<OutputData>(() =>
     convertHTMLToEditorJS(initialData?.checkList || '')
   )
+
   // Watch values for Select components (they need controlled state)
   const priority = watch('priority')
   const taskType = watch('taskType')
   const status = watch('status')
   const assigneeId = watch('assigneeId')
+  const startDate = watch('startDate')
+  const estimateDate = watch('estimateDate')
 
-  // Format timestamp to datetime-local format
-  const formatDate = (timestamp?: number) => {
-    if (!timestamp) return ''
-    return new Date(timestamp).toISOString().slice(0, 16)
-  }
+  // Format timestamp to datetime-local format (uses utility from CommonUtils)
+  const formatDate = timestampToDateTimeLocal
 
   // Reset or populate form when modal opens
   useEffect(() => {
@@ -143,29 +135,16 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
   }, [open, onOpenChange, isLoading])
 
   const onSubmit = (data: FormValues) => {
-    if (!data.description.trim()) return
-    if (!data.estimateDate) return
-
+    // Schema validation already passed if we reach here
     const estimateTime = new Date(data.estimateDate).getTime()
     const startTime = data.startDate ? new Date(data.startDate).getTime() : undefined
-
-    // Validate: estimateTime must be >= startTime
-    if (startTime && estimateTime < startTime) {
-      setError('estimateDate', {
-        type: 'manual',
-        message: 'Thời gian hoàn thành phải sau hoặc bằng thời gian bắt đầu',
-      })
-      return
-    }
-
-    // Clear any previous errors
-    clearErrors('estimateDate')
 
     // Find selected member
     const selectedMember = data.assigneeId
       ? memberTask.find((m: any) => String(m.id) === data.assigneeId)
       : undefined
 
+    // Call onCreate - parent will handle success/error and close modal
     onCreate({
       description: data.description.trim(),
       priority: Number(data.priority),
@@ -174,23 +153,20 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
       assigneeId: selectedMember ? Number(selectedMember.id) : undefined,
       status: Number(data.status),
       startTime,
-      imageUrls: data.imageUrl.trim() ? [data.imageUrl.trim()] : undefined,
-      checkList: data.checkList.trim() || undefined,
+      imageUrls: data.imageUrl?.trim() ? [data.imageUrl.trim()] : undefined,
+      checkList: data.checkList?.trim() || undefined,
     })
-
-    // Don't close modal here - let parent handle it after API success
-    reset()
   }
 
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center">
       <div
         onClick={() => !isLoading && onOpenChange(false)}
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm z-0"
       />
-      <div className="relative w-full max-w-2xl mx-4 bg-white rounded-xl shadow-2xl border border-gray-100 max-h-[90vh] overflow-y-auto">
+      <div className="relative w-full max-w-2xl mx-4 bg-white rounded-xl shadow-2xl border border-gray-100 max-h-[90vh] overflow-y-auto z-10">
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between rounded-t-xl">
           <div>
@@ -294,18 +270,17 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                   htmlFor="startDate"
                   className="text-sm font-medium text-gray-700 flex items-center gap-1.5"
                 >
-                  <Calendar className="w-4 h-4" />
                   Thời gian bắt đầu (tùy chọn)
                 </Label>
-                <Input
-                  id="startDate"
-                  type="datetime-local"
-                  {...register('startDate')}
-                  className="w-full"
+                <DatePicker
+                  value={parseDate(startDate)}
+                  onChange={(date) => {
+                    setValue('startDate', date ? formatToDateTimeLocal(date) : '')
+                  }}
+                  placeholder="Chọn ngày bắt đầu"
                 />
               </div>
             </div>
-
             {/* Estimate Time & Assignee */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
               <div className="space-y-2">
@@ -313,14 +288,14 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                   htmlFor="estimateDate"
                   className="text-sm font-medium text-gray-700 flex items-center gap-1.5"
                 >
-                  <Calendar className="w-4 h-4" />
                   Thời gian dự kiến hoàn thành <span className="text-red-500">*</span>
                 </Label>
-                <Input
-                  id="estimateDate"
-                  type="datetime-local"
-                  {...register('estimateDate', { required: 'Thời gian hoàn thành là bắt buộc' })}
-                  className="w-full"
+                <DatePicker
+                  value={parseDate(estimateDate)}
+                  onChange={(date) => {
+                    setValue('estimateDate', date ? formatToDateTimeLocal(date) : '')
+                  }}
+                  placeholder="Chọn ngày hoàn thành"
                 />
                 {errors.estimateDate && (
                   <p className="text-sm text-red-500">{errors.estimateDate.message}</p>
@@ -393,14 +368,14 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="sticky bottom-0 bg-gray-50 border-t border-gray-100 px-6 py-4 flex justify-end gap-3 rounded-b-xl">
+        <div className="sticky z-100 bottom-0 bg-gray-50 border-t border-gray-100 px-6 py-4 flex justify-end gap-3 rounded-b-xl">
           <Button
             variant="outline"
             onClick={() => {
               reset()
               onOpenChange(false)
             }}
-            className="min-w-[100px]"
+            className="w-1/2"
             type="button"
             disabled={isLoading}
           >
@@ -409,7 +384,7 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
           <Button
             type="submit"
             form="create-task-form"
-            className="min-w-[100px] bg-slate-900 hover:bg-slate-800"
+            className="w-1/2  bg-slate-900 hover:bg-slate-800"
             disabled={isLoading}
           >
             {isLoading ? 'Đang lưu...' : mode === 'edit' ? 'Lưu thay đổi' : 'Tạo công việc'}

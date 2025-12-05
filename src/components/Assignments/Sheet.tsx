@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { projectSchema } from '@/schemas'
 import type { IProject } from '@/types/project'
 import { FormSelect } from '../ui/selectDropwdown'
-import { STATUS_PROJECT, PRIVACY } from '@/constants/assignments/privacy'
+import { STATUS_PROJECT, PRIVACY, PRIVACY_LABEL } from '@/constants/assignments/privacy'
 import { isMobile } from 'react-device-detect'
 
 interface AssignmentsSheetProps {
@@ -26,10 +26,9 @@ const statusOptions = Object.entries(STATUS_PROJECT).map(([key, value]) => ({
 }))
 
 const privacyOptions = Object.entries(PRIVACY).map(([key, value]) => ({
-  value,
-  label: key,
+  value: value,
+  label: PRIVACY_LABEL[key as keyof typeof PRIVACY_LABEL],
 }))
-
 export const AssignmentsSheet = ({
   open,
   setOpen,
@@ -84,7 +83,7 @@ export const AssignmentsSheet = ({
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetContent side={isMobile ? 'bottom' : 'right'}>
+      <SheetContent className="pb-10" side={isMobile ? 'bottom' : 'right'}>
         <SheetHeader>
           <SheetTitle>{mode === 'edit' ? 'Chỉnh sửa dự án' : 'Tạo dự án mới'}</SheetTitle>
         </SheetHeader>
@@ -119,11 +118,11 @@ export const AssignmentsSheet = ({
             />
           </div>
 
-          <div className="flex justify-end gap-2 pt-4">
-            <Button type="button" variant="secondary" onClick={handleClose}>
+          <div className="flex justify-end gap-2 pt-4 px-2 w-full">
+            <Button className="w-1/2" type="button" variant="secondary" onClick={handleClose}>
               Hủy
             </Button>
-            <Button type="submit" disabled={!!isSubmitting}>
+            <Button className="w-1/2" type="submit" disabled={!!isSubmitting}>
               {isSubmitting
                 ? mode === 'edit'
                   ? 'Đang cập nhật...'

@@ -10,6 +10,7 @@ import { useGetDetailProject } from '@/hooks/assignments/useGetDetailProject'
 import { useGetMemberTask, type IMemberTask } from '@/hooks/assignments/useGetMemberTask'
 import { useCreateTask } from '@/hooks/assignments/task/useCreateTask'
 import { TASK_STATUS } from '@/constants/assignments/task'
+import AssignmentsAction from '@/components/Assignments/AssignmentsAction'
 
 export type User = {
   id: string
@@ -99,18 +100,25 @@ export const ProjectAssignmentDetail: React.FC = () => {
   }, [projectAssignmentDetail])
 
   function handleCreateTask(data: CreateTaskFormData) {
-    createTaskMutation.mutate({
-      description: data.description,
-      priority: data.priority,
-      taskType: data.taskType,
-      groupId: Number(id),
-      estimateTime: data.estimateTime,
-      imageUrls: data.imageUrls,
-      checkList: data.checkList,
-      assigneeId: data.assigneeId,
-      status: data.status,
-      startTime: data.startTime,
-    })
+    createTaskMutation.mutate(
+      {
+        description: data.description,
+        priority: data.priority,
+        taskType: data.taskType,
+        groupId: Number(id),
+        estimateTime: data.estimateTime,
+        imageUrls: data.imageUrls,
+        checkList: data.checkList,
+        assigneeId: data.assigneeId,
+        status: data.status,
+        startTime: data.startTime,
+      },
+      {
+        onSuccess: () => {
+          setIsCreateOpen(false)
+        },
+      }
+    )
   }
 
   // Loading fallback
@@ -138,42 +146,12 @@ export const ProjectAssignmentDetail: React.FC = () => {
 
   return (
     <div className="p-4 flex flex-col gap-4">
-      <div className="flex justify-between items-center">
-        <div className="flex flex-col gap-2">
-          <h2 className="m-0">{project.name}</h2>
-          <div className="flex items-center gap-2 mt-2">
-            <span className="text-xs text-gray-500">Thành viên:</span>
-            <div className="flex gap-1.5 flex-wrap">
-              {projectAssignmentDetail?.memberIds && projectAssignmentDetail.members.length > 0 ? (
-                projectAssignmentDetail.members.map((m: any) => (
-                  <span
-                    key={m.id}
-                    className="text-xs px-2 py-0.5 border border-gray-200 rounded-full bg-gray-50"
-                  >
-                    {m.name}
-                  </span>
-                ))
-              ) : (
-                <span className="text-xs text-gray-400">Chưa có thành viên</span>
-              )}
-            </div>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setIsInviteOpen(true)}
-            className="px-3 py-2 rounded-md border border-gray-300 bg-white text-slate-900"
-          >
-            Mời thành viên
-          </button>
-          <button
-            onClick={() => setIsCreateOpen(true)}
-            className="px-3 py-2 rounded-md border border-gray-300 bg-slate-900 text-white"
-          >
-            Tạo công việc mới
-          </button>
-        </div>
-      </div>
+      <AssignmentsAction
+        project={project}
+        projectAssignmentDetail={projectAssignmentDetail}
+        setIsInviteOpen={setIsInviteOpen}
+        setIsCreateOpen={setIsCreateOpen}
+      />
 
       {/* Stats Section */}
       <Overview tasks={project.tasks} />

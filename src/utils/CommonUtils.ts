@@ -110,3 +110,39 @@ export const formatEstimateHours = (hours: number): string => {
     return `${remainingHours} giờ`
   }
 }
+
+// ============ DatePicker Helper Functions ============
+
+/**
+ * Parse date string to Date object
+ * Handles both ISO strings and YYYY-MM-DD format
+ */
+export const parseDate = (dateStr?: string): Date | undefined => {
+  if (!dateStr) return undefined
+  const parsed = dayjs(dateStr)
+  return parsed.isValid() ? parsed.toDate() : undefined
+}
+
+/**
+ * Format Date to YYYY-MM-DD string
+ * Used for date inputs and leave forms
+ */
+export const formatToDateString = (date: Date): string => {
+  return dayjs(date).format('YYYY-MM-DD')
+}
+
+/**
+ * Format Date to datetime-local string (YYYY-MM-DDTHH:mm)
+ * Used for datetime-local inputs in task forms
+ */
+export const formatToDateTimeLocal = (date: Date): string => {
+  return dayjs(date).format('YYYY-MM-DDTHH:mm')
+}
+
+/**
+ * Convert timestamp to datetime-local format
+ */
+export const timestampToDateTimeLocal = (timestamp?: number): string => {
+  if (!timestamp) return ''
+  return dayjs(timestamp).format('YYYY-MM-DDTHH:mm')
+}

@@ -40,7 +40,7 @@ export const ProjectCard = ({ project, onEdit }: ProjectCardProps) => {
   }
 
   return (
-    <Card className="group relative">
+    <Card onClick={handleView} className="group relative cursor-pointer">
       {/* Badge và Dropdown ở góc phải trên */}
       <div className="absolute top-3 right-0 flex items-center gap-2 z-10">
         <Badge variant="secondary">{getPrivacy(project.privacy)}</Badge>
@@ -91,12 +91,6 @@ export const ProjectCard = ({ project, onEdit }: ProjectCardProps) => {
             <span className="text-muted-foreground">Số task:</span>
             <span className="font-medium">{project.taskIds?.length || 0}</span>
           </div>
-        </div>
-
-        <div className="flex justify-end">
-          <Button size="sm" variant="outline" onClick={handleView}>
-            Xem chi tiết
-          </Button>
         </div>
       </CardContent>
     </Card>
