@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button.tsx'
 import { Separator } from '@/components/ui/separator.tsx'
 import { StatusPill } from '@/components/base/StatusPill'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar.tsx'
 import { Clock, ChevronRight } from 'lucide-react'
 import {
   getLeaveIcon,
@@ -62,7 +63,17 @@ export default function LeaveListItemMobile({
               <h3 className="font-semibold text-base text-gray-900 dark:text-white mb-0.5">
                 {MappingLeavesType[request?.absenceType] || ''}
               </h3>
-
+              <div className="flex items-center gap-2 mb-1">
+                <Avatar className="size-4">
+                  <AvatarImage src={request.creator?.avatar} alt={request.creator?.name} />
+                  <AvatarFallback className="text-xs">
+                    {request.creator?.name?.[0]?.toUpperCase() || 'U'}
+                  </AvatarFallback>
+                </Avatar>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {request.creator?.name || request.creator?.email || 'N/A'}
+                </p>
+              </div>
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 {formatDate(request.offFrom)} - {formatDate(request.offTo)}
               </p>

@@ -14,7 +14,7 @@ export function OverviewKpiSection({
   isManagerOrDirector,
   layout = 'web',
 }: OverviewKpiSectionProps) {
-  const { stats, isLoading: isOverviewLoading } = useDashboardOverview()
+  const { stats, isLoading: isOverviewLoading } = useDashboardOverview(isManagerOrDirector)
   console.log('stats', stats)
   const kpis: Stat[] = useMemo(() => {
     if (!stats) {

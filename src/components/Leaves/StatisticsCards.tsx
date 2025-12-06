@@ -1,18 +1,8 @@
 import { Card } from '@/components/ui/card.tsx'
 import { Calendar, AlertCircle, CheckCircle2, XCircle } from 'lucide-react'
-import { type LeavesListDataResponse, StatusLeaves } from '@/types/Leave.ts'
 
-type StatisticsCardsProps = {
-  requests: LeavesListDataResponse[]
-}
-
-export default function StatisticsCards({ requests }: StatisticsCardsProps) {
-  const stats = {
-    total: requests.length,
-    pending: requests.filter((r) => r.status === StatusLeaves.PENDING).length,
-    approved: requests.filter((r) => r.status === StatusLeaves.APPROVED).length,
-    rejected: requests.filter((r) => r.status === StatusLeaves.REJECTED).length,
-  }
+export default function StatisticsCards(props: any) {
+  const { requests } = props
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -22,7 +12,7 @@ export default function StatisticsCards({ requests }: StatisticsCardsProps) {
             <p className="text-xs uppercase tracking-wide text-blue-600 dark:text-blue-400 font-medium">
               Tổng đơn
             </p>
-            <p className="text-3xl font-bold text-blue-700 dark:text-blue-300">{stats.total}</p>
+            <p className="text-3xl font-bold text-blue-700 dark:text-blue-300">{requests?.total}</p>
           </div>
           <Calendar className="size-9 text-blue-500 opacity-80" />
         </div>
@@ -34,7 +24,9 @@ export default function StatisticsCards({ requests }: StatisticsCardsProps) {
             <p className="text-xs uppercase tracking-wide text-amber-600 dark:text-amber-400 font-medium">
               Chờ duyệt
             </p>
-            <p className="text-3xl font-bold text-amber-700 dark:text-amber-300">{stats.pending}</p>
+            <p className="text-3xl font-bold text-amber-700 dark:text-amber-300">
+              {requests?.pending}
+            </p>
           </div>
           <AlertCircle className="size-9 text-amber-500 opacity-80" />
         </div>
@@ -47,7 +39,7 @@ export default function StatisticsCards({ requests }: StatisticsCardsProps) {
               Đã duyệt
             </p>
             <p className="text-3xl font-bold text-emerald-700 dark:text-emerald-300">
-              {stats.approved}
+              {requests?.approved}
             </p>
           </div>
           <CheckCircle2 className="size-9 text-emerald-500 opacity-80" />
@@ -60,7 +52,9 @@ export default function StatisticsCards({ requests }: StatisticsCardsProps) {
             <p className="text-xs uppercase tracking-wide text-rose-600 dark:text-rose-400 font-medium">
               Từ chối
             </p>
-            <p className="text-3xl font-bold text-rose-700 dark:text-rose-300">{stats.rejected}</p>
+            <p className="text-3xl font-bold text-rose-700 dark:text-rose-300">
+              {requests?.rejected}
+            </p>
           </div>
           <XCircle className="size-9 text-rose-500 opacity-80" />
         </div>

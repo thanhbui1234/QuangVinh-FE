@@ -48,6 +48,7 @@ export const API_ENDPOINT = {
   DASHBOARD_ASSIGNMENTS: '/api/dashboard/stats',
   DASHBOARD_PROJECT_PROGRESS_DAY: '/api/dashboard/project-progress',
   DASHBOARD_OVERDUE_TASK: '/api/dashboard/overdue-tasks',
+  DASHBOARD_PROJECT_RATIO: '/api/dashboard/project-status-ratio',
   // web push notification
   NOTIFICATION_SUBSCRIBE: '/api/notifications/webpush/subscribe',
   NOTIFICATION_TEST_PUSH: '/api/notifications/webpush/test',
