@@ -1,29 +1,19 @@
-import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
 import MobileBottomNav from '@/components/ui/mobile-bottom-nav'
-import { ClipboardList, PieChart, LineChart, Calendar } from 'lucide-react'
+import { PieChart, LineChart, Calendar } from 'lucide-react'
 import useCheckRole from '@/hooks/useCheckRole'
 import { useNavigate } from 'react-router'
-// Section title provided by ChartCard; no direct use here
-import { MiniDonut, MiniLeaveStacked, MiniLine } from '@/components/dashboard/Charts'
+import { MiniLeaveStacked } from '@/components/dashboard/Charts'
 import ChartCard from '@/components/dashboard/ChartCard'
+import { ProjectStatusRatio } from '@/components/dashboard/ProjectStatusRatio'
 import { useTeamLeaveStats } from '@/hooks/dashboard/useTeamLeaveStats'
+import { useProjectRatio } from '@/hooks/dashboard/useProjectRatio'
+import { useProjectProgressDay } from '@/hooks/dashboard/useProjectProgressDay'
 import { Skeleton } from '@/components/ui/skeleton'
 import { formatDateRangeShort, getDayOfWeekShortLabel } from '@/utils/CommonUtils'
 import { OverviewKpiSection } from '@/components/dashboard/OverviewKpiSection'
-
-const dummyMyTasks = [
-  { id: 'T-1021', name: 'Sửa lỗi màn hình đăng nhập', due: 'Hôm nay', status: 'Đang làm' },
-  { id: 'T-1022', name: 'Thiết kế component Card', due: 'Ngày mai', status: 'Chờ review' },
-]
+import { ProjectProgressDay } from '@/components/dashboard/ProjectProgressDay'
+import { MyTasksList } from '@/components/dashboard/MyTasksList'
 
 export default function DashboardMobile() {
   const { isManagerPermission, isDirectorPermission } = useCheckRole()
@@ -35,7 +25,18 @@ export default function DashboardMobile() {
     pendingRequests: leavePendingRequests,
     rangeLabel: leaveRangeLabel,
     isLoading: isLeaveStatsLoading,
-  } = useTeamLeaveStats()
+  } = useTeamLeaveStats(0, isManagerOrDirector)
+  const { ratio: projectRatio, isLoading: isProjectRatioLoading } = useProjectRatio(
+    false,
+    isManagerOrDirector
+  )
+  const {
+    chartData: progressChartData,
+    dailyProgress,
+    summary: progressSummary,
+    rangeLabel: progressRangeLabel,
+    isLoading: isProgressLoading,
+  } = useProjectProgressDay(0, isManagerOrDirector)
   const leavePendingPreview = leavePendingRequests.slice(0, 3)
 
   return (
@@ -53,13 +54,21 @@ export default function DashboardMobile() {
         </div>
 
         <ChartCard
-          title="Tiến độ tuần"
+          title="Tiến độ hoàn thành"
           icon={<LineChart className="h-4 w-4" />}
-          badgeText="Tuần 45"
+          badgeText={progressRangeLabel}
           contentClassName="p-3"
           onClick={() => navigate('/mobile/assignments')}
         >
-          <MiniLine className="h-14 w-full sm:h-16" />
+          <ProjectProgressDay
+            chartData={progressChartData}
+            dailyProgress={dailyProgress}
+            summary={progressSummary}
+            isLoading={isProgressLoading}
+            showTaskList={true}
+            maxTasksToShow={3}
+            layout="mobile"
+          />
         </ChartCard>
 
         <OverviewKpiSection isManagerOrDirector={isManagerOrDirector} layout="mobile" />
@@ -72,21 +81,12 @@ export default function DashboardMobile() {
               contentClassName="p-3"
               onClick={() => navigate('/mobile/assignments')}
             >
-              <div className="mt-2 flex items-center gap-3">
-                <MiniDonut className="h-14 w-14 sm:h-16 sm:w-16" />
-                <div className="space-y-1 text-xs">
-                  <div className="flex items-center gap-2">
-                    <span className="inline-block h-2 w-2 rounded-full bg-emerald-500" /> Đúng tiến
-                    độ: 60%
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="inline-block h-2 w-2 rounded-full bg-blue-600" /> Chậm: 25%
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="inline-block h-2 w-2 rounded-full bg-gray-300" /> Tạm dừng: 15%
-                  </div>
-                </div>
-              </div>
+              <ProjectStatusRatio
+                ratio={projectRatio}
+                isLoading={isProjectRatioLoading}
+                className="mt-2"
+                legendClassName="text-xs"
+              />
             </ChartCard>
             <ChartCard
               title="Lịch nghỉ (tuần)"
@@ -138,54 +138,7 @@ export default function DashboardMobile() {
           </>
         )}
 
-        <Card className="w-full">
-          <CardContent className="p-3">
-            <div className="mb-2 flex items-center gap-2 text-sm font-medium">
-              <ClipboardList className="h-4 w-4" /> Công việc của tôi
-            </div>
-            {/* Mobile list (stacked) */}
-            <div className="space-y-2 sm:hidden">
-              {dummyMyTasks.map((t) => (
-                <div key={t.id} className="rounded-md border p-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">{t.id}</span>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary">{t.status}</Badge>
-                      <span className="text-[11px] text-muted-foreground">{t.due}</span>
-                    </div>
-                  </div>
-                  <div className="mt-1 text-sm font-medium">{t.name}</div>
-                </div>
-              ))}
-            </div>
-            {/* Table for >= sm screens */}
-            <div className="-mx-3 hidden overflow-x-auto px-3 sm:block">
-              <Table className="min-w-[520px]">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Mã</TableHead>
-                    <TableHead>Tên</TableHead>
-                    <TableHead>Hạn</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {dummyMyTasks.map((t) => (
-                    <TableRow key={t.id}>
-                      <TableCell className="font-medium">{t.id}</TableCell>
-                      <TableCell>{t.name}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="secondary">{t.status}</Badge>
-                          <span className="text-xs text-muted-foreground">{t.due}</span>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
+        <MyTasksList limit={5} enabled={true} />
       </div>
 
       <MobileBottomNav />

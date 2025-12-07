@@ -8,6 +8,7 @@ import {
 import { Label } from '@/components/ui/label.tsx'
 import { Badge } from '@/components/ui/badge.tsx'
 import { Button } from '@/components/ui/button.tsx'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar.tsx'
 import { Eye, Clock, AlertCircle, CheckCircle2, XCircle, Edit, Trash2 } from 'lucide-react'
 import {
   getLeaveIcon,
@@ -24,6 +25,7 @@ type ViewDetailsDialogProps = {
   selectedRequest: LeavesListDataResponse | null
   onEdit?: (request: LeavesListDataResponse) => void
   onDelete?: (request: LeavesListDataResponse) => void
+  canEditOrDelete?: (request: LeavesListDataResponse) => any
 }
 
 export default function ViewDetailsDialog({
@@ -32,6 +34,7 @@ export default function ViewDetailsDialog({
   selectedRequest,
   onEdit,
   onDelete,
+  canEditOrDelete,
 }: ViewDetailsDialogProps) {
   const getTimeLeaves = () => {
     if (!selectedRequest?.offFrom && !selectedRequest?.offTo) return null
@@ -54,9 +57,20 @@ export default function ViewDetailsDialog({
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
                 <Label className="text-muted-foreground">Nhân viên</Label>
-                <p className="font-medium">
-                  {/*{selectedRequest.creator?.fullName || selectedRequest.creator?.email || 'N/A'}*/}
-                </p>
+                <div className="flex items-center gap-2">
+                  <Avatar className="size-8">
+                    <AvatarImage
+                      src={selectedRequest.creator?.avatar}
+                      alt={selectedRequest.creator?.name}
+                    />
+                    <AvatarFallback>
+                      {selectedRequest.creator?.name?.[0]?.toUpperCase() || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <p className="font-medium">
+                    {selectedRequest.creator?.name || selectedRequest.creator?.email || 'N/A'}
+                  </p>
+                </div>
               </div>
               <div className="space-y-1">
                 <Label className="text-muted-foreground">Loại nghỉ</Label>
@@ -124,35 +138,38 @@ export default function ViewDetailsDialog({
               <p className="text-sm">{formatDate(selectedRequest.createdTime)}</p>
             </div>
 
-            {/* Action Buttons - Only show for pending requests */}
-            {selectedRequest.status === StatusLeaves.PENDING && (onEdit || onDelete) && (
-              <div className="flex gap-2 pt-2">
-                {onEdit && (
-                  <Button
-                    onClick={() => {
-                      onEdit(selectedRequest)
-                      onOpenChange(false)
-                    }}
-                    className="flex-1 gap-2"
-                  >
-                    <Edit className="size-4" />
-                    Sửa đơn
-                  </Button>
-                )}
-                {onDelete && (
-                  <Button
-                    variant="destructive"
-                    onClick={() => {
-                      onDelete(selectedRequest)
-                    }}
-                    className="flex-1 gap-2"
-                  >
-                    <Trash2 className="size-4" />
-                    Xoá đơn
-                  </Button>
-                )}
-              </div>
-            )}
+            {/* Action Buttons - Only show for pending requests and if user is the creator */}
+            {selectedRequest.status === StatusLeaves.PENDING &&
+              canEditOrDelete &&
+              canEditOrDelete(selectedRequest) &&
+              (onEdit || onDelete) && (
+                <div className="flex gap-2 pt-2">
+                  {onEdit && (
+                    <Button
+                      onClick={() => {
+                        onEdit(selectedRequest)
+                        onOpenChange(false)
+                      }}
+                      className="flex-1 gap-2"
+                    >
+                      <Edit className="size-4" />
+                      Sửa đơn
+                    </Button>
+                  )}
+                  {onDelete && (
+                    <Button
+                      variant="destructive"
+                      onClick={() => {
+                        onDelete(selectedRequest)
+                      }}
+                      className="flex-1 gap-2"
+                    >
+                      <Trash2 className="size-4" />
+                      Xoá đơn
+                    </Button>
+                  )}
+                </div>
+              )}
           </div>
         )}
       </DialogContent>

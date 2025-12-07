@@ -146,3 +146,55 @@ export const timestampToDateTimeLocal = (timestamp?: number): string => {
   if (!timestamp) return ''
   return dayjs(timestamp).format('YYYY-MM-DDTHH:mm')
 }
+
+/**
+ * Get start of day timestamp (00:00:00.000)
+ */
+export const getStartOfDayTimestamp = (date: Date | string | number): number => {
+  return dayjs(date).startOf('day').valueOf()
+}
+
+/**
+ * Get end of day timestamp (23:59:59.999)
+ */
+export const getEndOfDayTimestamp = (date: Date | string | number): number => {
+  return dayjs(date).endOf('day').valueOf()
+}
+
+/**
+ * Calculate date range for a given number of days from today
+ * Returns timestamps for start and end of the range
+ */
+export const calculateDateRange = (
+  days: number,
+  startFromToday = true
+): { startDate: number; endDate: number } => {
+  const today = dayjs().startOf('day')
+  const start = startFromToday ? today : today.subtract(days - 1, 'day')
+  const end = startFromToday ? today.add(days - 1, 'day') : today
+
+  return {
+    startDate: start.valueOf(),
+    endDate: end.endOf('day').valueOf(),
+  }
+}
+
+/**
+ * Calculate week range (Monday to Sunday) with optional offset
+ */
+export const calculateWeekRange = (weekOffset = 0): { startDate: number; endDate: number } => {
+  const now = dayjs()
+  const day = now.day()
+  const distanceToMonday = (day + 6) % 7
+
+  const monday = now
+    .subtract(distanceToMonday, 'day')
+    .add(weekOffset * 7, 'day')
+    .startOf('day')
+  const sunday = monday.add(6, 'day').endOf('day')
+
+  return {
+    startDate: monday.valueOf(),
+    endDate: sunday.valueOf(),
+  }
+}

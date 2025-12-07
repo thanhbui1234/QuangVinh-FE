@@ -2,6 +2,7 @@ import BottomSheet from '@/components/ui/bottom-sheet.tsx'
 import { Label } from '@/components/ui/label.tsx'
 import { Separator } from '@/components/ui/separator.tsx'
 import { Button } from '@/components/ui/button.tsx'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar.tsx'
 import { Clock, Edit, Trash2 } from 'lucide-react'
 import {
   getLeaveIcon,
@@ -18,6 +19,7 @@ type ViewDetailsSheetMobileProps = {
   selectedRequest: LeavesListDataResponse | null
   onEdit?: (request: LeavesListDataResponse) => void
   onDelete?: (request: LeavesListDataResponse) => void
+  canEditOrDelete?: (request: LeavesListDataResponse) => any
 }
 
 export default function ViewDetailsSheetMobile({
@@ -26,6 +28,7 @@ export default function ViewDetailsSheetMobile({
   selectedRequest,
   onEdit,
   onDelete,
+  canEditOrDelete,
 }: ViewDetailsSheetMobileProps) {
   const getTimeLeaves = () => {
     if (!selectedRequest?.offFrom && !selectedRequest?.offTo) return null
@@ -43,6 +46,24 @@ export default function ViewDetailsSheetMobile({
         <div className="space-y-4 pb-6">
           {/* iOS-style Info Card */}
           <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-500 dark:text-gray-400">Nhân viên</span>
+              <div className="flex items-center gap-2">
+                <Avatar className="size-6">
+                  <AvatarImage
+                    src={selectedRequest.creator?.avatar}
+                    alt={selectedRequest.creator?.name}
+                  />
+                  <AvatarFallback>
+                    {selectedRequest.creator?.name?.[0]?.toUpperCase() || 'U'}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-base font-semibold text-gray-900 dark:text-white">
+                  {selectedRequest.creator?.name || selectedRequest.creator?.email || 'N/A'}
+                </span>
+              </div>
+            </div>
+            <Separator className="opacity-60" />
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-500 dark:text-gray-400">Loại nghỉ</span>
               <div className="flex items-center gap-2">
@@ -123,36 +144,38 @@ export default function ViewDetailsSheetMobile({
             </div>
           </div>
 
-          {/* Action Buttons - Only show for pending requests */}
-          {selectedRequest.status === StatusLeaves.PENDING && (
-            <div className="space-y-3">
-              {onEdit && (
-                <Button
-                  onClick={() => {
-                    onEdit(selectedRequest)
-                    onOpenChange(false)
-                  }}
-                  className="w-full h-12 rounded-xl bg-blue-500 text-white text-sm font-semibold hover:bg-blue-600 transition-colors shadow-sm flex items-center justify-center gap-2"
-                >
-                  <Edit className="size-4" />
-                  Sửa đơn
-                </Button>
-              )}
+          {/* Action Buttons - Only show for pending requests and if user is the creator */}
+          {selectedRequest.status === StatusLeaves.PENDING &&
+            canEditOrDelete &&
+            canEditOrDelete(selectedRequest) && (
+              <div className="space-y-3">
+                {onEdit && (
+                  <Button
+                    onClick={() => {
+                      onEdit(selectedRequest)
+                      onOpenChange(false)
+                    }}
+                    className="w-full h-12 rounded-xl bg-blue-500 text-white text-sm font-semibold hover:bg-blue-600 transition-colors shadow-sm flex items-center justify-center gap-2"
+                  >
+                    <Edit className="size-4" />
+                    Sửa đơn
+                  </Button>
+                )}
 
-              {onDelete && (
-                <Button
-                  variant="outline"
-                  className="w-full h-12 rounded-xl border-rose-200 text-rose-600 hover:bg-rose-50 dark:border-rose-800 dark:text-rose-400 dark:hover:bg-rose-900/30 flex items-center justify-center gap-2"
-                  onClick={() => {
-                    onDelete(selectedRequest)
-                  }}
-                >
-                  <Trash2 className="size-4" />
-                  Xoá đơn
-                </Button>
-              )}
-            </div>
-          )}
+                {onDelete && (
+                  <Button
+                    variant="outline"
+                    className="w-full h-12 rounded-xl border-rose-200 text-rose-600 hover:bg-rose-50 dark:border-rose-800 dark:text-rose-400 dark:hover:bg-rose-900/30 flex items-center justify-center gap-2"
+                    onClick={() => {
+                      onDelete(selectedRequest)
+                    }}
+                  >
+                    <Trash2 className="size-4" />
+                    Xoá đơn
+                  </Button>
+                )}
+              </div>
+            )}
         </div>
       )}
     </BottomSheet>

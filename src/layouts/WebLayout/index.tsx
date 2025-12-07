@@ -123,7 +123,6 @@ const WebLayout = ({ children }: Props) => {
           href: '/personnel/leaves',
           roles: [ROLE.MANAGER, ROLE.DIRECTOR, ROLE.WORKER],
         },
-        { label: 'Chức vụ', href: '/personnel/positions' },
       ],
     },
     {

@@ -23,8 +23,8 @@ self.addEventListener('push', (event) => {
   const title = data.title || 'Thông báo mới'
   const options: NotificationOptions = {
     body: data.body || '',
-    icon: data.icon || '/icon-192x192.png',
-    badge: data.badge || '/icon-192x192.png',
+    icon: data.icon || '',
+    badge: data.badge || '',
     data: data.data || {},
   }
 

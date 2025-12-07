@@ -4,14 +4,14 @@ import type { UserRole } from '@/constants'
 
 // User-related types
 export interface User {
-  id: string
+  id: number
   email: string
   name: string
   phone: string
   roles?: string[]
   avatar?: string
-  createdAt: string
-  updatedAt: string
+  createdAt?: string
+  updatedAt?: string
 }
 
 // User API response types

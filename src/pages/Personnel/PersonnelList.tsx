@@ -10,7 +10,7 @@ import type { UserRole } from '@/constants'
 // Sample data - sẽ thay bằng API call sau
 const samplePersonnel: User[] = [
   {
-    id: '1',
+    id: 1,
     name: 'Nguyễn Văn A',
     email: 'nguyenvana@example.com',
     roles: ['DIRECTOR'],
@@ -20,7 +20,7 @@ const samplePersonnel: User[] = [
     updatedAt: '2024-01-20T10:00:00Z',
   },
   {
-    id: '2',
+    id: 2,
     name: 'Trần Thị B',
     phone: '123123312',
     email: 'tranthib@example.com',
@@ -30,7 +30,7 @@ const samplePersonnel: User[] = [
     updatedAt: '2024-01-19T10:00:00Z',
   },
   {
-    id: '3',
+    id: 3,
     phone: '123123312',
     name: 'Lê Văn C',
     email: 'levanc@example.com',
@@ -40,7 +40,7 @@ const samplePersonnel: User[] = [
     updatedAt: '2024-01-18T10:00:00Z',
   },
   {
-    id: '4',
+    id: 4,
     phone: '123123312',
     name: 'Phạm Thị D',
     email: 'phamthid@example.com',
@@ -50,7 +50,7 @@ const samplePersonnel: User[] = [
     updatedAt: '2024-01-20T10:00:00Z',
   },
   {
-    id: '5',
+    id: 5,
     name: 'Hoàng Văn E',
     phone: '123123312',
     email: 'hoangvane@example.com',
@@ -60,7 +60,7 @@ const samplePersonnel: User[] = [
     updatedAt: '2024-01-21T10:00:00Z',
   },
   {
-    id: '6',
+    id: 6,
     name: 'Võ Thị F',
     email: 'vothif@example.com',
     roles: ['MANAGER'],
@@ -70,7 +70,7 @@ const samplePersonnel: User[] = [
     updatedAt: '2024-01-22T10:00:00Z',
   },
   {
-    id: '7',
+    id: 7,
     name: 'Đặng Văn G',
     phone: '123123312',
     email: 'dangvang@example.com',
@@ -80,7 +80,7 @@ const samplePersonnel: User[] = [
     updatedAt: '2024-01-23T10:00:00Z',
   },
   {
-    id: '8',
+    id: 8,
     name: 'Bùi Thị H',
     email: 'buithih@example.com',
     roles: ['DIRECTOR'],
@@ -240,7 +240,7 @@ const PersonnelList = () => {
           <Button
             size="sm"
             variant="ghost"
-            onClick={() => handleView(record.id)}
+            onClick={() => handleView(record.id.toString())}
             className="h-8 w-8 p-0"
             title="Xem chi tiết"
           >
@@ -249,7 +249,7 @@ const PersonnelList = () => {
           <Button
             size="sm"
             variant="ghost"
-            onClick={() => handleEdit(record.id)}
+            onClick={() => handleEdit(record.id.toString())}
             className="h-8 w-8 p-0"
             title="Chỉnh sửa"
           >
@@ -258,7 +258,7 @@ const PersonnelList = () => {
           <Button
             size="sm"
             variant="ghost"
-            onClick={() => handleDelete(record.id)}
+            onClick={() => handleDelete(record.id.toString())}
             className="h-8 w-8 p-0 text-destructive hover:text-destructive"
             title="Xóa"
           >

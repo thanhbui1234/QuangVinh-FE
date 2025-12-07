@@ -5,7 +5,7 @@ import { dashboardOverviewKey } from '@/constants/dashboard/dashboard'
 import { POST } from '@/core/api'
 import type { DashboardStatsResponse } from '@/types/DashBoard'
 
-export const useDashboardOverview = () => {
+export const useDashboardOverview = (enabled = true) => {
   const { data, isLoading, isFetching, error, refetch } = useQuery<DashboardStatsResponse>({
     queryKey: dashboardOverviewKey.list({}),
     queryFn: async () => {
@@ -17,6 +17,7 @@ export const useDashboardOverview = () => {
       console.log('responseresponseresponse', response)
       return response
     },
+    enabled,
   })
 
   const stats = data?.stats

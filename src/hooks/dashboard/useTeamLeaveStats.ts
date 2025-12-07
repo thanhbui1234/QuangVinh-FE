@@ -10,28 +10,11 @@ import type {
   TeamStatsRequest,
   TeamStatsResponse,
 } from '@/types/DashBoard'
-import { formatDateRangeShort, getDayOfWeekShortLabel } from '@/utils/CommonUtils'
-
-const calculateWeekRange = (weekOffset = 0) => {
-  const now = new Date()
-  now.setHours(0, 0, 0, 0)
-
-  const day = now.getDay()
-  const distanceToMonday = (day + 6) % 7
-
-  const monday = new Date(now)
-  monday.setDate(now.getDate() - distanceToMonday + weekOffset * 7)
-  monday.setHours(0, 0, 0, 0)
-
-  const sunday = new Date(monday)
-  sunday.setDate(monday.getDate() + 6)
-  sunday.setHours(23, 59, 59, 999)
-
-  return {
-    startDate: monday.getTime(),
-    endDate: sunday.getTime(),
-  }
-}
+import {
+  calculateWeekRange,
+  formatDateRangeShort,
+  getDayOfWeekShortLabel,
+} from '@/utils/CommonUtils'
 
 type FlattenedRequest = RequestItem & {
   dayOfWeek: string
@@ -43,7 +26,7 @@ export interface WeeklyLeaveStats {
   pending: number
 }
 
-export const useTeamLeaveStats = (weekOffset = 0) => {
+export const useTeamLeaveStats = (weekOffset = 0, enabled = true) => {
   const range = useMemo(() => calculateWeekRange(weekOffset), [weekOffset])
 
   const { data, isLoading, isFetching, error, refetch } = useQuery<TeamStatsData>({
@@ -53,6 +36,7 @@ export const useTeamLeaveStats = (weekOffset = 0) => {
       const response = (await POST(API_ENDPOINT.DASHBOARD_LEAVES, payload)) as TeamStatsResponse
       return response
     },
+    enabled,
   })
 
   const dailyStats = data?.stats?.dailyStats ?? []

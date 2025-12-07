@@ -1,10 +1,6 @@
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router'
-import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import SectionTitle from '@/components/dashboard/SectionTitle'
-import { MiniBar, MiniDonut, MiniLeaveStacked, MiniLine } from '@/components/dashboard/Charts'
-import ChartCard from '@/components/dashboard/ChartCard'
 import {
   Table,
   TableBody,
@@ -14,51 +10,24 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Separator } from '@/components/ui/separator'
-import { ClipboardList, Clock, BarChart3, PieChart, LineChart, Calendar } from 'lucide-react'
+import { MiniBar, MiniLeaveStacked } from '@/components/dashboard/Charts'
+import ChartCard from '@/components/dashboard/ChartCard'
+import { ProjectStatusRatio } from '@/components/dashboard/ProjectStatusRatio'
+import { BarChart3, PieChart, LineChart, Calendar } from 'lucide-react'
 import useCheckRole from '@/hooks/useCheckRole'
 import { useTeamLeaveStats } from '@/hooks/dashboard/useTeamLeaveStats'
+import { useProjectRatio } from '@/hooks/dashboard/useProjectRatio'
+import { useProjectProgressDay } from '@/hooks/dashboard/useProjectProgressDay'
 import { formatDateRangeShort, getDayOfWeekShortLabel } from '@/utils/CommonUtils'
 import { OverviewKpiSection } from '@/components/dashboard/OverviewKpiSection'
+import { ProjectProgressDay } from '@/components/dashboard/ProjectProgressDay'
+import { OverdueTasksTable } from '@/components/dashboard/OverdueTasksTable'
+import { MyTasksTable } from '@/components/dashboard/MyTasksTable'
 import { Skeleton } from '@/components/ui/skeleton'
-
-// Stat type moved to shared component
-
-const dummyMyTasks = [
-  {
-    id: 'T-1021',
-    name: 'Sửa lỗi màn hình đăng nhập',
-    project: 'PWA Core',
-    due: 'Hôm nay',
-    status: 'Đang làm',
-    priority: 'Cao',
-  },
-  {
-    id: 'T-1022',
-    name: 'Thiết kế component Card',
-    project: 'UI Kit',
-    due: 'Ngày mai',
-    status: 'Chờ review',
-    priority: 'Trung bình',
-  },
-  {
-    id: 'T-1023',
-    name: 'Viết test cho API',
-    project: 'Backend',
-    due: 'Trong 3 ngày',
-    status: 'Mới',
-    priority: 'Thấp',
-  },
-]
-
-const dummyOverdue = [
-  { id: 'T-990', name: 'Tối ưu hiệu năng bảng', owner: 'Quang', days: 2 },
-  { id: 'T-981', name: 'Cập nhật tài liệu quy trình', owner: 'Linh', days: 1 },
-]
 
 export default function DashboardWeb() {
   const { isManagerPermission, isDirectorPermission } = useCheckRole()
   const navigate = useNavigate()
-
   const isManagerOrDirector = isManagerPermission || isDirectorPermission
   const {
     chartData: leaveChartData,
@@ -66,12 +35,30 @@ export default function DashboardWeb() {
     pendingRequests: leavePendingRequests,
     rangeLabel: leaveRangeLabel,
     isLoading: isLeaveStatsLoading,
-  } = useTeamLeaveStats()
+  } = useTeamLeaveStats(0, isManagerOrDirector)
+
+  const { ratio: projectRatio, isLoading: isProjectRatioLoading } = useProjectRatio(
+    false,
+    isManagerOrDirector
+  )
+
+  const {
+    chartData: progressChartData,
+    dailyProgress,
+    summary: progressSummary,
+    rangeLabel: progressRangeLabel,
+    isLoading: isProgressLoading,
+  } = useProjectProgressDay(0, isManagerOrDirector)
 
   const leavePendingPreview = useMemo(
     () => leavePendingRequests.slice(0, 4),
     [leavePendingRequests]
   )
+
+  const projectCountBadge = useMemo(() => {
+    if (!projectRatio) return ' dự án'
+    return `${projectRatio.totalTasks} công việc`
+  }, [projectRatio])
 
   return (
     <div className="p-6 space-y-6">
@@ -89,42 +76,42 @@ export default function DashboardWeb() {
         </div>
       </div>
 
-      <OverviewKpiSection isManagerOrDirector={isManagerOrDirector} layout="web" />
+      {isManagerOrDirector && (
+        <OverviewKpiSection isManagerOrDirector={isManagerOrDirector} layout="web" />
+      )}
 
       {isManagerOrDirector ? (
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           <div className="lg:col-span-2">
             <ChartCard
-              title="Tiến độ công việc theo tuần"
+              title="Tiến độ hoàn thành công việc"
               icon={<LineChart className="h-4 w-4" />}
-              badgeText="Tuần 45"
+              badgeText={progressRangeLabel}
               onClick={() => navigate('/assignments')}
             >
-              <MiniLine />
+              <ProjectProgressDay
+                chartData={progressChartData}
+                dailyProgress={dailyProgress}
+                summary={progressSummary}
+                isLoading={isProgressLoading}
+                showTaskList={true}
+                maxTasksToShow={5}
+                layout="web"
+              />
             </ChartCard>
           </div>
 
           <ChartCard
             title="Tỉ lệ trạng thái dự án"
             icon={<PieChart className="h-4 w-4" />}
-            badgeText="12 dự án"
+            badgeText={projectCountBadge}
             onClick={() => navigate('/assignments')}
           >
-            <div className="flex items-center gap-4">
-              <MiniDonut />
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center gap-2">
-                  <span className="inline-block h-2 w-2 rounded-full bg-emerald-500" /> Đúng tiến
-                  độ: 60%
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="inline-block h-2 w-2 rounded-full bg-blue-600" /> Chậm: 25%
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="inline-block h-2 w-2 rounded-full bg-gray-300" /> Tạm dừng: 15%
-                </div>
-              </div>
-            </div>
+            <ProjectStatusRatio
+              ratio={projectRatio}
+              isLoading={isProjectRatioLoading}
+              className="mt-2"
+            />
           </ChartCard>
 
           <div className="lg:col-span-2">
@@ -198,101 +185,10 @@ export default function DashboardWeb() {
             </ChartCard>
           </div>
 
-          <Card>
-            <CardContent className="p-4">
-              <SectionTitle title="Việc quá hạn" icon={<Clock className="h-4 w-4" />} />
-              <Separator className="my-3" />
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Mã</TableHead>
-                    <TableHead>Tên</TableHead>
-                    <TableHead>Phụ trách</TableHead>
-                    <TableHead className="text-right">Số ngày</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {dummyOverdue.map((t) => (
-                    <TableRow key={t.id}>
-                      <TableCell className="font-medium">{t.id}</TableCell>
-                      <TableCell>{t.name}</TableCell>
-                      <TableCell>{t.owner}</TableCell>
-                      <TableCell className="text-right">{t.days}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+          <OverdueTasksTable limit={5} enabled={isManagerOrDirector} />
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-          <div className="lg:col-span-2">
-            <ChartCard
-              title="Tiến độ tuần của tôi"
-              icon={<LineChart className="h-4 w-4" />}
-              badgeText="Tuần 45"
-              onClick={() => navigate('/assignments')}
-            >
-              <MiniLine />
-            </ChartCard>
-          </div>
-          <ChartCard title="Phân bổ thời gian" icon={<PieChart className="h-4 w-4" />}>
-            <div className="mt-2 flex items-center gap-4">
-              <MiniDonut />
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center gap-2">
-                  <span className="inline-block h-2 w-2 rounded-full bg-emerald-500" /> Thực thi:
-                  60%
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="inline-block h-2 w-2 rounded-full bg-blue-600" /> Review: 25%
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="inline-block h-2 w-2 rounded-full bg-gray-300" /> Họp: 15%
-                </div>
-              </div>
-            </div>
-          </ChartCard>
-
-          <Card className="lg:col-span-3">
-            <CardContent className="p-4">
-              <SectionTitle
-                title="Công việc của tôi"
-                icon={<ClipboardList className="h-4 w-4" />}
-              />
-              <Separator className="my-3" />
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Mã</TableHead>
-                    <TableHead>Tên</TableHead>
-                    <TableHead>Dự án</TableHead>
-                    <TableHead>Hạn</TableHead>
-                    <TableHead>Trạng thái</TableHead>
-                    <TableHead>Độ ưu tiên</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {dummyMyTasks.map((t) => (
-                    <TableRow key={t.id}>
-                      <TableCell className="font-medium">{t.id}</TableCell>
-                      <TableCell>{t.name}</TableCell>
-                      <TableCell>{t.project}</TableCell>
-                      <TableCell>{t.due}</TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">{t.status}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge>{t.priority}</Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </div>
+        <MyTasksTable limit={5} enabled={true} />
       )}
     </div>
   )

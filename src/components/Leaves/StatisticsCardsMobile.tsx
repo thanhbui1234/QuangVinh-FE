@@ -15,7 +15,7 @@ export default function StatisticsCardsMobile({ pending, approved }: StatisticsC
               <Clock className="size-5 text-amber-600 dark:text-amber-400" />
             </div>
           </div>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white mb-0.5">{pending}</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white mb-0.5">{pending ?? 0}</p>
           <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Chờ duyệt</p>
         </div>
 
@@ -25,7 +25,7 @@ export default function StatisticsCardsMobile({ pending, approved }: StatisticsC
               <CheckCircle2 className="size-5 text-emerald-600 dark:text-emerald-400" />
             </div>
           </div>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white mb-0.5">{approved}</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white mb-0.5">{approved ?? 0}</p>
           <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Đã duyệt</p>
         </div>
       </div>

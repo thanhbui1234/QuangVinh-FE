@@ -13,11 +13,12 @@ import {
   type LeavesListDataResponse,
   type LeaveFormValues,
 } from '@/types/Leave.ts'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { convertToDateInput } from '@/utils/CommonUtils.ts'
 import { useRemoveLeaves } from '@/hooks/leaves/useRemoveLeaves'
 import ConfirmationSheetMobile from '@/components/base/ConfirmationSheetMobile.tsx'
 import { Trash2, CheckCircle, XCircle } from 'lucide-react'
+import { useAuthStore } from '@/stores/authStore'
 
 export default function LeavesMobile() {
   const {
@@ -49,30 +50,61 @@ export default function LeavesMobile() {
   const limit = 10
 
   const { removeLeavesMutate, isRemovingLeave } = useRemoveLeaves()
+  const { user } = useAuthStore()
 
-  const { absenceRequests, isFetching } = useGetLeavesList({
+  // Check if current user is the creator of the leave request
+  const canEditOrDelete = useCallback(
+    (request: LeavesListDataResponse) => {
+      return user?.email && request.creator?.email && user.email === request.creator.email
+    },
+    [user?.email]
+  )
+
+  const { absenceRequests, isFetching, statusCounts } = useGetLeavesList({
     statuses: filterStatus,
     offset,
     limit,
   })
 
+  const prevAbsenceRequestsRef = useRef<LeavesListDataResponse[]>([])
+  const prevOffsetRef = useRef<number>(offset)
+
   useEffect(() => {
     setOffset(0)
     setAllItems([])
     setHasMore(false)
+    prevAbsenceRequestsRef.current = []
+    prevOffsetRef.current = 0
   }, [filterStatus])
 
   useEffect(() => {
-    if (absenceRequests) {
-      if (offset === 0) {
-        setAllItems(absenceRequests)
-      } else {
-        setAllItems((prev) => [...prev, ...absenceRequests])
+    const offsetChanged = offset !== prevOffsetRef.current
+    const dataChanged =
+      absenceRequests.length !== prevAbsenceRequestsRef.current.length ||
+      (absenceRequests.length > 0 &&
+        prevAbsenceRequestsRef.current.length > 0 &&
+        absenceRequests[0]?.id !== prevAbsenceRequestsRef.current[0]?.id)
+
+    if (offsetChanged || dataChanged) {
+      if (absenceRequests && absenceRequests.length > 0) {
+        if (offset === 0) {
+          setAllItems(absenceRequests)
+        } else {
+          setAllItems((prev) => {
+            // Avoid duplicate items
+            const existingIds = new Set(prev.map((item) => item.id))
+            const newItems = absenceRequests.filter((item) => !existingIds.has(item.id))
+            return newItems.length > 0 ? [...prev, ...newItems] : prev
+          })
+        }
+        setHasMore(absenceRequests.length === limit)
+      } else if (offset === 0) {
+        setAllItems([])
+        setHasMore(false)
       }
-      setHasMore(absenceRequests.length === limit)
-    } else if (offset === 0) {
-      setAllItems([])
-      setHasMore(false)
+
+      prevAbsenceRequestsRef.current = absenceRequests
+      prevOffsetRef.current = offset
     }
   }, [absenceRequests, offset, limit])
 
@@ -81,6 +113,7 @@ export default function LeavesMobile() {
   }
 
   const handleEditLeave = (request: LeavesListDataResponse) => {
+    if (!canEditOrDelete(request)) return
     setEditMode('update')
     setEditLeaveId(request.id)
     setEditInitialValues({
@@ -110,7 +143,7 @@ export default function LeavesMobile() {
   }
 
   const handleDeleteLeave = (request: LeavesListDataResponse) => {
-    if (isRemovingLeave) return
+    if (isRemovingLeave || !canEditOrDelete(request)) return
     setDeleteRequest(request)
     setDeleteDialogOpen(true)
   }
@@ -136,8 +169,8 @@ export default function LeavesMobile() {
   }
 
   return (
-    <div className="flex flex-col h-screen dark:bg-gray-950">
-      <StatisticsCardsMobile />
+    <div className="flex flex-col min-h-screen dark:bg-gray-950">
+      <StatisticsCardsMobile pending={statusCounts?.pending} approved={statusCounts?.approved} />
 
       <div className="px-4 pb-2">
         <SegmentedControl
@@ -183,6 +216,7 @@ export default function LeavesMobile() {
         selectedRequest={selectedRequest}
         onEdit={handleEditLeave}
         onDelete={handleDeleteLeave}
+        canEditOrDelete={canEditOrDelete}
       />
 
       {actionType && (

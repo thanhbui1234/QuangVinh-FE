@@ -14,9 +14,9 @@ export const Profile = () => {
   const { user, logout } = useAuthStore()
   const navigate = useNavigate()
 
-  const isOwnProfile = useMemo(() => !id || id === user?.id, [id, user?.id])
+  const isOwnProfile = useMemo(() => !id || id === user?.id.toString(), [id, user?.id])
   const currentUserId = useMemo(
-    () => (isOwnProfile ? user?.id : id) || '',
+    () => (isOwnProfile ? user?.id : id) || 0,
     [isOwnProfile, id, user?.id]
   )
 

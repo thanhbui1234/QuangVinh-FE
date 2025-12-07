@@ -18,9 +18,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu.tsx'
-import { type ColumnType, TableBase } from '@/components/base/DataTable'
+import { TableBase } from '@/components/base/DataTable'
 import { Badge } from '@/components/ui/badge.tsx'
 import { Button } from '@/components/ui/button.tsx'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar.tsx'
 import { calculateDays, formatDate } from '@/utils/CommonUtils.ts'
 import {
   getLeaveIcon,
@@ -46,6 +47,7 @@ type LeavesTableProps = {
   onViewDetails: (request: LeavesListDataResponse) => void
   onEdit?: (request: LeavesListDataResponse) => void
   onDelete?: (request: LeavesListDataResponse) => void
+  canEditOrDelete?: (request: LeavesListDataResponse) => any
 }
 
 const LeavesTable: React.FC<LeavesTableProps> = (props) => {
@@ -63,9 +65,10 @@ const LeavesTable: React.FC<LeavesTableProps> = (props) => {
     onViewDetails,
     onEdit,
     onDelete,
+    canEditOrDelete,
   } = props
 
-  const columns: ColumnType<LeavesListDataResponse>[] = [
+  const columns = [
     {
       title: 'Nhân viên',
       dataIndex: 'creator',
@@ -73,9 +76,15 @@ const LeavesTable: React.FC<LeavesTableProps> = (props) => {
       sorter: true,
       filterable: true,
       filterType: 'text',
-      render: (_) => (
-        <div className="font-medium">
-          {/*{record.creator?.fullName || record.creator?.email || 'N/A'}*/}
+      render: (_: any, record: any) => (
+        <div className="flex items-center gap-2">
+          <Avatar className="size-8">
+            <AvatarImage src={record.creator?.avatar} alt={record.creator?.name} />
+            <AvatarFallback>{record.creator?.name?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
+          </Avatar>
+          <div className="font-medium">
+            {record.creator?.name || record.creator?.email || 'N/A'}
+          </div>
         </div>
       ),
     },
@@ -90,7 +99,7 @@ const LeavesTable: React.FC<LeavesTableProps> = (props) => {
         label: value,
         value: key,
       })),
-      render: (value) => {
+      render: (value: any) => {
         const Icon = getLeaveIcon(value)
         return (
           <div className="flex items-center gap-2">
@@ -114,7 +123,7 @@ const LeavesTable: React.FC<LeavesTableProps> = (props) => {
       sorter: true,
       filterable: true,
       filterType: 'date',
-      render: (value) => formatDate(value),
+      render: (value: any) => formatDate(value),
     },
     {
       title: 'Đến ngày',
@@ -123,14 +132,14 @@ const LeavesTable: React.FC<LeavesTableProps> = (props) => {
       sorter: true,
       filterable: true,
       filterType: 'date',
-      render: (value) => formatDate(value),
+      render: (value: any) => formatDate(value),
     },
     {
       title: 'Số ngày',
       dataIndex: 'dayOff',
       key: 'days',
       sorter: true,
-      render: (_, record) => {
+      render: (_: any, record: any) => {
         const { days, hours } = calculateDays(record.offFrom, record.offTo)
         return (
           <div className="flex items-center gap-1.5">
@@ -147,7 +156,7 @@ const LeavesTable: React.FC<LeavesTableProps> = (props) => {
       dataIndex: 'reason',
       key: 'reason',
       ellipsis: true,
-      render: (value) => (
+      render: (value: any) => (
         <div className="max-w-[200px] truncate" title={value}>
           {value}
         </div>
@@ -165,7 +174,7 @@ const LeavesTable: React.FC<LeavesTableProps> = (props) => {
         { label: 'Đã duyệt', value: StatusLeaves.APPROVED.toString() },
         { label: 'Từ chối', value: StatusLeaves.REJECTED.toString() },
       ],
-      render: (value) => {
+      render: (value: any) => {
         if (value === StatusLeaves.PENDING)
           return (
             <Badge variant="secondary" className="gap-1.5">
@@ -195,7 +204,7 @@ const LeavesTable: React.FC<LeavesTableProps> = (props) => {
       dataIndex: 'actions',
       key: 'actions',
       align: 'left',
-      render: (_, record) => {
+      render: (_: any, record: any) => {
         const hasActions =
           canApprove ||
           record.status === StatusLeaves.PENDING ||
@@ -234,25 +243,27 @@ const LeavesTable: React.FC<LeavesTableProps> = (props) => {
                   </DropdownMenuItem>
                 </>
               )}
-              {record.status === StatusLeaves.PENDING && (
-                <>
-                  {onEdit && (
-                    <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => onEdit(record)}>
-                        <Edit className="size-4 mr-2" />
-                        Sửa đơn
+              {record.status === StatusLeaves.PENDING &&
+                canEditOrDelete &&
+                canEditOrDelete(record) && (
+                  <>
+                    {onEdit && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => onEdit(record)}>
+                          <Edit className="size-4 mr-2" />
+                          Sửa đơn
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                    {onDelete && (
+                      <DropdownMenuItem onClick={() => onDelete(record)} variant="destructive">
+                        <Trash2 className="size-4 mr-2" />
+                        Xoá đơn
                       </DropdownMenuItem>
-                    </>
-                  )}
-                  {onDelete && (
-                    <DropdownMenuItem onClick={() => onDelete(record)} variant="destructive">
-                      <Trash2 className="size-4 mr-2" />
-                      Xoá đơn
-                    </DropdownMenuItem>
-                  )}
-                </>
-              )}
+                    )}
+                  </>
+                )}
             </DropdownMenuContent>
           </DropdownMenu>
         )
@@ -272,7 +283,7 @@ const LeavesTable: React.FC<LeavesTableProps> = (props) => {
 
         <TableBase
           dataSource={data}
-          columns={columns}
+          columns={columns as any}
           loading={loading}
           searchable={true}
           searchPlaceholder="Tìm kiếm theo tên nhân viên..."

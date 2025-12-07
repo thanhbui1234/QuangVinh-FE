@@ -46,7 +46,7 @@ const BottomSheet = ({
         )}
       >
         {(title || description) && (
-          <SheetHeader className={cn('text-left', padded ? 'pb-4' : 'p-4 border-b')}>
+          <SheetHeader className={cn('text-left', padded ? 'px-4 pb-4' : 'p-4 border-b')}>
             {title && <SheetTitle className="text-xl font-bold">{title}</SheetTitle>}
             {description && (
               <SheetDescription className="text-sm text-gray-500">{description}</SheetDescription>

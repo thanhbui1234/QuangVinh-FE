@@ -70,7 +70,13 @@ export type LeavesListResponse = {
   creatorIds: string[]
   offset: number
   limit: number
+  statusCounts: any
   absenceRequests: LeavesListDataResponse[]
+}
+
+export type LeavesRawResponse = {
+  actionUser: string
+  data: LeavesListResponse
 }
 
 export type GetListLeavesParams = {

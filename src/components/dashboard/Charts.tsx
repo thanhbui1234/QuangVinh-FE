@@ -35,20 +35,57 @@ export function MiniBar({ className = 'h-24 w-full' }: { className?: string }) {
   )
 }
 
-export function MiniDonut({ className = 'h-24 w-24' }: { className?: string }) {
+interface MiniDonutProps {
+  className?: string
+  onTimePercentage?: number
+  delayedPercentage?: number
+}
+
+export function MiniDonut({
+  className = 'h-24 w-24',
+  onTimePercentage = 60,
+  delayedPercentage = 25,
+}: MiniDonutProps) {
+  const radius = 15.915
+  const circumference = 2 * Math.PI * radius
+  const onTimeLength = (onTimePercentage / 100) * circumference
+  const delayedLength = (delayedPercentage / 100) * circumference
+
+  const onTimeDashArray = `${onTimeLength} ${circumference}`
+  const delayedDashArray = `${delayedLength} ${circumference}`
+  // Delayed circle starts where onTime ends, so offset by negative onTime length
+  const delayedDashOffset = -onTimeLength
+
   return (
     <svg viewBox="0 0 42 42" className={className}>
-      <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#e5e7eb" strokeWidth="6" />
+      {/* Background circle */}
+      <circle cx="21" cy="21" r={radius} fill="transparent" stroke="#e5e7eb" strokeWidth="6" />
+      {/* On-time tasks (green) */}
       <circle
         cx="21"
         cy="21"
-        r="15.915"
+        r={radius}
         fill="transparent"
         stroke="#22c55e"
         strokeWidth="6"
-        strokeDasharray="60 40"
-        strokeDashoffset="25"
+        strokeDasharray={onTimeDashArray}
+        strokeDashoffset="0"
+        transform="rotate(-90 21 21)"
       />
+      {/* Delayed tasks (blue) */}
+      {delayedPercentage > 0 && (
+        <circle
+          cx="21"
+          cy="21"
+          r={radius}
+          fill="transparent"
+          stroke="#2563eb"
+          strokeWidth="6"
+          strokeDasharray={delayedDashArray}
+          strokeDashoffset={delayedDashOffset}
+          transform="rotate(-90 21 21)"
+        />
+      )}
     </svg>
   )
 }
@@ -107,6 +144,62 @@ export function MiniLeaveStacked({ className = 'h-28 w-full', data }: MiniLeaveS
             <text x={x + barWidth / 2} y={58} textAnchor="middle" fontSize="4" fill="#6b7280">
               {day.dayLabel}
             </text>
+          </g>
+        )
+      })}
+      <line x1="0" y1="54" x2={viewBoxWidth} y2="54" stroke="#e5e7eb" strokeWidth="1" />
+    </svg>
+  )
+}
+
+interface MiniProgressBarProps {
+  className?: string
+  data?: Array<{ dayLabel: string; completedCount: number }>
+}
+
+export function MiniProgressBar({ className = 'h-28 w-full', data }: MiniProgressBarProps) {
+  const defaultData = [
+    { dayLabel: 'T2', completedCount: 0 },
+    { dayLabel: 'T3', completedCount: 0 },
+    { dayLabel: 'T4', completedCount: 0 },
+    { dayLabel: 'T5', completedCount: 0 },
+    { dayLabel: 'T6', completedCount: 0 },
+    { dayLabel: 'T7', completedCount: 0 },
+    { dayLabel: 'CN', completedCount: 0 },
+  ]
+
+  const chartData = (data && data.length > 0 ? data : defaultData).slice(0, 7)
+  const maxValue = Math.max(...chartData.map((item) => item.completedCount), 1)
+  const baseY = 54
+  const chartHeight = 38
+  const barWidth = 10
+  const barSpacing = 16
+  const viewBoxWidth = Math.max(120, chartData.length * barSpacing + 10)
+
+  return (
+    <svg viewBox={`0 0 ${viewBoxWidth} 60`} className={className}>
+      {chartData.map((day, index) => {
+        const x = index * barSpacing + 6
+        const height = (day.completedCount / maxValue) * chartHeight
+        const y = baseY - height
+        return (
+          <g key={`${day.dayLabel}-${index}`}>
+            <rect x={x} y={y} width={barWidth} height={height} fill="#16a34a" rx="1" />
+            <text x={x + barWidth / 2} y={58} textAnchor="middle" fontSize="4" fill="#6b7280">
+              {day.dayLabel}
+            </text>
+            {day.completedCount > 0 && (
+              <text
+                x={x + barWidth / 2}
+                y={y - 2}
+                textAnchor="middle"
+                fontSize="5"
+                fill="#16a34a"
+                fontWeight="bold"
+              >
+                {day.completedCount}
+              </text>
+            )}
           </g>
         )
       })}

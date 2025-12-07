@@ -17,6 +17,7 @@ import {
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { convertToDateInput } from '@/utils/CommonUtils.ts'
 import { useRemoveLeaves } from '@/hooks/leaves/useRemoveLeaves'
+import { useAuthStore } from '@/stores/authStore'
 
 export default function LeavesWeb() {
   const {
@@ -49,8 +50,17 @@ export default function LeavesWeb() {
   const [deleteRequest, setDeleteRequest] = useState<LeavesListDataResponse | null>(null)
 
   const { removeLeavesMutate, isRemovingLeave } = useRemoveLeaves()
+  const { user } = useAuthStore()
 
   const filterStatusKey = useMemo(() => JSON.stringify([...filterStatus].sort()), [filterStatus])
+
+  // Check if current user is the creator of the leave request
+  const canEditOrDelete = useCallback(
+    (request: LeavesListDataResponse) => {
+      return user?.email && request.creator?.email && user.email === request.creator.email
+    },
+    [user?.email]
+  )
 
   const queryParams = useMemo(
     () => ({
@@ -58,11 +68,10 @@ export default function LeavesWeb() {
       offset,
       limit,
     }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [filterStatusKey, offset, limit]
   )
 
-  const { absenceRequests, isFetching } = useGetLeavesList(queryParams)
+  const { absenceRequests, isFetching, statusCounts } = useGetLeavesList(queryParams)
 
   const prevFilterStatusKeyRef = useRef<string>(filterStatusKey)
   const prevAbsenceRequestsIdsRef = useRef<string>('')
@@ -136,6 +145,7 @@ export default function LeavesWeb() {
   }, [absenceRequests, offset])
 
   const handleEditLeave = (request: LeavesListDataResponse) => {
+    if (!canEditOrDelete(request)) return
     setEditMode('update')
     setEditLeaveId(request.id)
     setEditInitialValues({
@@ -165,7 +175,7 @@ export default function LeavesWeb() {
   }
 
   const handleDeleteLeave = (request: LeavesListDataResponse) => {
-    if (isRemovingLeave) return
+    if (isRemovingLeave || !canEditOrDelete(request)) return
     setDeleteRequest(request)
     setDeleteDialogOpen(true)
   }
@@ -194,11 +204,48 @@ export default function LeavesWeb() {
     {
       label: 'Tất cả',
       value: [StatusLeaves.APPROVED, StatusLeaves.PENDING, StatusLeaves.REJECTED] as LeavesStatus[],
+      total: statusCounts?.total,
     },
-    { label: 'Chờ duyệt', value: [StatusLeaves.PENDING] as LeavesStatus[] },
-    { label: 'Đã duyệt', value: [StatusLeaves.APPROVED] as LeavesStatus[] },
-    { label: 'Từ chối', value: [StatusLeaves.REJECTED] as LeavesStatus[] },
+    {
+      label: 'Chờ duyệt',
+      value: [StatusLeaves.PENDING] as LeavesStatus[],
+      total: statusCounts?.pending,
+    },
+    {
+      label: 'Đã duyệt',
+      value: [StatusLeaves.APPROVED] as LeavesStatus[],
+      total: statusCounts?.approved,
+    },
+    {
+      label: 'Từ chối',
+      value: [StatusLeaves.REJECTED] as LeavesStatus[],
+      total: statusCounts?.rejected,
+    },
   ]
+
+  const currentTotal = useMemo(() => {
+    if (!statusCounts) return 0
+
+    const key = filterStatusKey
+
+    if (
+      key ===
+      JSON.stringify([StatusLeaves.APPROVED, StatusLeaves.PENDING, StatusLeaves.REJECTED].sort())
+    ) {
+      return statusCounts.total
+    }
+    if (key === JSON.stringify([StatusLeaves.PENDING].sort())) {
+      return statusCounts.pending
+    }
+    if (key === JSON.stringify([StatusLeaves.APPROVED].sort())) {
+      return statusCounts.approved
+    }
+    if (key === JSON.stringify([StatusLeaves.REJECTED].sort())) {
+      return statusCounts.rejected
+    }
+
+    return 0
+  }, [filterStatusKey, statusCounts])
 
   return (
     <div className="flex flex-col gap-6 p-6">
@@ -219,6 +266,7 @@ export default function LeavesWeb() {
         {filterOptions.map((option) => {
           const optionKey = JSON.stringify([...option.value].sort())
           const isActive = filterStatusKey === optionKey
+
           return (
             <Button
               key={option.label}
@@ -236,7 +284,7 @@ export default function LeavesWeb() {
         })}
       </div>
 
-      <StatisticsCards requests={allItems} />
+      <StatisticsCards requests={statusCounts} />
       <LeavesTable
         data={allItems}
         canApprove={canApprove}
@@ -244,7 +292,7 @@ export default function LeavesWeb() {
         pageSize={pageSize}
         onPageChange={handlePageChange}
         onPageSizeChange={handlePageSizeChange}
-        total={allItems.length}
+        total={currentTotal || (0 as any)}
         hasMore={absenceRequests && absenceRequests.length >= limit}
         loading={isFetching}
         onActionClick={(id, action) => {
@@ -256,6 +304,7 @@ export default function LeavesWeb() {
         onViewDetails={viewDetails}
         onEdit={handleEditLeave}
         onDelete={handleDeleteLeave}
+        canEditOrDelete={canEditOrDelete}
       />
 
       {/* View Details Dialog */}
@@ -265,6 +314,7 @@ export default function LeavesWeb() {
         selectedRequest={selectedRequest}
         onEdit={handleEditLeave}
         onDelete={handleDeleteLeave}
+        canEditOrDelete={canEditOrDelete}
       />
 
       {/* Confirmation Dialog */}
