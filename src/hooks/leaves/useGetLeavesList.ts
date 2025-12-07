@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { useMemo } from 'react'
 import { leavesKey } from '@/constants/leaves/leaves.ts'
 import { POST } from '@/core/api.ts'
 import { API_ENDPOINT } from '@/common'
@@ -40,9 +41,18 @@ const useGetLeavesList = (payload: GetListLeavesParams) => {
     },
   })
 
+  const absenceRequests = useMemo(() => {
+    if (!data?.absenceRequests) return []
+    return data.absenceRequests
+  }, [data])
+
+  const statusCounts = useMemo(() => {
+    return data?.statusCounts
+  }, [data])
+
   return {
-    statusCounts: data?.statusCounts,
-    absenceRequests: data?.absenceRequests || [],
+    statusCounts,
+    absenceRequests,
     statuses: data?.statuses || [],
     creator: data?.creator || '',
     isFetching,

@@ -13,7 +13,7 @@ import {
   type LeavesListDataResponse,
   type LeaveFormValues,
 } from '@/types/Leave.ts'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { convertToDateInput } from '@/utils/CommonUtils.ts'
 import { useRemoveLeaves } from '@/hooks/leaves/useRemoveLeaves'
 import ConfirmationSheetMobile from '@/components/base/ConfirmationSheetMobile.tsx'
@@ -66,23 +66,47 @@ export default function LeavesMobile() {
     limit,
   })
 
+  // Use ref to track previous values to avoid infinite loops
+  const prevAbsenceRequestsRef = useRef<LeavesListDataResponse[]>([])
+  const prevOffsetRef = useRef<number>(offset)
+
   useEffect(() => {
     setOffset(0)
     setAllItems([])
     setHasMore(false)
+    prevAbsenceRequestsRef.current = []
+    prevOffsetRef.current = 0
   }, [filterStatus])
 
   useEffect(() => {
-    if (absenceRequests) {
-      if (offset === 0) {
-        setAllItems(absenceRequests)
-      } else {
-        setAllItems((prev) => [...prev, ...absenceRequests])
+    // Only update if offset changed or if absenceRequests actually changed
+    const offsetChanged = offset !== prevOffsetRef.current
+    const dataChanged =
+      absenceRequests.length !== prevAbsenceRequestsRef.current.length ||
+      (absenceRequests.length > 0 &&
+        prevAbsenceRequestsRef.current.length > 0 &&
+        absenceRequests[0]?.id !== prevAbsenceRequestsRef.current[0]?.id)
+
+    if (offsetChanged || dataChanged) {
+      if (absenceRequests && absenceRequests.length > 0) {
+        if (offset === 0) {
+          setAllItems(absenceRequests)
+        } else {
+          setAllItems((prev) => {
+            // Avoid duplicate items
+            const existingIds = new Set(prev.map((item) => item.id))
+            const newItems = absenceRequests.filter((item) => !existingIds.has(item.id))
+            return newItems.length > 0 ? [...prev, ...newItems] : prev
+          })
+        }
+        setHasMore(absenceRequests.length === limit)
+      } else if (offset === 0) {
+        setAllItems([])
+        setHasMore(false)
       }
-      setHasMore(absenceRequests.length === limit)
-    } else if (offset === 0) {
-      setAllItems([])
-      setHasMore(false)
+
+      prevAbsenceRequestsRef.current = absenceRequests
+      prevOffsetRef.current = offset
     }
   }, [absenceRequests, offset, limit])
 
