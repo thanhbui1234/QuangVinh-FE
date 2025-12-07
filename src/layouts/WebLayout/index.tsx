@@ -80,6 +80,66 @@ const WebLayout = ({ children }: Props) => {
     navigate(href)
   }
 
+  // Function to get page title based on current pathname
+  const getPageTitle = (pathname: string, items: INavigateItems[]): string => {
+    // Special route mappings
+    const specialRoutes: Record<string, string> = {
+      '/personnel/positions': 'Vị trí',
+      '/tasks': 'Chi tiết công việc',
+      '/profile': 'Cá nhân',
+    }
+
+    // Check special routes first
+    if (specialRoutes[pathname]) {
+      return specialRoutes[pathname]
+    }
+
+    // Check for exact match in subItems first
+    for (const item of items) {
+      if (item.subItems) {
+        const subItem = item.subItems.find((sub) => sub.href === pathname)
+        if (subItem) {
+          return subItem.label
+        }
+      }
+    }
+
+    // Check for exact match in main items
+    const exactMatch = items.find((item) => item.href === pathname)
+    if (exactMatch) {
+      return exactMatch.label || 'Dashboard'
+    }
+
+    // Check for pathname starts with
+    const startsWithMatch = items.find((item) => {
+      if (item.href && pathname.startsWith(item.href)) {
+        // Make sure it's not a sub-item path
+        if (item.subItems) {
+          const hasSubItemMatch = item.subItems.some((sub) => pathname === sub.href)
+          return !hasSubItemMatch
+        }
+        return true
+      }
+      return false
+    })
+    if (startsWithMatch) {
+      return startsWithMatch.label || 'Dashboard'
+    }
+
+    // Handle dynamic routes
+    if (pathname.startsWith('/tasks/')) {
+      return 'Chi tiết công việc'
+    }
+    if (pathname.startsWith('/assignments/')) {
+      return 'Chi tiết dự án'
+    }
+    if (pathname.startsWith('/profile')) {
+      return 'Cá nhân'
+    }
+
+    return 'Dashboard'
+  }
+
   useEffect(() => {
     const path = location.pathname
 
@@ -127,7 +187,7 @@ const WebLayout = ({ children }: Props) => {
     },
     {
       id: 'assignments',
-      label: 'Quản lý công việc',
+      label: 'Công việc',
       icon: CheckSquare,
       href: '/assignments',
     },
@@ -168,10 +228,14 @@ const WebLayout = ({ children }: Props) => {
         )}
       >
         <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center gap-3">
+          <div
+            className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={() => navigate('/dashboard')}
+          >
             {!isCollapsed && (
               <span className="text-xl font-bold text-gray-900">Quang vinh Mobile</span>
             )}
+            {isCollapsed && <Home className="w-6 h-6 text-gray-900" />}
           </div>
         </div>
 
@@ -260,7 +324,9 @@ const WebLayout = ({ children }: Props) => {
       <div className="flex-1 flex flex-col">
         <header className="bg-white border-b border-gray-200 px-6 py-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-semibold text-gray-900">Dashboard</h1>
+            <h1 className="text-2xl font-semibold text-gray-900">
+              {getPageTitle(location.pathname, navigationItems)}
+            </h1>
             <div className="flex items-center gap-10">
               <BellNotification />
               <EnablePushButton />

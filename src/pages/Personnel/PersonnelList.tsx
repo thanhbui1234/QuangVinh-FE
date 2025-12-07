@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router'
 import { TableBase, type ColumnType } from '@/components/base/DataTable/TableBase'
 import { useGetAllUsers } from '@/hooks/personnel/useGetAllUsers'
 import { PersonnelUserCell } from '@/components/Personnel/PersonnelUserCell'
@@ -10,6 +11,7 @@ import { formatTimestampToDate } from '@/utils/CommonUtils'
 import type { UserRole } from '@/constants'
 
 const PersonnelList = () => {
+  const navigate = useNavigate()
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [selectedUser, setSelectedUser] = useState<PersonnelUser | null>(null)
@@ -159,6 +161,14 @@ const PersonnelList = () => {
         bordered={true}
         striped
         emptyText="Không có nhân viên nào"
+        onRow={(record) => {
+          return {
+            onClick: () => {
+              navigate(`/profile/${record.id}`)
+            },
+            className: 'cursor-pointer hover:bg-gray-50 transition-colors',
+          }
+        }}
       />
 
       <PersonnelDetailDialog
