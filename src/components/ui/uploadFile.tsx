@@ -32,7 +32,8 @@ export function FileUploadValidationDemo({
   const [existingImages, setExistingImages] = React.useState<string[]>([])
   const uploadFileMutation = useUploadFile()
   const uploadedFilesRef = React.useRef<Set<string>>(new Set())
-  console.log('📸 Initial images:', initialImages)
+  // Track URLs that were uploaded from current files to prevent duplicate display
+  const uploadedUrlsFromFilesRef = React.useRef<Set<string>>(new Set())
   // Sync initialImages to state
   React.useEffect(() => {
     if (initialImages && initialImages.length > 0) {
@@ -48,8 +49,8 @@ export function FileUploadValidationDemo({
   const onFileValidate = React.useCallback(
     (file: File): string | null => {
       // Validate max files (including existing ones)
-      if (files.length + existingImages.length >= 3) {
-        return 'Chỉ được upload 1 file'
+      if (files.length + existingImages.length >= 5) {
+        return 'Chỉ được upload tối đa 5 file'
       }
 
       // Validate file type (only images)
@@ -76,42 +77,49 @@ export function FileUploadValidationDemo({
 
   // Upload file when files change
   React.useEffect(() => {
-    if (files.length > 0 && !uploadFileMutation.isPending) {
-      const file = files[0]
-      const fileKey = `${file.name}-${file.size}-${file.lastModified}`
+    if (files.length > 0) {
+      files.forEach((file) => {
+        const fileKey = `${file.name}-${file.size}-${file.lastModified}`
 
-      // Skip if already uploaded
-      if (uploadedFilesRef.current.has(fileKey)) {
-        return
-      }
+        // Skip if already uploaded
+        if (uploadedFilesRef.current.has(fileKey)) {
+          return
+        }
 
-      // Mark as uploading
-      uploadedFilesRef.current.add(fileKey)
+        // Mark as uploading
+        uploadedFilesRef.current.add(fileKey)
 
-      uploadFileMutation.mutate(file, {
-        onSuccess: (response) => {
-          const viewUrl = response.viewUrl
-          console.log('✅ Uploaded URL:', viewUrl)
+        uploadFileMutation.mutate(file, {
+          onSuccess: (response) => {
+            const viewUrl = response.viewUrl
+            console.log('✅ Uploaded URL:', viewUrl)
 
-          // Callback to parent with URL
-          onUploadSuccess?.(viewUrl)
+            // Track this URL as uploaded from current files
+            uploadedUrlsFromFilesRef.current.add(viewUrl)
 
-          toast.success('Upload thành công!', {
-            description: file.name,
-          })
-        },
-        onError: (error) => {
-          // Remove from uploaded set on error so can retry
-          uploadedFilesRef.current.delete(fileKey)
+            // Callback to parent with URL
+            onUploadSuccess?.(viewUrl)
 
-          toast.error('Upload thất bại', {
-            description: error.message,
-          })
-          setFiles([])
-        },
+            toast.success('Upload thành công!', {
+              description: file.name,
+            })
+          },
+          onError: (error) => {
+            // Remove from uploaded set on error so can retry
+            uploadedFilesRef.current.delete(fileKey)
+
+            toast.error('Upload thất bại', {
+              description: error.message,
+            })
+            // Optional: remove failed file from UI?
+            // For now, keeping it consistent with previous logic, but previous logic cleared ALL files on error
+            // setFiles([]) -> this might be bad if multiple files.
+            // Let's NOT clear all files on partial failure, just show error.
+          },
+        })
       })
     }
-  }, [files, onUploadSuccess])
+  }, [files, onUploadSuccess, uploadFileMutation])
 
   // Custom render function for preview with zoom
   const renderPreviewWithZoom = React.useCallback((file: File, fallback: () => React.ReactNode) => {
@@ -138,9 +146,10 @@ export function FileUploadValidationDemo({
       onFileValidate={onFileValidate}
       onFileReject={onFileReject}
       accept="image/*"
-      maxFiles={1}
+      maxFiles={5}
       className="w-full"
       disabled={uploadFileMutation.isPending}
+      multiple={true}
     >
       <FileUploadDropzone>
         <div className="flex flex-col items-center gap-1">
@@ -164,35 +173,37 @@ export function FileUploadValidationDemo({
         </FileUploadTrigger>
       </FileUploadDropzone>
       <FileUploadList>
-        {existingImages.map((url) => (
-          <div key={url} className="relative flex items-center gap-2.5 rounded-md border p-3">
-            <div className="relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded border bg-accent/50">
-              <ImageZoom>
-                <img
-                  src={url}
-                  alt="Existing file"
-                  className="size-full object-cover cursor-zoom-in"
-                  style={{ maxWidth: '60vw', maxHeight: '60vh' }}
-                />
-              </ImageZoom>
+        {existingImages
+          .filter((url) => !uploadedUrlsFromFilesRef.current.has(url)) // Don't show URLs that are already in files preview
+          .map((url) => (
+            <div key={url} className="relative flex items-center gap-2.5 rounded-md border p-3">
+              <div className="relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded border bg-accent/50">
+                <ImageZoom>
+                  <img
+                    src={url}
+                    alt="Existing file"
+                    className="size-full object-cover cursor-zoom-in"
+                    style={{ maxWidth: '60vw', maxHeight: '60vh' }}
+                  />
+                </ImageZoom>
+              </div>
+              <div className="flex min-w-0 flex-1 flex-col">
+                <span className="truncate font-medium text-sm">
+                  {url.split('/').pop() || 'Existing Image'}
+                </span>
+                <span className="truncate text-muted-foreground text-xs">Already uploaded</span>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-7"
+                onClick={() => handleRemoveExisting(url)}
+                type="button"
+              >
+                <X className="size-4" />
+              </Button>
             </div>
-            <div className="flex min-w-0 flex-1 flex-col">
-              <span className="truncate font-medium text-sm">
-                {url.split('/').pop() || 'Existing Image'}
-              </span>
-              <span className="truncate text-muted-foreground text-xs">Already uploaded</span>
-            </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-7"
-              onClick={() => handleRemoveExisting(url)}
-              type="button"
-            >
-              <X className="size-4" />
-            </Button>
-          </div>
-        ))}
+          ))}
         {files.map((file) => (
           <FileUploadItem key={file.name} value={file}>
             <FileUploadItemPreview render={renderPreviewWithZoom} />

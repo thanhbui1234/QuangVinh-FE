@@ -15,7 +15,11 @@ import { useUploadFile } from '@/hooks/useUploadFile'
 import { useState, useRef } from 'react'
 import { useAuthStore } from '@/stores'
 import { useRemoveComment } from '@/hooks/assignments/comments/useRemoveComment'
+import { useUpdateComment } from '@/hooks/assignments/comments/useUpdateComment'
 import { DeleteCommentDialog } from '../ui/alertComponent'
+import { isMobile } from 'react-device-detect'
+import { PhotoProvider, PhotoView } from 'react-photo-view'
+import 'react-photo-view/dist/react-photo-view.css'
 
 const mentionsInputStyle = {
   control: {
@@ -75,13 +79,26 @@ export const CommentTask = ({ member, taskId }: { member: IMemberTask[]; taskId:
 
   const { comments, isFetching } = useGetListComments(taskId)
   const createCommentMutation = useCreateComment()
+  const updateCommentMutation = useUpdateComment({ taskId })
   const uploadFileMutation = useUploadFile()
   const navigate = useNavigate()
-  const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([])
+
+  // Image upload state - track files with their upload status
+  type ImageUpload = {
+    file: File
+    preview: string // ObjectURL for instant preview
+    uploadedUrl: string | null // URL from API after upload
+    isUploading: boolean
+  }
+  const [imageUploads, setImageUploads] = useState<ImageUpload[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
+
   const removeCommentMutation = useRemoveComment({ taskId })
   const [open, setOpen] = useState(false)
   const [selectedCommentId, setSelectedCommentId] = useState<number | null>(null)
+
+  // Edit state - track which comment is being edited
+  const [editingCommentId, setEditingCommentId] = useState<number | null>(null)
 
   const { handleSubmit, watch, setValue, reset } = useForm<CommentFormData>({
     defaultValues: {
@@ -110,26 +127,49 @@ export const CommentTask = ({ member, taskId }: { member: IMemberTask[]; taskId:
       return
     }
 
-    // Validate file size (max 2MB)
-    const MAX_SIZE = 2 * 1024 * 1024
+    // Validate file size (max 5MB)
+    const MAX_SIZE = 5 * 1024 * 1024
     if (file.size > MAX_SIZE) {
       SonnerToaster({
         type: 'error',
-        message: 'Dung lượng file phải nhỏ hơn 2MB',
+        message: 'Dung lượng file phải nhỏ hơn 5MB',
       })
       return
     }
 
-    // Upload file
+    // Create preview URL immediately for instant display
+    const preview = URL.createObjectURL(file)
+
+    // Add to state with preview (instant display)
+    const newUpload: ImageUpload = {
+      file,
+      preview,
+      uploadedUrl: null,
+      isUploading: true,
+    }
+
+    setImageUploads((prev) => [...prev, newUpload])
+
+    // Upload file in background
     uploadFileMutation.mutate(file, {
       onSuccess: (response) => {
-        setUploadedImageUrls((prev) => [...prev, response.viewUrl])
+        // Update upload status with URL
+        setImageUploads((prev) =>
+          prev.map((upload) =>
+            upload.preview === preview
+              ? { ...upload, uploadedUrl: response.viewUrl, isUploading: false }
+              : upload
+          )
+        )
         SonnerToaster({
           type: 'success',
           message: 'Upload ảnh thành công',
         })
       },
       onError: (error) => {
+        // Remove failed upload
+        setImageUploads((prev) => prev.filter((upload) => upload.preview !== preview))
+        URL.revokeObjectURL(preview)
         SonnerToaster({
           type: 'error',
           message: 'Upload ảnh thất bại',
@@ -166,8 +206,13 @@ export const CommentTask = ({ member, taskId }: { member: IMemberTask[]; taskId:
   }
 
   const onSubmit = async (data: CommentFormData) => {
+    // Get uploaded URLs (only completed uploads)
+    const uploadedUrls = imageUploads
+      .filter((upload) => upload.uploadedUrl !== null)
+      .map((upload) => upload.uploadedUrl as string)
+
     // Must have either message or images
-    if (!data.message.trim() && uploadedImageUrls.length === 0) {
+    if (!data.message.trim() && uploadedUrls.length === 0) {
       SonnerToaster({
         type: 'error',
         message: 'Vui lòng nhập bình luận hoặc upload ảnh',
@@ -179,30 +224,51 @@ export const CommentTask = ({ member, taskId }: { member: IMemberTask[]; taskId:
     const plainMessage = data.message.replace(/@\[([^\]]+)\]\((\d+)\)/g, '@$1')
     const mentionIds = extractMentionIds(data.message)
     const hasMentions = mentionIds.length > 0
-    const hasImages = uploadedImageUrls.length > 0
+    const hasImages = uploadedUrls.length > 0
 
     try {
-      await createCommentMutation.mutateAsync({
-        taskId: taskId,
-        message: plainMessage.trim() || undefined,
-        imageUrls: hasImages ? uploadedImageUrls : undefined,
-        commentType: getCommentType(plainMessage, hasImages, hasMentions),
-        mentionIds: hasMentions ? mentionIds : undefined,
-      })
+      if (editingCommentId) {
+        // Update existing comment
+        await updateCommentMutation.mutateAsync({
+          commentId: editingCommentId,
+          taskId: taskId,
+          message: plainMessage.trim() || undefined,
+          imageUrls: hasImages ? uploadedUrls : undefined,
+          commentType: getCommentType(plainMessage, hasImages, hasMentions),
+          mentionIds: hasMentions ? mentionIds : undefined,
+        })
+
+        SonnerToaster({
+          type: 'success',
+          message: 'Cập nhật bình luận thành công',
+        })
+        handleCancelEdit()
+      } else {
+        // Create new comment
+        await createCommentMutation.mutateAsync({
+          taskId: taskId,
+          message: plainMessage.trim() || undefined,
+          imageUrls: hasImages ? uploadedUrls : undefined,
+          commentType: getCommentType(plainMessage, hasImages, hasMentions),
+          mentionIds: hasMentions ? mentionIds : undefined,
+        })
+
+        SonnerToaster({
+          type: 'success',
+          message: 'Đã thêm bình luận thành công',
+        })
+      }
 
       // Reset form and images
       reset()
-      setUploadedImageUrls([])
-
-      SonnerToaster({
-        type: 'success',
-        message: 'Đã thêm bình luận thành công',
-      })
+      // Clean up ObjectURLs
+      imageUploads.forEach((upload) => URL.revokeObjectURL(upload.preview))
+      setImageUploads([])
     } catch (error) {
       console.error(error)
       SonnerToaster({
         type: 'error',
-        message: 'Có lỗi khi thêm bình luận',
+        message: editingCommentId ? 'Có lỗi khi cập nhật bình luận' : 'Có lỗi khi thêm bình luận',
       })
     }
   }
@@ -241,6 +307,33 @@ export const CommentTask = ({ member, taskId }: { member: IMemberTask[]; taskId:
     })
   }
 
+  // Start editing a comment - populate main input
+  const handleStartEdit = (commentId: number, currentMessage: string, currentImages?: string[]) => {
+    setEditingCommentId(commentId)
+    setValue('message', currentMessage)
+    // Convert existing URLs to ImageUpload format (already uploaded)
+    const existingUploads: ImageUpload[] = (currentImages || []).map((url) => ({
+      file: new File([], ''), // Dummy file for existing images
+      preview: url, // Use URL as preview
+      uploadedUrl: url,
+      isUploading: false,
+    }))
+    setImageUploads(existingUploads)
+  }
+
+  // Cancel editing - clear main input
+  const handleCancelEdit = () => {
+    setEditingCommentId(null)
+    reset()
+    // Clean up ObjectURLs
+    imageUploads.forEach((upload) => {
+      if (upload.preview.startsWith('blob:')) {
+        URL.revokeObjectURL(upload.preview)
+      }
+    })
+    setImageUploads([])
+  }
+
   return (
     <>
       <Card className="border-0 shadow-sm">
@@ -266,14 +359,15 @@ export const CommentTask = ({ member, taskId }: { member: IMemberTask[]; taskId:
                         setValue('message', e.target.value)
                       }}
                       onKeyDown={(e) => {
-                        // Submit on Enter (without Shift)
+                        // Prevent default Enter behavior to avoid double submit
+                        // Form will handle submission naturally
                         if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault()
-                          handleSubmit(onSubmit)()
+                          // Prevent the default but let form handle it
+                          // No manual handleSubmit call needed
                         }
                         // Allow Shift+Enter for new line (default behavior)
                       }}
-                      placeholder="Viết bình luận... (gõ @ để mention người)"
+                      placeholder={isMobile ? '' : 'Viết bình luận... (gõ @ để mention người)'}
                       style={mentionsInputStyle}
                       className="mentions-input"
                     >
@@ -293,12 +387,16 @@ export const CommentTask = ({ member, taskId }: { member: IMemberTask[]; taskId:
                     <button
                       type="submit"
                       disabled={
-                        (!commentInput?.trim() && uploadedImageUrls.length === 0) ||
-                        createCommentMutation.isPending
+                        (!commentInput?.trim() && imageUploads.length === 0) ||
+                        createCommentMutation.isPending ||
+                        updateCommentMutation.isPending ||
+                        imageUploads.some((upload) => upload.isUploading) // Disable if any upload pending
                       }
                       className={`absolute right-3 bottom-3 shrink-0 transition-colors ${
-                        (!commentInput?.trim() && uploadedImageUrls.length === 0) ||
-                        createCommentMutation.isPending
+                        (!commentInput?.trim() && imageUploads.length === 0) ||
+                        createCommentMutation.isPending ||
+                        updateCommentMutation.isPending ||
+                        imageUploads.some((upload) => upload.isUploading)
                           ? 'text-gray-300 cursor-not-allowed'
                           : 'text-gray-900 hover:text-blue-600 cursor-pointer'
                       }`}
@@ -306,6 +404,20 @@ export const CommentTask = ({ member, taskId }: { member: IMemberTask[]; taskId:
                       <Send className="w-5 h-5" />
                     </button>
                   </div>
+
+                  {/* Cancel Edit Button - shown when editing */}
+                  {editingCommentId && (
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      onClick={handleCancelEdit}
+                      className="shrink-0 text-gray-500 hover:text-gray-700"
+                      title="Hủy chỉnh sửa"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  )}
 
                   {/* Image Upload Icon Button */}
                   <input
@@ -332,21 +444,31 @@ export const CommentTask = ({ member, taskId }: { member: IMemberTask[]; taskId:
                 </div>
 
                 {/* Image Preview */}
-                {uploadedImageUrls.length > 0 && (
+                {imageUploads.length > 0 && (
                   <div className="flex gap-2 flex-wrap">
-                    {uploadedImageUrls.map((url, idx) => (
-                      <div key={idx} className="relative group">
+                    {imageUploads.map((upload, idx) => (
+                      <div key={upload.preview} className="relative group">
                         <img
-                          src={url}
+                          src={upload.preview}
                           alt={`Upload ${idx + 1}`}
                           className="w-20 h-20 object-cover rounded border border-gray-200"
                         />
+                        {/* Upload status indicator */}
+                        {upload.isUploading && (
+                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded">
+                            <Loader2 className="w-4 h-4 text-white animate-spin" />
+                          </div>
+                        )}
                         <button
                           type="button"
                           onClick={() => {
-                            setUploadedImageUrls((prev) => prev.filter((_, i) => i !== idx))
+                            if (upload.preview.startsWith('blob:')) {
+                              URL.revokeObjectURL(upload.preview)
+                            }
+                            setImageUploads((prev) => prev.filter((_, i) => i !== idx))
                           }}
-                          className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                          disabled={upload.isUploading}
+                          className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
                         >
                           <X className="w-3 h-3" />
                         </button>
@@ -378,16 +500,13 @@ export const CommentTask = ({ member, taskId }: { member: IMemberTask[]; taskId:
                   </Avatar>
                   <div className="flex-1 min-w-0 relative">
                     {/* Edit/Delete buttons - Only show on hover for own comments */}
-                    {isOwnComment(c.creator.id) && (
+                    {isOwnComment(c.creator.id) && editingCommentId !== c.commentId && (
                       <div className="absolute top-0 right-0 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <Button
                           variant="ghost"
                           size="icon"
                           className="h-7 w-7 text-gray-500 hover:text-blue-600"
-                          onClick={() => {
-                            console.log('Edit comment:', c.commentId)
-                            // TODO: Implement edit logic
-                          }}
+                          onClick={() => handleStartEdit(c.commentId, c.message, c.imageUrls)}
                         >
                           <Pencil className="h-3.5 w-3.5" />
                         </Button>
@@ -395,9 +514,7 @@ export const CommentTask = ({ member, taskId }: { member: IMemberTask[]; taskId:
                           variant="ghost"
                           size="icon"
                           className="h-7 w-7 text-gray-500 hover:text-red-600"
-                          onClick={() => {
-                            handleRemoveComment(c.commentId)
-                          }}
+                          onClick={() => handleRemoveComment(c.commentId)}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
@@ -420,20 +537,27 @@ export const CommentTask = ({ member, taskId }: { member: IMemberTask[]; taskId:
                         })}
                       </span>
                     </div>
+
                     <p className="text-sm text-gray-700 leading-relaxed">
                       {parseMentionsToHTML(c.message, c.mentionUsers, handleUserClick)}
                     </p>
                     {c.imageUrls && c.imageUrls.length > 0 && (
                       <div className="mt-2 flex gap-2 flex-wrap">
-                        {c.imageUrls.map((url: string, idx: number) => (
-                          <img
-                            key={idx}
-                            src={url}
-                            alt={`Comment attachment ${idx + 1}`}
-                            className="w-50 rounded border border-gray-200 cursor-pointer hover:opacity-90"
-                            onClick={() => window.open(url, '_blank')}
-                          />
-                        ))}
+                        <PhotoProvider>
+                          {c.imageUrls.map((url: string, idx: number) => (
+                            <PhotoView key={url || idx} src={url}>
+                              <img
+                                src={url}
+                                alt={`Comment attachment ${idx + 1}`}
+                                className="w-50 rounded border border-gray-200 cursor-pointer hover:opacity-90"
+                                onError={(e) => {
+                                  e.currentTarget.src = '/placeholder-image.png'
+                                  e.currentTarget.alt = 'Failed to load image'
+                                }}
+                              />
+                            </PhotoView>
+                          ))}
+                        </PhotoProvider>
                       </div>
                     )}
                   </div>
