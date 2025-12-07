@@ -66,7 +66,6 @@ export default function LeavesMobile() {
     limit,
   })
 
-  // Use ref to track previous values to avoid infinite loops
   const prevAbsenceRequestsRef = useRef<LeavesListDataResponse[]>([])
   const prevOffsetRef = useRef<number>(offset)
 
@@ -79,7 +78,6 @@ export default function LeavesMobile() {
   }, [filterStatus])
 
   useEffect(() => {
-    // Only update if offset changed or if absenceRequests actually changed
     const offsetChanged = offset !== prevOffsetRef.current
     const dataChanged =
       absenceRequests.length !== prevAbsenceRequestsRef.current.length ||
