@@ -8,6 +8,9 @@ interface ProfileInfoGridProps {
   isLoading?: boolean
   isSaving?: boolean
   onUpdateField: (field: 'name' | 'email' | 'phone' | 'position') => void
+  hasNameChanged?: boolean
+  hasEmailChanged?: boolean
+  hasPhoneChanged?: boolean
 }
 
 export const ProfileInfoGrid = ({
@@ -16,12 +19,26 @@ export const ProfileInfoGrid = ({
   isLoading,
   isSaving,
   onUpdateField,
+  hasNameChanged = false,
+  hasEmailChanged = false,
+  hasPhoneChanged = false,
 }: ProfileInfoGridProps) => {
   const disabled = !isOwnProfile || !!isLoading
 
   return (
     <>
       <div className="mt-2 grid w-full max-w-3xl grid-cols-1 gap-3 md:grid-cols-2">
+        {/* Name Field - Only show update button if changed */}
+        <FormInlineField
+          control={control}
+          name="name"
+          placeholder="Tên hiển thị"
+          disabled={disabled}
+          saving={isSaving}
+          onUpdate={hasNameChanged ? () => onUpdateField('name') : undefined}
+        />
+
+        {/* Email Field - Only show update button if changed */}
         <FormInlineField
           control={control}
           name="name"
@@ -36,23 +53,27 @@ export const ProfileInfoGrid = ({
           placeholder="Email"
           disabled={disabled}
           saving={isSaving}
-          onUpdate={() => onUpdateField('email')}
+          onUpdate={hasEmailChanged ? () => onUpdateField('email') : undefined}
         />
+
+        {/* Phone Field - Only show update button if changed */}
         <FormInlineField
           control={control}
           name="phone"
           placeholder="Số điện thoại"
           disabled={disabled}
           saving={isSaving}
-          onUpdate={() => onUpdateField('phone')}
+          onUpdate={hasPhoneChanged ? () => onUpdateField('phone') : undefined}
         />
+
+        {/* Position Field - Readonly */}
         <FormInlineField
           control={control}
           name="position"
           placeholder="Chức vụ"
-          disabled={disabled}
+          disabled={true}
           saving={isSaving}
-          onUpdate={() => onUpdateField('position')}
+          onUpdate={undefined}
         />
       </div>
     </>

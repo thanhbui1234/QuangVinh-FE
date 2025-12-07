@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
-
+import { PhotoPreview } from '../ui/PhotoPreview'
 export const ShowFileTask = ({ files }: { files: string[] }) => {
   const [imageMap, setImageMap] = useState<Record<string, boolean>>({})
 
@@ -36,11 +36,13 @@ export const ShowFileTask = ({ files }: { files: string[] }) => {
             <CardContent className="p-0">
               {isImage ? (
                 <div className="w-full h-40 overflow-hidden">
-                  <img
-                    src={url}
-                    alt={fileName}
-                    className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                  />
+                  <PhotoPreview src={url}>
+                    <img
+                      src={url}
+                      alt={fileName}
+                      className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                    />
+                  </PhotoPreview>
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center h-40 bg-muted">

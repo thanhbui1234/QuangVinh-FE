@@ -71,7 +71,7 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
       startDate: '',
       estimateDate: '',
       assigneeId: '',
-      imageUrl: '',
+      imageUrls: [] as string[],
       checkList: '',
     },
   })
@@ -102,7 +102,7 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
           startDate: formatDate(initialData.startTime),
           estimateDate: formatDate(initialData.estimateTime),
           assigneeId: initialData.assigneeId ? String(initialData.assigneeId) : '',
-          imageUrl: initialData.imageUrls?.[0] || '',
+          imageUrls: initialData.imageUrls || [],
           checkList: initialData.checkList || '',
         })
         setEditedDescription(convertHTMLToEditorJS(initialData.checkList || ''))
@@ -115,7 +115,7 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
           startDate: '',
           estimateDate: '',
           assigneeId: '',
-          imageUrl: '',
+          imageUrls: [],
           checkList: '',
         })
         setEditedDescription(convertHTMLToEditorJS(''))
@@ -153,7 +153,7 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
       assigneeId: selectedMember ? Number(selectedMember.id) : undefined,
       status: Number(data.status),
       startTime,
-      imageUrls: data.imageUrl?.trim() ? [data.imageUrl.trim()] : undefined,
+      imageUrls: data.imageUrls,
       checkList: data.checkList?.trim() || undefined,
     })
   }
@@ -331,26 +331,25 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
             {/* Image URL */}
             <div className="space-y-2 mb-5">
               <Label
-                htmlFor="imageUrl"
+                htmlFor="imageUrls"
                 className="text-sm font-medium text-gray-700 flex items-center gap-1.5"
               >
                 <ImageIcon className="w-4 h-4" />
                 URL hình ảnh (tùy chọn)
               </Label>
-              <Input
-                className="hidden"
-                id="imageUrl"
-                type="url"
-                {...register('imageUrl')}
-                placeholder="https://example.com/image.jpg"
-              />
               <FileUploadValidationDemo
                 onUploadSuccess={(url) => {
-                  setValue('imageUrl', url)
-                  console.log('📸 Image URL set to form:', url)
+                  const currentUrls = watch('imageUrls') || []
+                  setValue('imageUrls', [...currentUrls, url])
                 }}
-                initialImages={initialData?.imageUrls}
-                onRemove={() => setValue('imageUrl', '')}
+                initialImages={watch('imageUrls') || []}
+                onRemove={(url) => {
+                  const currentUrls = watch('imageUrls') || []
+                  setValue(
+                    'imageUrls',
+                    currentUrls.filter((u) => u !== url)
+                  )
+                }}
               />
             </div>
 

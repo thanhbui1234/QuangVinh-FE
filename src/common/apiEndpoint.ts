@@ -42,6 +42,10 @@ export const API_ENDPOINT = {
   REMOVE_LEAVES: '/api/absence-request/remove',
   // profile
   GET_PROFILE: '/api/user/get-info',
+  UPDATE_EMAIL: '/api/user/update-email',
+  UPDATE_AVATAR: '/api/user/update-avatar',
+  UPDATE_NAME: '/api/user/update-name',
+  UPDATE_PHONE: '/api/user/update-phone-number',
   // dashboard
   DASHBOARD_LEAVES: '/api/dashboard/team-stats',
   DASHBOARD_OVERVIEW: '/api/dashboard/stats',

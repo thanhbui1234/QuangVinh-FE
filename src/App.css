@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "react-photo-view/dist/react-photo-view.css";
 
 @custom-variant dark (&:is(.dark *));
 

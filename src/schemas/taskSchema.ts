@@ -10,7 +10,7 @@ export const CreateTaskFormSchema = z
     startDate: z.string().optional(),
     estimateDate: z.string().min(1, 'Thời gian hoàn thành là bắt buộc'),
     assigneeId: z.string().optional(),
-    imageUrl: z.string().optional(),
+    imageUrls: z.array(z.string().url()),
     checkList: z.string().optional(),
   })
   .refine(

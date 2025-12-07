@@ -331,8 +331,10 @@ const WebLayout = ({ children }: Props) => {
               <BellNotification />
               <EnablePushButton />
               <Avatar onClick={() => handleLogout()} className="cursor-pointer">
-                <AvatarImage src="https://github.com/shadcn.png" />
-                <AvatarFallback>CN</AvatarFallback>
+                <AvatarImage src={user?.avatar} />
+                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white">
+                  {user?.name?.charAt(0).toUpperCase() || 'U'}
+                </AvatarFallback>
               </Avatar>
             </div>
           </div>
