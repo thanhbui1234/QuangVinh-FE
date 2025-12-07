@@ -44,8 +44,6 @@ const ProjectAssignment = () => {
     }
   }, 0.25) // set
 
-  console.log('searchResults', searchResults)
-
   useEffect(() => {
     debouncedSearch(search)
   }, [search])

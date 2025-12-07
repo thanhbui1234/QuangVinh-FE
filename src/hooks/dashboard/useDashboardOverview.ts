@@ -14,14 +14,12 @@ export const useDashboardOverview = (enabled = true) => {
         API_ENDPOINT.DASHBOARD_OVERVIEW,
         payload
       )) as DashboardStatsResponse
-      console.log('responseresponseresponse', response)
       return response
     },
     enabled,
   })
 
   const stats = data?.stats
-  console.log('stats12312312312312', stats)
   return {
     stats,
     isLoading,

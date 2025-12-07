@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -54,16 +54,25 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
   initialData,
   isLoading,
 }) => {
-  const {
-    register,
-    handleSubmit,
-    reset,
-    watch,
-    setValue,
-    formState: { errors },
-  } = useForm<FormValues>({
-    resolver: zodResolver(CreateTaskFormSchema),
-    defaultValues: {
+  // Format timestamp to datetime-local format (uses utility from CommonUtils)
+  const formatDate = timestampToDateTimeLocal
+
+  // Memoize default values to ensure stability
+  const defaultValues = React.useMemo(() => {
+    if (mode === 'edit' && initialData) {
+      return {
+        description: initialData.description,
+        priority: String(initialData.priority),
+        taskType: String(initialData.taskType),
+        status: String(initialData.status || TASK_STATUS.CREATED),
+        startDate: formatDate(initialData.startTime),
+        estimateDate: formatDate(initialData.estimateTime),
+        assigneeId: initialData.assigneeId ? String(initialData.assigneeId) : '',
+        imageUrls: initialData.imageUrls || [],
+        checkList: initialData.checkList || '',
+      }
+    }
+    return {
       description: '',
       priority: '2',
       taskType: '1',
@@ -71,57 +80,41 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
       startDate: '',
       estimateDate: '',
       assigneeId: '',
-      imageUrls: [] as string[],
+      imageUrls: [],
       checkList: '',
-    },
+    }
+  }, [mode, initialData])
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    watch,
+    setValue,
+    control,
+    formState: { errors },
+  } = useForm<FormValues>({
+    resolver: zodResolver(CreateTaskFormSchema),
+    defaultValues,
   })
+
+  const imageUrls = watch('imageUrls')
+
   const [editedDescription, setEditedDescription] = useState<OutputData>(() =>
     convertHTMLToEditorJS(initialData?.checkList || '')
   )
 
-  // Watch values for Select components (they need controlled state)
-  const priority = watch('priority')
-  const taskType = watch('taskType')
-  const status = watch('status')
-  const assigneeId = watch('assigneeId')
+  // Watch values for DatePicker components
   const startDate = watch('startDate')
   const estimateDate = watch('estimateDate')
 
-  // Format timestamp to datetime-local format (uses utility from CommonUtils)
-  const formatDate = timestampToDateTimeLocal
-
-  // Reset or populate form when modal opens
+  // Reset form when modal opens or defaultValues change
   useEffect(() => {
     if (open) {
-      if (mode === 'edit' && initialData) {
-        reset({
-          description: initialData.description,
-          priority: String(initialData.priority),
-          taskType: String(initialData.taskType),
-          status: String(initialData.status || TASK_STATUS.CREATED),
-          startDate: formatDate(initialData.startTime),
-          estimateDate: formatDate(initialData.estimateTime),
-          assigneeId: initialData.assigneeId ? String(initialData.assigneeId) : '',
-          imageUrls: initialData.imageUrls || [],
-          checkList: initialData.checkList || '',
-        })
-        setEditedDescription(convertHTMLToEditorJS(initialData.checkList || ''))
-      } else {
-        reset({
-          description: '',
-          priority: '2',
-          taskType: '1',
-          status: String(TASK_STATUS.CREATED),
-          startDate: '',
-          estimateDate: '',
-          assigneeId: '',
-          imageUrls: [],
-          checkList: '',
-        })
-        setEditedDescription(convertHTMLToEditorJS(''))
-      }
+      reset(defaultValues)
+      setEditedDescription(convertHTMLToEditorJS(defaultValues.checkList || ''))
     }
-  }, [open, mode, initialData, reset])
+  }, [open, defaultValues, reset])
 
   // ESC key to close (disabled when loading)
   useEffect(() => {
@@ -212,36 +205,48 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                 <Label htmlFor="priority" className="text-sm font-medium text-gray-700">
                   Mức độ ưu tiên <span className="text-red-500">*</span>
                 </Label>
-                <Select value={priority} onValueChange={(val) => setValue('priority', val)}>
-                  <SelectTrigger id="priority" className="w-full">
-                    <SelectValue placeholder={TASK_PRIORITY_LABELS[Number(priority)]} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(TASK_PRIORITY_LABELS).map(([value, label]) => (
-                      <SelectItem key={value} value={value}>
-                        {label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Controller
+                  name="priority"
+                  control={control}
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger id="priority" className="w-full">
+                        <SelectValue placeholder="Chọn mức độ ưu tiên" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(TASK_PRIORITY_LABELS).map(([value, label]) => (
+                          <SelectItem key={value} value={value}>
+                            {label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="taskType" className="text-sm font-medium text-gray-700">
                   Loại công việc <span className="text-red-500">*</span>
                 </Label>
-                <Select value={taskType} onValueChange={(val) => setValue('taskType', val)}>
-                  <SelectTrigger id="taskType" className="w-full">
-                    <SelectValue placeholder={TASK_TYPE_LABELS[Number(taskType)]} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(TASK_TYPE_LABELS).map(([value, label]) => (
-                      <SelectItem key={value} value={value}>
-                        {label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Controller
+                  name="taskType"
+                  control={control}
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger id="taskType" className="w-full">
+                        <SelectValue placeholder="Chọn loại công việc" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(TASK_TYPE_LABELS).map(([value, label]) => (
+                          <SelectItem key={value} value={value}>
+                            {label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
               </div>
             </div>
 
@@ -251,18 +256,27 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                 <Label htmlFor="status" className="text-sm font-medium text-gray-700">
                   Trạng thái
                 </Label>
-                <Select value={status} onValueChange={(val) => setValue('status', val)}>
-                  <SelectTrigger id="status" className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={String(TASK_STATUS.CREATED)}>Đã tạo</SelectItem>
-                    <SelectItem value={String(TASK_STATUS.VISIBLE)}>Hiển thị</SelectItem>
-                    <SelectItem value={String(TASK_STATUS.PENDING)}>Chờ xử lý</SelectItem>
-                    <SelectItem value={String(TASK_STATUS.IN_PROGRESS)}>Đang thực hiện</SelectItem>
-                    <SelectItem value={String(TASK_STATUS.COMPLETED)}>Hoàn thành</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Controller
+                  name="status"
+                  control={control}
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger id="status" className="w-full">
+                        <SelectValue placeholder="Chọn trạng thái" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={String(TASK_STATUS.CREATED)}>Việc cần làm</SelectItem>
+                        <SelectItem value={String(TASK_STATUS.PENDING)}>
+                          Chờ xử lý - sự cố
+                        </SelectItem>
+                        <SelectItem value={String(TASK_STATUS.IN_PROGRESS)}>
+                          Đang thực hiện
+                        </SelectItem>
+                        <SelectItem value={String(TASK_STATUS.COMPLETED)}>Hoàn thành</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
               </div>
 
               <div className="space-y-2">
@@ -306,25 +320,31 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                 <Label htmlFor="assignee" className="text-sm font-medium text-gray-700">
                   Người thực hiện
                 </Label>
-                <Select
-                  value={assigneeId || 'unassigned'}
-                  onValueChange={(val) => setValue('assigneeId', val === 'unassigned' ? '' : val)}
-                >
-                  <SelectTrigger id="assignee" className="w-full">
-                    <SelectValue placeholder="Chưa phân công" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="unassigned">Chưa phân công</SelectItem>
-                    {Array.isArray(memberTask) &&
-                      memberTask
-                        .filter((member) => member && member.id != null && member.id !== '')
-                        .map((member) => (
-                          <SelectItem key={String(member.id)} value={String(member.id)}>
-                            {String(member.name || member.email || 'Unknown')}
-                          </SelectItem>
-                        ))}
-                  </SelectContent>
-                </Select>
+                <Controller
+                  name="assigneeId"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      value={field.value || 'unassigned'}
+                      onValueChange={(val) => field.onChange(val === 'unassigned' ? '' : val)}
+                    >
+                      <SelectTrigger id="assignee" className="w-full">
+                        <SelectValue placeholder="Chọn người thực hiện" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="unassigned">Chưa phân công</SelectItem>
+                        {Array.isArray(memberTask) &&
+                          memberTask
+                            .filter((member) => member && member.id != null && member.id !== '')
+                            .map((member) => (
+                              <SelectItem key={String(member.id)} value={String(member.id)}>
+                                {String(member.name || member.email || 'Unknown')}
+                              </SelectItem>
+                            ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
               </div>
             </div>
 
@@ -342,7 +362,7 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                   const currentUrls = watch('imageUrls') || []
                   setValue('imageUrls', [...currentUrls, url])
                 }}
-                initialImages={watch('imageUrls') || []}
+                initialImages={imageUrls || []}
                 onRemove={(url) => {
                   const currentUrls = watch('imageUrls') || []
                   setValue(
