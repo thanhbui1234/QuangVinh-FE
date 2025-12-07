@@ -48,7 +48,7 @@ export const Profile = () => {
   const { updatePhoneMutate } = useUpdatePhone(currentUserId)
 
   // Form
-  const { control, reset, watch } = useForm<ProfileFormData>({
+  const { control, reset, watch, trigger } = useForm<ProfileFormData>({
     resolver: zodResolver(ProfileSchema),
     defaultValues: {
       name: '',
@@ -107,7 +107,7 @@ export const Profile = () => {
       return
     }
 
-    // Show preview immediately
+    // Show preview immediately with local blob URL
     const preview = URL.createObjectURL(file)
     setAvatarPreview(preview)
 
@@ -120,21 +120,14 @@ export const Profile = () => {
           {
             onSuccess: () => {
               toast.success('Cập nhật ảnh đại diện thành công')
-              // Add cache-busting query param to force browser reload
-              const urlWithTimestamp = `${response.viewUrl}?t=${Date.now()}`
-              setAvatarPreview(urlWithTimestamp)
-              URL.revokeObjectURL(preview)
 
-              // Update authStore immediately for UI refresh
-              // Preserve all existing user fields
-              if (isOwnProfile && user) {
-                useAuthStore.setState({
-                  user: {
-                    ...user,
-                    avatar: response.viewUrl,
-                  },
-                })
-              }
+              // Keep using the local blob URL for preview (don't switch to server URL)
+              // This prevents image loading issues on re-renders
+              // The blob URL will be cleaned up when component unmounts or user reloads page
+
+              // Note: We don't update authStore here because it would trigger useEffect
+              // which would overwrite our blob preview with user.avatar
+              // AuthStore will be updated naturally when user reloads page and fetches from API
             },
             onError: () => {
               toast.error('Cập nhật ảnh đại diện thất bại')
@@ -157,9 +150,16 @@ export const Profile = () => {
     e.target.value = ''
   }
 
-  const handleUpdateName = () => {
+  const handleUpdateName = async () => {
     // Don't update if no change
     if (currentValues.name === initialValues.name) return
+
+    // Validate name field before calling API
+    const isValid = await trigger('name')
+    if (!isValid) {
+      toast.error('Vui lòng kiểm tra lại thông tin')
+      return
+    }
 
     updateNameMutate(
       { name: currentValues.name },
@@ -182,9 +182,16 @@ export const Profile = () => {
     )
   }
 
-  const handleUpdateEmail = () => {
+  const handleUpdateEmail = async () => {
     // Don't update if no change
     if (currentValues.email === initialValues.email) return
+
+    // Validate email field before calling API
+    const isValid = await trigger('email')
+    if (!isValid) {
+      toast.error('Email không hợp lệ')
+      return
+    }
 
     updateEmailMutate(
       { email: currentValues.email },
@@ -207,9 +214,16 @@ export const Profile = () => {
     )
   }
 
-  const handleUpdatePhone = () => {
+  const handleUpdatePhone = async () => {
     // Don't update if no change
     if (currentValues.phone === initialValues.phone) return
+
+    // Validate phone field before calling API
+    const isValid = await trigger('phone')
+    if (!isValid) {
+      toast.error('Số điện thoại không hợp lệ')
+      return
+    }
 
     updatePhoneMutate(
       { phone: currentValues.phone || '' },
