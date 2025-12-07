@@ -26,14 +26,14 @@ export const ButtonAction = ({
   // Memoize available options based on current status
   const availableOptions = useMemo(() => {
     switch (currentStatus) {
-      case 1: // Chưa bắt đầu
+      case 1: // Việc cần làm
         return [
           { value: '8', label: 'Đang tiến hành' },
           { value: '4', label: 'Chờ xử lý - Có sự cố' },
         ]
       case 8: // Đang tiến hành
         return [
-          { value: '9', label: 'Hoàn thành' },
+          { value: '9', label: 'Đã hoàn thành' },
           { value: '4', label: 'Chờ xử lý - Có sự cố' },
         ]
       case 4: // Chờ xử lý
@@ -43,6 +43,7 @@ export const ButtonAction = ({
         ]
       case 9: // Hoàn thành - có thể reopen
         return [
+          { value: '1', label: 'Việc cần làm' },
           { value: '8', label: 'Đang tiến hành' },
           { value: '4', label: 'Chờ xử lý - Có sự cố' },
         ]
@@ -56,7 +57,7 @@ export const ButtonAction = ({
     switch (currentStatus) {
       case 1:
         return {
-          label: 'Chưa bắt đầu',
+          label: 'Việc cần làm',
           bgColor: 'bg-slate-500',
           hoverColor: 'hover:bg-slate-600',
           borderColor: 'border-slate-500',

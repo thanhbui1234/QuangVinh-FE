@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useParams } from 'react-router'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -55,6 +55,32 @@ export const DetailTask = () => {
     setEditedDescription(convertHTMLToEditorJS(projectAssignmentDetail?.checkList || ''))
     setIsEditingDescription(true)
   }
+
+  // Memoize initialData to prevent unnecessary re-creation
+  const initialTaskData = useMemo(() => {
+    if (!projectAssignmentDetail) return undefined
+    return {
+      description: projectAssignmentDetail.description,
+      priority: projectAssignmentDetail.priority,
+      taskType: projectAssignmentDetail.taskType,
+      estimateTime: projectAssignmentDetail.estimateTime,
+      status: projectAssignmentDetail.status,
+      assigneeId: projectAssignmentDetail.assignee?.id,
+      startTime: projectAssignmentDetail.startTime,
+      checkList: projectAssignmentDetail.checkList,
+      imageUrls: projectAssignmentDetail.imageUrls,
+    }
+  }, [
+    projectAssignmentDetail?.description,
+    projectAssignmentDetail?.priority,
+    projectAssignmentDetail?.taskType,
+    projectAssignmentDetail?.estimateTime,
+    projectAssignmentDetail?.status,
+    projectAssignmentDetail?.assignee?.id,
+    projectAssignmentDetail?.startTime,
+    projectAssignmentDetail?.checkList,
+    JSON.stringify(projectAssignmentDetail?.imageUrls),
+  ])
 
   if (isFetching)
     return (
@@ -191,17 +217,7 @@ export const DetailTask = () => {
           )
         }}
         mode="edit"
-        initialData={{
-          description: projectAssignmentDetail.description, // Mapping title to description as per CreateTaskModal structure
-          priority: projectAssignmentDetail.priority, // Default or map from task if available
-          taskType: projectAssignmentDetail.taskType, // Default or map from task if available
-          estimateTime: projectAssignmentDetail.estimateTime, // Reverse calc or mock
-          status: projectAssignmentDetail.status, // Map status string to number
-          assigneeId: projectAssignmentDetail.assigneeId,
-          startTime: projectAssignmentDetail.startTime, // Mock
-          checkList: projectAssignmentDetail.checkList,
-          imageUrls: projectAssignmentDetail.imageUrls,
-        }}
+        initialData={initialTaskData}
         groupId={projectAssignmentDetail?.groupId || 0}
         isLoading={isUpdateTaskLoading}
       />

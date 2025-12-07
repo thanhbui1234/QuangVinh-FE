@@ -35,10 +35,9 @@ export function FileUploadValidationDemo({
   // Track URLs that were uploaded from current files to prevent duplicate display
   const uploadedUrlsFromFilesRef = React.useRef<Set<string>>(new Set())
   // Sync initialImages to state
+  // Sync initialImages to state
   React.useEffect(() => {
-    if (initialImages && initialImages.length > 0) {
-      setExistingImages(initialImages)
-    }
+    setExistingImages(initialImages || [])
   }, [initialImages])
 
   const handleRemoveExisting = (url: string) => {
@@ -92,7 +91,6 @@ export function FileUploadValidationDemo({
         uploadFileMutation.mutate(file, {
           onSuccess: (response) => {
             const viewUrl = response.viewUrl
-            console.log('✅ Uploaded URL:', viewUrl)
 
             // Track this URL as uploaded from current files
             uploadedUrlsFromFilesRef.current.add(viewUrl)
@@ -172,7 +170,7 @@ export function FileUploadValidationDemo({
           </Button>
         </FileUploadTrigger>
       </FileUploadDropzone>
-      <FileUploadList>
+      <FileUploadList forceMount={existingImages.length > 0}>
         {existingImages
           .filter((url) => !uploadedUrlsFromFilesRef.current.has(url)) // Don't show URLs that are already in files preview
           .map((url) => (
