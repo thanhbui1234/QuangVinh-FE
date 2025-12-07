@@ -349,6 +349,8 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                   setValue('imageUrl', url)
                   console.log('📸 Image URL set to form:', url)
                 }}
+                initialImages={initialData?.imageUrls}
+                onRemove={() => setValue('imageUrl', '')}
               />
             </div>
 

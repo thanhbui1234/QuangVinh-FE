@@ -22,11 +22,6 @@ export const ShowFileTask = ({ files }: { files: string[] }) => {
   }, [files])
 
   const getFileName = (url: string) => url.split('/').pop() || 'file'
-
-  if (!files || files.length === 0) {
-    return <p className="text-sm text-muted-foreground">Không có file đính kèm.</p>
-  }
-
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
       {files.map((url, index) => {

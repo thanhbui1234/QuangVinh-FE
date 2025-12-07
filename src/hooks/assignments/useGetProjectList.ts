@@ -49,6 +49,7 @@ export const useGetProjectList = (payload: UseGetProjectListParams) => {
 
   useEffect(() => {
     if (error) {
+      console.log('error', error)
       handleCommonError(error)
     }
   }, [error])
