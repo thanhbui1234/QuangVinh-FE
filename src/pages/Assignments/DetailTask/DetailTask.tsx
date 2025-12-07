@@ -181,6 +181,7 @@ export const DetailTask = () => {
               status: data.status,
               assigneeId: data.assigneeId,
               startTime: data.startTime,
+              imageUrls: data.imageUrls,
             },
             {
               onSuccess: () => {
@@ -199,6 +200,7 @@ export const DetailTask = () => {
           assigneeId: projectAssignmentDetail.assigneeId,
           startTime: projectAssignmentDetail.startTime, // Mock
           checkList: projectAssignmentDetail.checkList,
+          imageUrls: projectAssignmentDetail.imageUrls,
         }}
         groupId={projectAssignmentDetail?.groupId || 0}
         isLoading={isUpdateTaskLoading}

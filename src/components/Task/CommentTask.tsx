@@ -28,10 +28,12 @@ const mentionsInputStyle = {
     },
     highlighter: {
       padding: 9,
+      paddingRight: 50,
       border: '1px solid transparent',
     },
     input: {
       padding: 9,
+      paddingRight: 50,
       border: '1px solid #e5e7eb',
       borderRadius: 6,
       outline: 'none',
@@ -257,7 +259,7 @@ export const CommentTask = ({ member, taskId }: { member: IMemberTask[]; taskId:
               </Avatar>
               <div className="flex-1 space-y-3">
                 <div className="flex gap-2">
-                  <div className="flex-1">
+                  <div className="flex-1 relative">
                     <MentionsInput
                       value={commentInput}
                       onChange={(e) => {
@@ -287,6 +289,22 @@ export const CommentTask = ({ member, taskId }: { member: IMemberTask[]; taskId:
                         }}
                       />
                     </MentionsInput>
+
+                    <button
+                      type="submit"
+                      disabled={
+                        (!commentInput?.trim() && uploadedImageUrls.length === 0) ||
+                        createCommentMutation.isPending
+                      }
+                      className={`absolute right-3 bottom-3 shrink-0 transition-colors ${
+                        (!commentInput?.trim() && uploadedImageUrls.length === 0) ||
+                        createCommentMutation.isPending
+                          ? 'text-gray-300 cursor-not-allowed'
+                          : 'text-gray-900 hover:text-blue-600 cursor-pointer'
+                      }`}
+                    >
+                      <Send className="w-5 h-5" />
+                    </button>
                   </div>
 
                   {/* Image Upload Icon Button */}
@@ -310,19 +328,6 @@ export const CommentTask = ({ member, taskId }: { member: IMemberTask[]; taskId:
                     ) : (
                       <ImagePlus className="w-4 h-4" />
                     )}
-                  </Button>
-
-                  {/* Send Button */}
-                  <Button
-                    size="icon"
-                    type="submit"
-                    disabled={
-                      (!commentInput?.trim() && uploadedImageUrls.length === 0) ||
-                      createCommentMutation.isPending
-                    }
-                    className="shrink-0 bg-gray-900 hover:bg-gray-800"
-                  >
-                    <Send className="w-4 h-4" />
                   </Button>
                 </div>
 
@@ -425,7 +430,7 @@ export const CommentTask = ({ member, taskId }: { member: IMemberTask[]; taskId:
                             key={idx}
                             src={url}
                             alt={`Comment attachment ${idx + 1}`}
-                            className="max-w-xs rounded border border-gray-200 cursor-pointer hover:opacity-90"
+                            className="w-50 rounded border border-gray-200 cursor-pointer hover:opacity-90"
                             onClick={() => window.open(url, '_blank')}
                           />
                         ))}

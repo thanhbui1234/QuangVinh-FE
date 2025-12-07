@@ -19,17 +19,36 @@ import { ImageZoom } from '@/components/ui/shadcn-io/image-zoom'
 
 interface FileUploadValidationDemoProps {
   onUploadSuccess?: (url: string) => void
+  initialImages?: string[]
+  onRemove?: (url: string) => void
 }
 
-export function FileUploadValidationDemo({ onUploadSuccess }: FileUploadValidationDemoProps) {
+export function FileUploadValidationDemo({
+  onUploadSuccess,
+  initialImages = [],
+  onRemove,
+}: FileUploadValidationDemoProps) {
   const [files, setFiles] = React.useState<File[]>([])
+  const [existingImages, setExistingImages] = React.useState<string[]>([])
   const uploadFileMutation = useUploadFile()
   const uploadedFilesRef = React.useRef<Set<string>>(new Set())
+  console.log('📸 Initial images:', initialImages)
+  // Sync initialImages to state
+  React.useEffect(() => {
+    if (initialImages && initialImages.length > 0) {
+      setExistingImages(initialImages)
+    }
+  }, [initialImages])
+
+  const handleRemoveExisting = (url: string) => {
+    setExistingImages((prev) => prev.filter((img) => img !== url))
+    onRemove?.(url)
+  }
 
   const onFileValidate = React.useCallback(
     (file: File): string | null => {
-      // Validate max files
-      if (files.length >= 1) {
+      // Validate max files (including existing ones)
+      if (files.length + existingImages.length >= 3) {
         return 'Chỉ được upload 1 file'
       }
 
@@ -39,14 +58,14 @@ export function FileUploadValidationDemo({ onUploadSuccess }: FileUploadValidati
       }
 
       // Validate file size (max 2MB)
-      const MAX_SIZE = 2 * 1024 * 1024 // 2MB
+      const MAX_SIZE = 5 * 1024 * 1024 // 2MB
       if (file.size > MAX_SIZE) {
         return `Dung lượng file phải nhỏ hơn ${MAX_SIZE / (1024 * 1024)}MB`
       }
 
       return null
     },
-    [files]
+    [files, existingImages]
   )
 
   const onFileReject = React.useCallback((file: File, message: string) => {
@@ -145,6 +164,35 @@ export function FileUploadValidationDemo({ onUploadSuccess }: FileUploadValidati
         </FileUploadTrigger>
       </FileUploadDropzone>
       <FileUploadList>
+        {existingImages.map((url) => (
+          <div key={url} className="relative flex items-center gap-2.5 rounded-md border p-3">
+            <div className="relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded border bg-accent/50">
+              <ImageZoom>
+                <img
+                  src={url}
+                  alt="Existing file"
+                  className="size-full object-cover cursor-zoom-in"
+                  style={{ maxWidth: '60vw', maxHeight: '60vh' }}
+                />
+              </ImageZoom>
+            </div>
+            <div className="flex min-w-0 flex-1 flex-col">
+              <span className="truncate font-medium text-sm">
+                {url.split('/').pop() || 'Existing Image'}
+              </span>
+              <span className="truncate text-muted-foreground text-xs">Already uploaded</span>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7"
+              onClick={() => handleRemoveExisting(url)}
+              type="button"
+            >
+              <X className="size-4" />
+            </Button>
+          </div>
+        ))}
         {files.map((file) => (
           <FileUploadItem key={file.name} value={file}>
             <FileUploadItemPreview render={renderPreviewWithZoom} />
