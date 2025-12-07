@@ -286,7 +286,7 @@ const LeavesTable: React.FC<LeavesTableProps> = (props) => {
           columns={columns as any}
           loading={loading}
           searchable={true}
-          searchPlaceholder="Tìm kiếm theo tên nhân viên..."
+          searchPlaceholder="Tìm kiếm theo tên nhân viên, lý do..."
           filterable={true}
           columnVisibility={true}
           rowKey="id"
