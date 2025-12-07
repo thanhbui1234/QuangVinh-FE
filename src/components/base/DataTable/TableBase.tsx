@@ -168,6 +168,10 @@ export function TableBase<T = any>({
         const recordValue = (record as any)[column.dataIndex]
 
         if (column.filterType === 'select') {
+          // Handle array values (e.g., roles array)
+          if (Array.isArray(recordValue)) {
+            return recordValue.includes(filterValue)
+          }
           return recordValue === filterValue
         } else if (column.filterType === 'text') {
           return String(recordValue).toLowerCase().includes(String(filterValue).toLowerCase())
@@ -647,38 +651,46 @@ export function TableBase<T = any>({
                     const columnKey = column.key || column.dataIndex
                     return visibleColumns.includes(columnKey)
                   })
-                  .map((column) => (
-                    <TableHead
-                      key={column.key || column.dataIndex}
-                      className={cn(
-                        column.align === 'center' && 'text-center',
-                        column.align === 'right' && 'text-right',
-                        column.className
-                      )}
-                      style={{ width: column.width }}
-                    >
-                      <div className="flex items-center gap-2">
-                        <span>{column.title}</span>
-                        {column.sorter && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 w-6 p-0"
-                            onClick={() => handleSort(column.dataIndex)}
-                          >
-                            <ChevronDown
-                              className={cn(
-                                'w-3 h-3 transition-transform',
-                                sortConfig?.key === column.dataIndex &&
-                                  sortConfig.direction === 'desc' &&
-                                  'rotate-180'
-                              )}
-                            />
-                          </Button>
-                        )}
-                      </div>
-                    </TableHead>
-                  ))}
+                  .map((column) => {
+                    const isCenter = column.align === 'center'
+                    const isRight = column.align === 'right'
+
+                    return (
+                      <TableHead
+                        key={column.key || column.dataIndex}
+                        className={cn(!isCenter && !isRight && 'text-left', column.className)}
+                        style={{ width: column.width }}
+                      >
+                        <div
+                          className={cn(
+                            'flex items-center gap-2',
+                            isCenter && 'justify-center',
+                            isRight && 'justify-end',
+                            !isCenter && !isRight && 'justify-start'
+                          )}
+                        >
+                          <span>{column.title}</span>
+                          {column.sorter && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0"
+                              onClick={() => handleSort(column.dataIndex)}
+                            >
+                              <ChevronDown
+                                className={cn(
+                                  'w-3 h-3 transition-transform',
+                                  sortConfig?.key === column.dataIndex &&
+                                    sortConfig.direction === 'desc' &&
+                                    'rotate-180'
+                                )}
+                              />
+                            </Button>
+                          )}
+                        </div>
+                      </TableHead>
+                    )
+                  })}
               </TableRow>
             </TableHeader>
 
@@ -722,18 +734,32 @@ export function TableBase<T = any>({
                           const columnKey = column.key || column.dataIndex
                           return visibleColumns.includes(columnKey)
                         })
-                        .map((column) => (
-                          <TableCell
-                            key={column.key || column.dataIndex}
-                            className={cn(
-                              column.align === 'center' && 'text-center',
-                              column.align === 'right' && 'text-right',
-                              column.className
-                            )}
-                          >
-                            {renderCell(column, record, index)}
-                          </TableCell>
-                        ))}
+                        .map((column) => {
+                          const cellContent = renderCell(column, record, index)
+                          const isCenter = column.align === 'center'
+                          const isRight = column.align === 'right'
+
+                          return (
+                            <TableCell
+                              key={column.key || column.dataIndex}
+                              className={cn(!isCenter && !isRight && 'text-left', column.className)}
+                            >
+                              {isCenter || isRight ? (
+                                <div
+                                  className={cn(
+                                    'flex w-full',
+                                    isCenter && 'justify-center',
+                                    isRight && 'justify-end'
+                                  )}
+                                >
+                                  {cellContent}
+                                </div>
+                              ) : (
+                                cellContent
+                              )}
+                            </TableCell>
+                          )
+                        })}
                     </TableRow>
                   )
                 })

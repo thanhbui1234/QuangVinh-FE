@@ -198,3 +198,24 @@ export const calculateWeekRange = (weekOffset = 0): { startDate: number; endDate
     endDate: sunday.valueOf(),
   }
 }
+
+/**
+ * Get initials from a name (e.g., "Nguyễn Văn A" -> "NA")
+ */
+export const getInitials = (name: string): string => {
+  if (!name) return ''
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
+}
+
+/**
+ * Format timestamp to Vietnamese date string
+ */
+export const formatTimestampToDate = (timestamp: number): string => {
+  if (!timestamp) return ''
+  return dayjs(timestamp).format('DD/MM/YYYY')
+}

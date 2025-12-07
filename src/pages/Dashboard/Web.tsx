@@ -10,10 +10,10 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Separator } from '@/components/ui/separator'
-import { MiniBar, MiniLeaveStacked } from '@/components/dashboard/Charts'
+import { MiniLeaveStacked } from '@/components/dashboard/Charts'
 import ChartCard from '@/components/dashboard/ChartCard'
 import { ProjectStatusRatio } from '@/components/dashboard/ProjectStatusRatio'
-import { BarChart3, PieChart, LineChart, Calendar } from 'lucide-react'
+import { PieChart, LineChart, Calendar } from 'lucide-react'
 import useCheckRole from '@/hooks/useCheckRole'
 import { useTeamLeaveStats } from '@/hooks/dashboard/useTeamLeaveStats'
 import { useProjectRatio } from '@/hooks/dashboard/useProjectRatio'
@@ -171,17 +171,6 @@ export default function DashboardWeb() {
               ) : (
                 <p className="text-sm text-muted-foreground">Không có dữ liệu tuần này</p>
               )}
-            </ChartCard>
-          </div>
-
-          <div className="lg:col-span-2">
-            <ChartCard
-              title="Năng suất đội nhóm"
-              icon={<BarChart3 className="h-4 w-4" />}
-              badgeText="Tháng này"
-              onClick={() => navigate('/assignments')}
-            >
-              <MiniBar />
             </ChartCard>
           </div>
 
