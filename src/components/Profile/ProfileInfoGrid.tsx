@@ -41,6 +41,14 @@ export const ProfileInfoGrid = ({
         {/* Email Field - Only show update button if changed */}
         <FormInlineField
           control={control}
+          name="name"
+          placeholder="Tên"
+          disabled={disabled}
+          saving={isSaving}
+          onUpdate={() => onUpdateField('name')}
+        />
+        <FormInlineField
+          control={control}
           name="email"
           placeholder="Email"
           disabled={disabled}
