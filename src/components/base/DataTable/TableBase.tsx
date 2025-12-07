@@ -154,10 +154,52 @@ export function TableBase<T = any>({
   const processedData = useMemo(() => {
     let result = [...dataSource]
 
+    // Apply search filter
+    if (searchValue && searchValue.trim()) {
+      const searchLower = searchValue.toLowerCase().trim()
+      result = result.filter((record) => {
+        // Search in all columns (text columns and render columns)
+        return columns.some((column) => {
+          const recordValue = (record as any)[column.dataIndex]
+
+          // Handle nested objects (e.g., creator.name, creator.email)
+          if (
+            typeof recordValue === 'object' &&
+            recordValue !== null &&
+            !Array.isArray(recordValue)
+          ) {
+            // Check nested properties like creator.name, creator.email
+            const nestedValues = Object.values(recordValue).filter(
+              (v) => typeof v === 'string' || typeof v === 'number'
+            )
+            return nestedValues.some((v) => String(v).toLowerCase().includes(searchLower))
+          }
+
+          // Handle array values (e.g., roles)
+          if (Array.isArray(recordValue)) {
+            return recordValue.some((v) => {
+              if (typeof v === 'object' && v !== null) {
+                return Object.values(v).some((nv) => String(nv).toLowerCase().includes(searchLower))
+              }
+              return String(v).toLowerCase().includes(searchLower)
+            })
+          }
+
+          // Handle primitive values
+          if (recordValue !== undefined && recordValue !== null) {
+            return String(recordValue).toLowerCase().includes(searchLower)
+          }
+
+          return false
+        })
+      })
+    }
+
     if (searchValue && onSearch) {
       onSearch(searchValue)
     }
 
+    // Apply column filters
     result = result.filter((record) => {
       return Object.entries(columnFilters).every(([columnKey, filterValue]) => {
         if (!filterValue || filterValue === '') return true
