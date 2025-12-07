@@ -58,4 +58,9 @@ export const API_ENDPOINT = {
   NOTIFICATION_TEST_PUSH: '/api/notifications/webpush/test',
   // upload file
   UPLOAD_FILE: '/api/upload/file',
+  // documents
+  UPLOAD_DOCUMENT: '/api/upload/document',
+  GET_MY_DOCUMENTS: '/api/documents/my',
+  GET_SHARED_DOCUMENTS: '/api/documents/shared',
+  DELETE_DOCUMENT: '/api/documents',
 }

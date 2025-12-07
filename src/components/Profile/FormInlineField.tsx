@@ -28,7 +28,7 @@ export function FormInlineField<T extends FieldValues>({
     <Controller
       control={control}
       name={name}
-      render={({ field, fieldState }) => (
+      render={({ field }) => (
         <div
           className="relative"
           onMouseEnter={() => setHovered(true)}
@@ -58,9 +58,6 @@ export function FormInlineField<T extends FieldValues>({
               </Button>
             </div>
           ) : null}
-          {fieldState.error && (
-            <p className="text-sm text-red-500 mt-1">{fieldState.error.message}</p>
-          )}
         </div>
       )}
     />
