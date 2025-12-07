@@ -7,7 +7,7 @@ interface ProfileInfoGridProps {
   isOwnProfile: boolean
   isLoading?: boolean
   isSaving?: boolean
-  onUpdateField: (field: 'email' | 'phone' | 'position') => void
+  onUpdateField: (field: 'name' | 'email' | 'phone' | 'position') => void
 }
 
 export const ProfileInfoGrid = ({
@@ -22,6 +22,14 @@ export const ProfileInfoGrid = ({
   return (
     <>
       <div className="mt-2 grid w-full max-w-3xl grid-cols-1 gap-3 md:grid-cols-2">
+        <FormInlineField
+          control={control}
+          name="name"
+          placeholder="Tên"
+          disabled={disabled}
+          saving={isSaving}
+          onUpdate={() => onUpdateField('name')}
+        />
         <FormInlineField
           control={control}
           name="email"
