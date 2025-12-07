@@ -71,7 +71,7 @@ export const useMyTasksInfinite = (limit = DEFAULT_LIMIT, enabled = true) => {
         const payload: MyTasksRequest = {
           assigneeIds: [userId],
           limit,
-          offset: pageParam,
+          offset: pageParam ? Number(pageParam) : 0,
         }
         const response = (await POST(API_ENDPOINT.GET_TASKS, payload)) as MyTasksResponse
         return response

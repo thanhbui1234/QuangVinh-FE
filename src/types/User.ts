@@ -4,7 +4,7 @@ import type { UserRole } from '@/constants'
 
 // User-related types
 export interface User {
-  id: string | number
+  id: number
   email: string
   name: string
   phone: string

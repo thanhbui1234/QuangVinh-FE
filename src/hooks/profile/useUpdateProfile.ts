@@ -5,7 +5,7 @@ import { queryClient } from '@/lib/queryClient'
 import { profileKey } from '@/constants'
 import type { ProfileUpdatePayload } from '@/schemas/profileSchema'
 
-export const useUpdateProfile = (userId: string) => {
+export const useUpdateProfile = (userId: any) => {
   const updateProfileMutation = useMutation({
     mutationFn: async (payload: ProfileUpdatePayload) => {
       const formData = new FormData()

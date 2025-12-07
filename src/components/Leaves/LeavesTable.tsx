@@ -47,7 +47,7 @@ type LeavesTableProps = {
   onViewDetails: (request: LeavesListDataResponse) => void
   onEdit?: (request: LeavesListDataResponse) => void
   onDelete?: (request: LeavesListDataResponse) => void
-  canEditOrDelete?: (request: LeavesListDataResponse) => boolean
+  canEditOrDelete?: (request: LeavesListDataResponse) => any
 }
 
 const LeavesTable: React.FC<LeavesTableProps> = (props) => {
@@ -76,7 +76,7 @@ const LeavesTable: React.FC<LeavesTableProps> = (props) => {
       sorter: true,
       filterable: true,
       filterType: 'text',
-      render: (_, record) => (
+      render: (_: any, record: any) => (
         <div className="flex items-center gap-2">
           <Avatar className="size-8">
             <AvatarImage src={record.creator?.avatar} alt={record.creator?.name} />
@@ -99,7 +99,7 @@ const LeavesTable: React.FC<LeavesTableProps> = (props) => {
         label: value,
         value: key,
       })),
-      render: (value) => {
+      render: (value: any) => {
         const Icon = getLeaveIcon(value)
         return (
           <div className="flex items-center gap-2">
@@ -123,7 +123,7 @@ const LeavesTable: React.FC<LeavesTableProps> = (props) => {
       sorter: true,
       filterable: true,
       filterType: 'date',
-      render: (value) => formatDate(value),
+      render: (value: any) => formatDate(value),
     },
     {
       title: 'Đến ngày',
@@ -132,14 +132,14 @@ const LeavesTable: React.FC<LeavesTableProps> = (props) => {
       sorter: true,
       filterable: true,
       filterType: 'date',
-      render: (value) => formatDate(value),
+      render: (value: any) => formatDate(value),
     },
     {
       title: 'Số ngày',
       dataIndex: 'dayOff',
       key: 'days',
       sorter: true,
-      render: (_, record) => {
+      render: (_: any, record: any) => {
         const { days, hours } = calculateDays(record.offFrom, record.offTo)
         return (
           <div className="flex items-center gap-1.5">
@@ -156,7 +156,7 @@ const LeavesTable: React.FC<LeavesTableProps> = (props) => {
       dataIndex: 'reason',
       key: 'reason',
       ellipsis: true,
-      render: (value) => (
+      render: (value: any) => (
         <div className="max-w-[200px] truncate" title={value}>
           {value}
         </div>
@@ -174,7 +174,7 @@ const LeavesTable: React.FC<LeavesTableProps> = (props) => {
         { label: 'Đã duyệt', value: StatusLeaves.APPROVED.toString() },
         { label: 'Từ chối', value: StatusLeaves.REJECTED.toString() },
       ],
-      render: (value) => {
+      render: (value: any) => {
         if (value === StatusLeaves.PENDING)
           return (
             <Badge variant="secondary" className="gap-1.5">
@@ -204,7 +204,7 @@ const LeavesTable: React.FC<LeavesTableProps> = (props) => {
       dataIndex: 'actions',
       key: 'actions',
       align: 'left',
-      render: (_, record) => {
+      render: (_: any, record: any) => {
         const hasActions =
           canApprove ||
           record.status === StatusLeaves.PENDING ||

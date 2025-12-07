@@ -19,7 +19,7 @@ type ViewDetailsSheetMobileProps = {
   selectedRequest: LeavesListDataResponse | null
   onEdit?: (request: LeavesListDataResponse) => void
   onDelete?: (request: LeavesListDataResponse) => void
-  canEditOrDelete?: (request: LeavesListDataResponse) => boolean
+  canEditOrDelete?: (request: LeavesListDataResponse) => any
 }
 
 export default function ViewDetailsSheetMobile({
