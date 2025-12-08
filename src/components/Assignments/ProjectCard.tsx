@@ -3,7 +3,7 @@ import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
 import type { IProjectAssignment } from '@/types/project'
 import { useNavigate } from 'react-router'
-import { Users, CheckCircle2, User, MoreVertical, Pencil } from 'lucide-react'
+import { Users, CheckCircle2, User, MoreVertical, Pencil, Trash } from 'lucide-react'
 import { PRIVACY_LABEL } from '@/constants/assignments/privacy'
 import {
   DropdownMenu,
@@ -11,11 +11,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu'
+import useCheckRole from '@/hooks/useCheckRole.ts'
+import { usePermission } from '@/hooks/useCheckPermission'
 
 interface ProjectCardProps {
   project: IProjectAssignment
   onView?: (project: IProjectAssignment) => void
   onEdit?: (project: IProjectAssignment) => void
+  onDelete?: (project: IProjectAssignment) => void
 }
 
 const getPrivacy = (privacy: number) => {
@@ -27,7 +30,7 @@ const getPrivacy = (privacy: number) => {
   }
 }
 
-export const ProjectCard = ({ project, onEdit }: ProjectCardProps) => {
+export const ProjectCard = ({ project, onEdit, onDelete }: ProjectCardProps) => {
   const navigate = useNavigate()
 
   const handleView = () => {
@@ -39,8 +42,14 @@ export const ProjectCard = ({ project, onEdit }: ProjectCardProps) => {
     onEdit?.(project)
   }
 
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    onDelete?.(project)
+  }
+
+  const canDelete = usePermission({ ownerId: project.owner.id, allowDirector: true })
   return (
-    <Card onClick={handleView} className="group relative cursor-pointer">
+    <Card onClick={handleView} className="group relative cursor-pointer ">
       {/* Badge và Dropdown ở góc phải trên */}
       <div className="absolute top-3 right-0 flex items-center gap-2 z-10">
         <Badge variant="secondary">{getPrivacy(project.privacy)}</Badge>
@@ -50,7 +59,12 @@ export const ProjectCard = ({ project, onEdit }: ProjectCardProps) => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="
+                    h-8 w-8
+                    opacity-100
+                    md:opacity-0 md:group-hover:opacity-100
+                    transition-opacity
+                  "
               >
                 <MoreVertical className="h-4 w-4" />
               </Button>
@@ -60,6 +74,12 @@ export const ProjectCard = ({ project, onEdit }: ProjectCardProps) => {
                 <Pencil className="mr-2 h-4 w-4" />
                 Chỉnh sửa
               </DropdownMenuItem>
+              {canDelete && (
+                <DropdownMenuItem onClick={handleDelete}>
+                  <Trash className="mr-2 h-4 w-4" />
+                  Xóa
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         )}

@@ -11,21 +11,25 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 
-export function DeleteCommentDialog({
+export function DialogConfirm({
   open,
   onOpenChange,
   onConfirm,
+  title,
+  description,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onConfirm: () => void
+  onConfirm: () => any
+  title: string
+  description: string
 }) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Bạn có chắc chắn muốn xóa bình luận này?</AlertDialogTitle>
-          <AlertDialogDescription>Hành động này không thể hoàn tác.</AlertDialogDescription>
+          <AlertDialogTitle>{title}</AlertDialogTitle>
+          <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Hủy</AlertDialogCancel>

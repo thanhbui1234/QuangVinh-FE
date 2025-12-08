@@ -16,7 +16,7 @@ import { useState, useRef } from 'react'
 import { useAuthStore } from '@/stores'
 import { useRemoveComment } from '@/hooks/assignments/comments/useRemoveComment'
 import { useUpdateComment } from '@/hooks/assignments/comments/useUpdateComment'
-import { DeleteCommentDialog } from '../ui/alertComponent'
+import { DialogConfirm } from '../ui/alertComponent'
 import { isMobile } from 'react-device-detect'
 import { PhotoProvider, PhotoView } from 'react-photo-view'
 import 'react-photo-view/dist/react-photo-view.css'
@@ -567,7 +567,13 @@ export const CommentTask = ({ member, taskId }: { member: IMemberTask[]; taskId:
           </div>
         </CardContent>
       </Card>
-      <DeleteCommentDialog open={open} onOpenChange={setOpen} onConfirm={handleConfirmDelete} />
+      <DialogConfirm
+        open={open}
+        onOpenChange={setOpen}
+        onConfirm={handleConfirmDelete}
+        title="Bạn có chắc chắn muốn xóa bình luận này?"
+        description="Hành động này không thể hoàn tác."
+      />
     </>
   )
 }

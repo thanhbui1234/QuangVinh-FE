@@ -35,9 +35,31 @@ export const TASK_TYPE_LABELS: Record<number, string> = {
 export const TASK_STATUS = {
   CREATED: 1,
   VISIBLE: 2,
-  PENDING: 4,
   IN_PROGRESS: 8,
   COMPLETED: 9,
+} as const
+
+export const TASK_STATUS_LABELS = {
+  [TASK_STATUS.CREATED]: 'Bắt đầu',
+  [TASK_STATUS.VISIBLE]: 'Đã nhận việc',
+  [TASK_STATUS.IN_PROGRESS]: 'Đang làm / chờ',
+  [TASK_STATUS.COMPLETED]: 'Đã hoàn thành',
+}
+
+export const TASK_STATUS_FLOW = {
+  [TASK_STATUS.CREATED]: [
+    { value: TASK_STATUS.VISIBLE, label: TASK_STATUS_LABELS[TASK_STATUS.VISIBLE] },
+  ],
+
+  [TASK_STATUS.VISIBLE]: [
+    { value: TASK_STATUS.IN_PROGRESS, label: TASK_STATUS_LABELS[TASK_STATUS.IN_PROGRESS] },
+  ],
+
+  [TASK_STATUS.IN_PROGRESS]: [
+    { value: TASK_STATUS.COMPLETED, label: TASK_STATUS_LABELS[TASK_STATUS.COMPLETED] },
+  ],
+
+  [TASK_STATUS.COMPLETED]: [], // hết flow
 }
 
 export type TASK_STATUS_TYPE = keyof typeof TASK_STATUS

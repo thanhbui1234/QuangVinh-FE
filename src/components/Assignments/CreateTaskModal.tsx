@@ -199,6 +199,24 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
               )}
             </div>
 
+            {/* Checklist */}
+            <div className="space-y-2">
+              <Label
+                htmlFor="checkList"
+                className="text-sm font-medium text-gray-700 flex items-center gap-1.5"
+              >
+                <ListChecks className="w-4 h-4" />
+                Mô tả chi tiết (tùy chọn)
+              </Label>
+              <div className="border border-gray-200 rounded-md p-2">
+                <EditorJSComponent
+                  data={editedDescription}
+                  onChange={(value) => setValue('checkList', convertEditorJSToHTML(value))}
+                  placeholder="Nhập mô tả chi tiết công việc..."
+                />
+              </div>
+            </div>
+
             {/* Priority & Task Type */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
               <div className="space-y-2">
@@ -265,10 +283,8 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                         <SelectValue placeholder="Chọn trạng thái" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value={String(TASK_STATUS.CREATED)}>Việc cần làm</SelectItem>
-                        <SelectItem value={String(TASK_STATUS.PENDING)}>
-                          Chờ xử lý - sự cố
-                        </SelectItem>
+                        <SelectItem value={String(TASK_STATUS.CREATED)}>Bắt đầu</SelectItem>
+                        <SelectItem value={String(TASK_STATUS.VISIBLE)}>Đã nhận việc</SelectItem>
                         <SelectItem value={String(TASK_STATUS.IN_PROGRESS)}>
                           Đang thực hiện
                         </SelectItem>
@@ -371,24 +387,6 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                   )
                 }}
               />
-            </div>
-
-            {/* Checklist */}
-            <div className="space-y-2">
-              <Label
-                htmlFor="checkList"
-                className="text-sm font-medium text-gray-700 flex items-center gap-1.5"
-              >
-                <ListChecks className="w-4 h-4" />
-                Mô tả chi tiết (tùy chọn)
-              </Label>
-              <div className="border border-gray-200 rounded-md p-2">
-                <EditorJSComponent
-                  data={editedDescription}
-                  onChange={(value) => setValue('checkList', convertEditorJSToHTML(value))}
-                  placeholder="Nhập mô tả chi tiết công việc..."
-                />
-              </div>
             </div>
           </form>
         </div>

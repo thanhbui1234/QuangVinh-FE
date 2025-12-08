@@ -8,6 +8,7 @@ import {
   DocumentsShared,
   LeavesWeb,
 } from '@/pages'
+import { AddMember } from '@/pages/Personnel/AddMember'
 
 export const WebRoutes: RouteObject[] = [
   {
@@ -42,5 +43,9 @@ export const WebRoutes: RouteObject[] = [
   {
     path: '/documents/shared',
     element: <DocumentsShared />,
+  },
+  {
+    path: '/personnel/member',
+    element: <AddMember />,
   },
 ]
