@@ -10,11 +10,12 @@ import { useUpdateProject } from '@/hooks/assignments/useUpdateProject'
 import type { IProject, IProjectAssignment } from '@/types/project'
 import { useSearchProject } from '@/hooks/assignments/useSearchProject'
 import { Link } from 'react-router'
+import { DialogConfirm } from '@/components/ui/alertComponent'
+import { useDeleteProject } from '@/hooks/assignments/useDeleteProject'
 
 const ProjectAssignment = () => {
   const [search, setSearch] = useState('')
   const limit = 9
-
   const { projectsAssignments, isFetching, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useGetProjectList({
       statuses: null,
@@ -25,10 +26,13 @@ const ProjectAssignment = () => {
   const { createProjectMutation } = useCreateProject()
   const { updateProjectMutation } = useUpdateProject()
   const [open, setOpen] = useState(false)
+  const [openConfirm, setOpenConfirm] = useState(false)
   const [editingProject, setEditingProject] = useState<IProjectAssignment | null>(null)
   const { createSearchMutation } = useSearchProject()
   const [searchResults, setSearchResults] = useState<IProjectAssignment[]>([])
   const [showSearchDropdown, setShowSearchDropdown] = useState(false)
+  const [projectToDelete, setProjectToDelete] = useState<IProjectAssignment | null>(null)
+  const { deleteProjectMutation } = useDeleteProject()
 
   const debouncedSearch = useDebouncedCallback((searchValue: string) => {
     if (searchValue.trim()) {
@@ -71,6 +75,19 @@ const ProjectAssignment = () => {
   const handleEdit = (project: IProjectAssignment) => {
     setEditingProject(project)
     setOpen(true)
+  }
+
+  const handleDelete = (project: IProjectAssignment) => {
+    setProjectToDelete(project)
+    setOpenConfirm(true)
+  }
+
+  const handleConfirmDelete = () => {
+    if (projectToDelete) {
+      deleteProjectMutation.mutate(projectToDelete.taskGroupId)
+      setProjectToDelete(null)
+    }
+    setOpenConfirm(false)
   }
 
   const handleCreate = () => {
@@ -144,7 +161,12 @@ const ProjectAssignment = () => {
         </div>
       </div>
 
-      <ProjectGrid projects={projectsAssignments} loading={isFetching} onEdit={handleEdit} />
+      <ProjectGrid
+        projects={projectsAssignments}
+        loading={isFetching}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+      />
 
       {/* Load More Button */}
       {hasNextPage && (
@@ -154,6 +176,13 @@ const ProjectAssignment = () => {
           </Button>
         </div>
       )}
+      <DialogConfirm
+        open={openConfirm}
+        onOpenChange={setOpenConfirm}
+        onConfirm={handleConfirmDelete}
+        title="Bạn có chắc chắn muốn xóa dự án này?"
+        description="Hành động này không thể hoàn tác."
+      />
     </div>
   )
 }

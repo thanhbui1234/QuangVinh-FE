@@ -19,12 +19,11 @@ export default function TaskList(props: { tasks: any; assignees?: Assignee[] }) 
     }, {})
   }, [assignees])
 
-  const statusVariantMap: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-    todo: 'secondary',
-    in_progress: 'outline',
-    pending: 'outline',
-    done: 'default',
-    cancel: 'destructive',
+  const statusClassMap: Record<string, string> = {
+    todo: 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200',
+    visible: 'bg-amber-100 text-amber-700 border-amber-300 hover:bg-amber-200',
+    in_progress: 'bg-blue-100 text-blue-700 border-blue-300 hover:bg-blue-200',
+    done: 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200',
   }
 
   return (
@@ -43,8 +42,11 @@ export default function TaskList(props: { tasks: any; assignees?: Assignee[] }) 
                 <h3 className="font-semibold text-base line-clamp-2 break-words flex-1">
                   {t.title}
                 </h3>
-                <Badge variant={statusVariantMap[t.status]} className="shrink-0 whitespace-nowrap">
-                  {STATUS_ICON[t.status]} {STATUS_LABEL[t.status]}
+                <Badge
+                  variant="outline"
+                  className={`${statusClassMap[t.status]} shrink-0 whitespace-nowrap`}
+                >
+                  <span className="mr-1.5">{STATUS_ICON[t.status]}</span> {STATUS_LABEL[t.status]}
                 </Badge>
               </div>
 

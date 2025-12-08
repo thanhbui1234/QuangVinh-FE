@@ -7,9 +7,10 @@ interface ProjectGridProps {
   loading?: boolean
   onView?: (project: IProjectAssignment) => void
   onEdit?: (project: IProjectAssignment) => void
+  onDelete?: (project: IProjectAssignment) => void
 }
 
-export const ProjectGrid = ({ projects, loading, onView, onEdit }: ProjectGridProps) => {
+export const ProjectGrid = ({ projects, loading, onView, onEdit, onDelete }: ProjectGridProps) => {
   if (loading) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -43,6 +44,7 @@ export const ProjectGrid = ({ projects, loading, onView, onEdit }: ProjectGridPr
           project={p}
           onView={onView}
           onEdit={onEdit}
+          onDelete={onDelete}
         />
       ))}
     </div>

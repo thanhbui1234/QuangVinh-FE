@@ -23,3 +23,8 @@ export const registerSchema = z
     path: ['confirmPassword'],
     message: 'Mật khẩu và xác nhận mật khẩu không khớp',
   })
+
+export const createMemberSchema = z.object({
+  email: z.string().email('Email không hợp lệ'),
+  password: z.string().min(1, 'Mật khẩu là bắt buộc'),
+})

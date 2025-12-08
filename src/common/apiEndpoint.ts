@@ -24,6 +24,7 @@ export const API_ENDPOINT = {
   GET_MEMBER_TASK: '/api/user/get-task-group-member-list',
   GET_ALL_USER: '/api/user/get-all',
   INVITE_USER: '/api/task-group/add-members',
+  CREATE_MEMBER: '/api/user/create-worker-account',
   // Task
   GET_TASK_DETAIL: '/api/task/get-detail',
   // Comment

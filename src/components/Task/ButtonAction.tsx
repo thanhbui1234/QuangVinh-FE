@@ -10,6 +10,7 @@ import {
 import { Pencil, MessageCircle } from 'lucide-react'
 import { useUpdateStatus } from '@/hooks/assignments/task/useUpdateStatus'
 import { DialogAssignee } from './DialogAsignne'
+import { TASK_STATUS, TASK_STATUS_LABELS, TASK_STATUS_FLOW } from '@/constants/assignments/task'
 
 export const ButtonAction = ({
   setEditOpen,
@@ -20,81 +21,50 @@ export const ButtonAction = ({
   projectAssignmentDetail: any
   memberTask: any
 }) => {
+  type TaskStatusType = 1 | 2 | 8 | 9
   const updateStatusMutation = useUpdateStatus(projectAssignmentDetail)
-  const currentStatus = projectAssignmentDetail?.status || 1
+  const currentStatus = (projectAssignmentDetail?.status || TASK_STATUS.CREATED) as TaskStatusType
 
-  // Memoize available options based on current status
+  // Lấy danh sách options từ FLOW
   const availableOptions = useMemo(() => {
-    switch (currentStatus) {
-      case 1: // Việc cần làm
-        return [
-          { value: '8', label: 'Đang tiến hành' },
-          { value: '4', label: 'Chờ xử lý - Có sự cố' },
-        ]
-      case 8: // Đang tiến hành
-        return [
-          { value: '9', label: 'Đã hoàn thành' },
-          { value: '4', label: 'Chờ xử lý - Có sự cố' },
-        ]
-      case 4: // Chờ xử lý
-        return [
-          { value: '8', label: 'Đang tiến hành' },
-          { value: '9', label: 'Hoàn thành' },
-        ]
-      case 9: // Hoàn thành - có thể reopen
-        return [
-          { value: '1', label: 'Việc cần làm' },
-          { value: '8', label: 'Đang tiến hành' },
-          { value: '4', label: 'Chờ xử lý - Có sự cố' },
-        ]
-      default:
-        return []
-    }
+    return TASK_STATUS_FLOW[currentStatus] || []
   }, [currentStatus])
 
-  // Memoize status info for color and label
+  // Status label + màu theo mapping chung
   const statusInfo = useMemo(() => {
-    switch (currentStatus) {
-      case 1:
-        return {
-          label: 'Việc cần làm',
-          bgColor: 'bg-slate-500',
-          hoverColor: 'hover:bg-slate-600',
-          borderColor: 'border-slate-500',
-        }
-      case 8:
-        return {
-          label: 'Đang tiến hành',
-          bgColor: 'bg-blue-600',
-          hoverColor: 'hover:bg-blue-700',
-          borderColor: 'border-blue-600',
-        }
-      case 9:
-        return {
-          label: 'Hoàn thành',
-          bgColor: 'bg-green-600',
-          hoverColor: 'hover:bg-green-700',
-          borderColor: 'border-green-600',
-        }
-      case 4:
-        return {
-          label: 'Chờ xử lý - Có sự cố',
-          bgColor: 'bg-amber-500',
-          hoverColor: 'hover:bg-amber-600',
-          borderColor: 'border-amber-500',
-        }
-      default:
-        return {
-          label: 'Không xác định',
-          bgColor: 'bg-gray-500',
-          hoverColor: 'hover:bg-gray-600',
-          borderColor: 'border-gray-500',
-        }
+    const map = {
+      [TASK_STATUS.CREATED]: {
+        label: TASK_STATUS_LABELS[TASK_STATUS.CREATED],
+        bgColor: 'bg-slate-500',
+        hoverColor: 'hover:bg-slate-600',
+        borderColor: 'border-slate-500',
+      },
+      [TASK_STATUS.VISIBLE]: {
+        label: TASK_STATUS_LABELS[TASK_STATUS.VISIBLE],
+        bgColor: 'bg-amber-500',
+        hoverColor: 'hover:bg-amber-600',
+        borderColor: 'border-amber-500',
+      },
+      [TASK_STATUS.IN_PROGRESS]: {
+        label: TASK_STATUS_LABELS[TASK_STATUS.IN_PROGRESS],
+        bgColor: 'bg-blue-600',
+        hoverColor: 'hover:bg-blue-700',
+        borderColor: 'border-blue-600',
+      },
+      [TASK_STATUS.COMPLETED]: {
+        label: TASK_STATUS_LABELS[TASK_STATUS.COMPLETED],
+        bgColor: 'bg-green-600',
+        hoverColor: 'hover:bg-green-700',
+        borderColor: 'border-green-600',
+      },
     }
+
+    return map[currentStatus] || map[TASK_STATUS.CREATED]
   }, [currentStatus])
 
   return (
     <div className="flex flex-wrap items-center gap-2 mb-6">
+      {/* Chỉnh sửa */}
       <Button
         variant="ghost"
         size="sm"
@@ -104,6 +74,8 @@ export const ButtonAction = ({
         <Pencil className="w-4 h-4 sm:mr-1" />
         <span className="hidden sm:inline">Chỉnh sửa</span>
       </Button>
+
+      {/* Bình luận */}
       <Button
         variant="ghost"
         size="sm"
@@ -116,21 +88,27 @@ export const ButtonAction = ({
         <MessageCircle className="w-4 h-4 sm:mr-1" />
         <span className="hidden sm:inline">Thêm bình luận</span>
       </Button>
+
+      {/* Chọn assignee */}
       <DialogAssignee memberTask={memberTask} task={projectAssignmentDetail} />
+
+      {/* Dropdown chuyển trạng thái */}
       <Select
         value={String(currentStatus)}
         onValueChange={(value: string) => {
           updateStatusMutation.mutate(Number(value))
         }}
+        disabled={currentStatus === TASK_STATUS.COMPLETED}
       >
         <SelectTrigger
-          className={`${statusInfo.bgColor} ${statusInfo.hoverColor} ${statusInfo.borderColor} text-white min-w-[120px] sm:min-w-[180px]`}
+          className={`${statusInfo.bgColor} ${statusInfo.hoverColor} ${statusInfo.borderColor} text-white min-w-[120px] sm:min-w-[180px] disabled:opacity-100 `}
         >
           <SelectValue>{statusInfo.label}</SelectValue>
         </SelectTrigger>
+
         <SelectContent>
-          {availableOptions.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
+          {availableOptions.map((option: any) => (
+            <SelectItem key={option.value} value={String(option.value)}>
               {option.label}
             </SelectItem>
           ))}

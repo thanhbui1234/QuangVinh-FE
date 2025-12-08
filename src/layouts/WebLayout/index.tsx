@@ -183,6 +183,11 @@ const WebLayout = ({ children }: Props) => {
           href: '/personnel/leaves',
           roles: [ROLE.MANAGER, ROLE.DIRECTOR, ROLE.WORKER],
         },
+        {
+          label: 'Thêm nhân viên',
+          href: '/personnel/member',
+          roles: [ROLE.DIRECTOR],
+        },
       ],
     },
     {
