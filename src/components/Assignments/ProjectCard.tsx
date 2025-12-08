@@ -11,7 +11,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu'
-import useCheckRole from '@/hooks/useCheckRole.ts'
 import { usePermission } from '@/hooks/useCheckPermission'
 
 interface ProjectCardProps {

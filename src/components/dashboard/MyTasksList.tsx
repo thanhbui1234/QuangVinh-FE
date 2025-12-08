@@ -16,8 +16,6 @@ const getStatusLabel = (status: number): string => {
       return 'Mới tạo'
     case TASK_STATUS.VISIBLE:
       return 'Hiển thị'
-    case TASK_STATUS.PENDING:
-      return 'Đang chờ'
     case TASK_STATUS.IN_PROGRESS:
       return 'Đang làm'
     case TASK_STATUS.COMPLETED:
@@ -33,8 +31,6 @@ const getStatusVariant = (status: number): 'default' | 'secondary' | 'destructiv
     case TASK_STATUS.COMPLETED:
       return 'default'
     case TASK_STATUS.IN_PROGRESS:
-      return 'outline'
-    case TASK_STATUS.PENDING:
       return 'outline'
     default:
       return 'secondary'

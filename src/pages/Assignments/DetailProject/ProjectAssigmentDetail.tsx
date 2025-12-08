@@ -17,7 +17,7 @@ export type User = {
   name: string
 }
 
-export type TaskStatus = 'todo' | 'in_progress' | 'done' | 'pending' | 'cancel'
+export type TaskStatus = 'todo' | 'visible' | 'in_progress' | 'done'
 
 export type Task = {
   id: string
@@ -42,10 +42,9 @@ export type Project = {
 function mapTaskStatus(statusCode: number): TaskStatus {
   switch (statusCode) {
     case TASK_STATUS.CREATED:
-    case TASK_STATUS.VISIBLE:
       return 'todo'
-    case TASK_STATUS.PENDING:
-      return 'pending'
+    case TASK_STATUS.VISIBLE:
+      return 'visible'
     case TASK_STATUS.IN_PROGRESS:
       return 'in_progress'
     case TASK_STATUS.COMPLETED:
