@@ -7,16 +7,17 @@ import { detailTaskKey } from '@/constants'
 
 export interface updateTaskPayload {
   taskId: number
-  description: string
-  priority: number
-  taskType: number
-  groupId: number
-  estimateTime: number
+  description?: string
+  priority?: number
+  taskType?: number
+  groupId?: number
+  estimateTime?: number
   imageUrls?: string[]
   checkList?: string
   assigneeId?: number
   status?: number
   startTime?: number
+  progressScore?: number
 }
 
 export const useUpdateTask = () => {

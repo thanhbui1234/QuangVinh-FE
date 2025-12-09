@@ -5,10 +5,15 @@ import { API_ENDPOINT } from '@/common'
 import { projectsAssignmentsKey } from '@/constants/assignments/assignment'
 import { queryClient } from '@/lib/queryClient'
 
+type DeletePayload = {
+  taskGroupId: number
+  newStatus: number
+}
+
 export const useDeleteProject = () => {
   const deleteProjectMutation = useMutation({
-    mutationFn: async (payload: number) => {
-      const response = await POST(API_ENDPOINT.DELETE_PROJECT, { id: payload })
+    mutationFn: async (payload: DeletePayload) => {
+      const response = await POST(API_ENDPOINT.DELETE_PROJECT, payload)
       return response
     },
     onSuccess: (respones) => {

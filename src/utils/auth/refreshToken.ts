@@ -18,16 +18,18 @@ export const refreshAccessToken = async (): Promise<string> => {
     `${import.meta.env.VITE_BASE_URL}${API_ENDPOINT.REFRESH_TOKEN}`,
     { refreshToken }
   )
+  console.log(response, 'refresh')
 
   // Backend trả về { data: { token, refreshToken } }
   const { token, refreshToken: newRefreshToken } = response.data.data
+  setTokenAuth(token, newRefreshToken || refreshToken)
 
   if (!token) {
+    window.location.href = '/login'
     throw new Error('No token returned from refresh endpoint')
   }
 
   // Update local storage with new tokens
-  setTokenAuth(token, newRefreshToken || refreshToken)
 
   return token
 }

@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import {
   Table,
   TableBody,
@@ -8,19 +7,8 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import { Download, Trash2, ExternalLink } from 'lucide-react'
+import { Download, ExternalLink } from 'lucide-react'
 import { PrivacyBadge, StatusBadge } from '@/components/Documents'
-import { useDeleteDocument } from '@/hooks/documents/useDocument'
 import type { Document } from '@/types/Document'
 import { formatDistanceToNow } from 'date-fns'
 import { vi } from 'date-fns/locale'
@@ -32,24 +20,6 @@ interface DocumentTableProps {
 }
 
 export const DocumentTable = ({ documents, isLoading, canDelete = true }: DocumentTableProps) => {
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [selectedDocumentId, setSelectedDocumentId] = useState<number | null>(null)
-
-  const deleteDocumentMutation = useDeleteDocument()
-
-  const handleDeleteClick = (documentId: number) => {
-    setSelectedDocumentId(documentId)
-    setDeleteDialogOpen(true)
-  }
-
-  const handleConfirmDelete = () => {
-    if (selectedDocumentId) {
-      deleteDocumentMutation.mutate(selectedDocumentId)
-      setDeleteDialogOpen(false)
-      setSelectedDocumentId(null)
-    }
-  }
-
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 B'
     const k = 1024
@@ -133,17 +103,6 @@ export const DocumentTable = ({ documents, isLoading, canDelete = true }: Docume
                     <Button variant="ghost" size="icon" title="Tải xuống">
                       <Download className="w-4 h-4" />
                     </Button>
-                    {canDelete && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDeleteClick(doc.documentId)}
-                        title="Xóa"
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    )}
                   </div>
                 </TableCell>
               </TableRow>
@@ -151,27 +110,6 @@ export const DocumentTable = ({ documents, isLoading, canDelete = true }: Docume
           </TableBody>
         </Table>
       </div>
-
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Xác nhận xóa tài liệu</AlertDialogTitle>
-            <AlertDialogDescription>
-              Bạn có chắc chắn muốn xóa tài liệu này? Hành động này không thể hoàn tác.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Hủy</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleConfirmDelete}
-              className="bg-red-500 hover:bg-red-600"
-            >
-              Xóa
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   )
 }
