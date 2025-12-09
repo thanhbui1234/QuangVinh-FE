@@ -13,7 +13,7 @@ export const useUploadDocument = () => {
       })
       return response as UploadDocumentResponse
     },
-    onError: (error) => {
+    onError: () => {
       toast.error('Tải lên tài liệu thất bại')
     },
   })

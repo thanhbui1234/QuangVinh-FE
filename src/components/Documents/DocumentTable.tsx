@@ -19,7 +19,7 @@ interface DocumentTableProps {
   canDelete?: boolean
 }
 
-export const DocumentTable = ({ documents, isLoading, canDelete = true }: DocumentTableProps) => {
+export const DocumentTable = ({ documents, isLoading }: DocumentTableProps) => {
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 B'
     const k = 1024
