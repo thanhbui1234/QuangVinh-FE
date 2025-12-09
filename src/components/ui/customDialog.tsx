@@ -1,10 +1,8 @@
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -35,16 +33,6 @@ export function CustomDialog({
             <DialogDescription>{description}</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4">{children}</div>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button onClick={() => onOpenChange(false)} variant="outline">
-                Cancel
-              </Button>
-            </DialogClose>
-            <Button onClick={() => onOpenChange(false)} type="submit">
-              Save changes
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </form>
     </Dialog>

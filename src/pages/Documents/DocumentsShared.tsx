@@ -1,9 +1,13 @@
-import { DocumentTable } from '@/components/Documents/DocumentTable'
-import { useGetSharedDocuments } from '@/hooks/documents/useDocument'
+import { useGetListDocument } from '@/hooks/documents/useGetListDocument'
 
 const DocumentsShared = () => {
-  const { data, isLoading } = useGetSharedDocuments()
-
+  const { documents, isFetching } = useGetListDocument({
+    statuses: [],
+    offset: 0,
+    limit: 10,
+  })
+  console.log(documents)
+  if (isFetching) return <div>Loading...</div>
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -13,7 +17,7 @@ const DocumentsShared = () => {
       </div>
 
       {/* Documents Table */}
-      <DocumentTable documents={data?.documents || []} isLoading={isLoading} canDelete={false} />
+      {/* <DocumentTable documents={documents || []} isLoading={isFetching} canDelete={false} /> */}
     </div>
   )
 }

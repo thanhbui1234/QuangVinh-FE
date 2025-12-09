@@ -83,9 +83,22 @@ api.interceptors.response.use(
         processQueue(null, newToken)
 
         return api(originalRequest)
-      } catch (refreshError) {
+      } catch (refreshError: any) {
         processQueue(refreshError, null)
-        logout()
+
+        // Nếu refresh token hết hạn → đăng xuất
+        const status = refreshError?.response?.status
+        const message = refreshError?.response?.data?.message?.toLowerCase() || ''
+
+        if (
+          status === 401 ||
+          message.includes('refresh') ||
+          message.includes('expired') ||
+          message.includes('invalid')
+        ) {
+          logout()
+        }
+
         return Promise.reject(refreshError)
       } finally {
         isRefreshing = false

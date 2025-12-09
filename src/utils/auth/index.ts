@@ -1,5 +1,4 @@
 import { queryClient } from '@/lib/queryClient'
-
 export const getAuthorization = () => {
   const token = getTokenAuth()
   return token ? `Bearer ${token}` : undefined
@@ -15,6 +14,7 @@ export const logout = () => {
   localStorage.removeItem('refreshToken')
   localStorage.removeItem('auth-storage')
   queryClient.clear()
+  window.location.href = '/login'
 }
 
 export const getTokenAuth = () => {

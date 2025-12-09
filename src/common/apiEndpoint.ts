@@ -3,12 +3,12 @@ export const API_ENDPOINT = {
   LOGIN: '/api/auth/login',
   LOGOUT: '/api/auth/logout',
   REGISTER: 'api/auth/register',
-  REFRESH_TOKEN: '/api/auth/refresh-token',
+  REFRESH_TOKEN: 'api/auth/refresh-token',
   // project group task
   CREATE_PROJECT: '/api/task-group/create',
   GET_PROJECTS: '/api/task-group/get-list',
   UPDATE_PROJECT: '/api/task-group/update',
-  DELETE_PROJECT: '/api/task-group/delete',
+  DELETE_PROJECT: '/api/task-group/update-status',
   GET_PROJECT_DETAIL: '/api/task-group/get-detail',
   SEARCH_PROJECT: '/api/task-group/name-search',
   // task
@@ -61,7 +61,5 @@ export const API_ENDPOINT = {
   UPLOAD_FILE: '/api/upload/file',
   // documents
   UPLOAD_DOCUMENT: '/api/upload/document',
-  GET_MY_DOCUMENTS: '/api/documents/my',
-  GET_SHARED_DOCUMENTS: '/api/documents/shared',
-  DELETE_DOCUMENT: '/api/documents',
+  GET_DOCUMENTS: '/api/upload/document/get-list',
 }

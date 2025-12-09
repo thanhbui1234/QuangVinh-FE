@@ -62,3 +62,13 @@ export const CreateTaskSchema = z
       path: ['estimateTime'],
     }
   )
+
+export const scoreSchema = z.object({
+  progressScore: z.coerce
+    .number()
+    .refine((val) => !Number.isNaN(val), {
+      message: 'Chỉ được nhập số',
+    })
+    .min(1, { message: 'Số phải từ 1 đến 10' })
+    .max(10, { message: 'Số phải từ 1 đến 10' }),
+})
