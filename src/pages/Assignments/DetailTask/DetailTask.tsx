@@ -161,9 +161,15 @@ export const DetailTask = () => {
             <Card className="border-0 shadow-sm py-0">
               <div className="flex items-center justify-between px-3">
                 <BreadcrumbTask projectAssignmentDetail={projectAssignmentDetail} />
-                {projectAssignmentDetail.status === 9 && (
-                  <Badge onClick={() => setShowReview(true)} className="px-2 py-1 cursor-pointer">
-                    Đánh giá công việc
+                {projectAssignmentDetail.status === 9 &&
+                  projectAssignmentDetail.progressScore === 0 && (
+                    <Badge onClick={() => setShowReview(true)} className="px-2 py-1 cursor-pointer">
+                      Đánh giá công việc
+                    </Badge>
+                  )}
+                {projectAssignmentDetail.progressScore > 0 && (
+                  <Badge className="px-2 py-1 cursor-pointer bg-green-500">
+                    Số điểm đánh giá {projectAssignmentDetail.progressScore}
                   </Badge>
                 )}
               </div>
