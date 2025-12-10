@@ -74,6 +74,7 @@ export const DetailSection = ({ projectAssignmentDetail }: { projectAssignmentDe
               onValueChange={(value: string) => {
                 updatePriorityMutation.mutate(Number(value))
               }}
+              disabled={projectAssignmentDetail?.status === 9}
             >
               <SelectTrigger
                 className={`${priorityConfig.bgColor} ${priorityConfig.textColor} ${priorityConfig.borderColor} w-[140px] h-8 text-xs font-medium`}

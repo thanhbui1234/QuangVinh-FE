@@ -46,9 +46,9 @@ export const useGetListComments = (taskId: number) => {
     select(data) {
       return data?.comments || []
     },
-    // refetchInterval: (query) => {
-    // return query.state.data?.data.comments?.length === 0 ? 0 : 10_000
-    // },
+    refetchInterval: () => {
+      return 5_000
+    },
     refetchIntervalInBackground: true,
     enabled: !!taskId && taskId > 0,
   })

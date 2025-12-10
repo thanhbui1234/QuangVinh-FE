@@ -36,9 +36,14 @@ export const DescriptionTask = ({
             />
           </div>
           <div className="flex gap-2">
-            <Button size="sm" onClick={handleSaveDescription} className="h-8">
+            <Button
+              disabled={projectAssignmentDetail?.status === 9}
+              size="sm"
+              onClick={handleSaveDescription}
+              className="h-8"
+            >
               <Check className="w-4 h-4 mr-1" />
-              Lưu
+              {projectAssignmentDetail?.status === 9 ? 'Công việc đã hoàn thành' : 'Lưu'}
             </Button>
             <Button size="sm" variant="outline" onClick={handleCancelEdit} className="h-8">
               <X className="w-4 h-4 mr-1" />

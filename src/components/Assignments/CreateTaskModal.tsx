@@ -362,6 +362,37 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                   )}
                 />
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="assignee" className="text-sm font-medium text-gray-700">
+                  Người chịu trách nhiệm
+                </Label>
+                <Controller
+                  name="assigneeId"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      value={field.value || 'unassigned'}
+                      onValueChange={(val) => field.onChange(val === 'unassigned' ? '' : val)}
+                    >
+                      <SelectTrigger id="assignee" className="w-full">
+                        <SelectValue placeholder="Chọn người chịu trách nhiệm" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="unassigned">Chưa phân công</SelectItem>
+                        {Array.isArray(memberTask) &&
+                          memberTask
+                            .filter((member) => member && member.id != null && member.id !== '')
+                            .map((member) => (
+                              <SelectItem key={String(member.id)} value={String(member.id)}>
+                                {String(member.name || member.email || 'Unknown')}
+                              </SelectItem>
+                            ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </div>
             </div>
 
             {/* Image URL */}
@@ -409,9 +440,13 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
             type="submit"
             form="create-task-form"
             className="w-1/2  bg-slate-900 hover:bg-slate-800"
-            disabled={isLoading}
+            disabled={isLoading || (mode === 'edit' && initialData?.status === 9)}
           >
-            {isLoading ? 'Đang lưu...' : mode === 'edit' ? 'Lưu thay đổi' : 'Tạo công việc'}
+            {isLoading
+              ? 'Đang lưu...'
+              : mode === 'edit'
+                ? `${initialData?.status === 9 ? 'Công việc đã hoàn thành' : 'Lưu thay đổi'}`
+                : 'Tạo công việc'}
           </Button>
         </div>
       </div>

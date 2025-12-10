@@ -86,9 +86,11 @@ export function DialogAssignee({ memberTask, task }: { memberTask: any; task: an
           <Button
             type="button"
             onClick={handleAssignTask}
-            disabled={!selectedAssignee || assigneTaskMutation.isPending}
+            disabled={!selectedAssignee || assigneTaskMutation.isPending || task.status === 9}
           >
-            {assigneTaskMutation.isPending ? 'Đang giao...' : 'Giao việc'}
+            {assigneTaskMutation.isPending
+              ? 'Đang giao...'
+              : `${task.status === 9 ? 'Công việc đã hoàn thành ' : 'Giao việc'}`}
           </Button>
         </DialogFooter>
       </DialogContent>
