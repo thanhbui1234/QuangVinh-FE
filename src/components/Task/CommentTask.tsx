@@ -496,7 +496,9 @@ export const CommentTask = ({ member, taskId }: { member: IMemberTask[]; taskId:
                     className="w-9 h-9 shrink-0 cursor-pointer"
                   >
                     <AvatarImage src={c.creator?.avatar} alt={c.creator?.name} />
-                    <AvatarFallback>{c.creator?.name.charAt(0).toUpperCase()}</AvatarFallback>
+                    <AvatarFallback>
+                      {c.creator?.name?.charAt(0).toUpperCase() || 'U'}
+                    </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0 relative">
                     {/* Edit/Delete buttons - Only show on hover for own comments */}
