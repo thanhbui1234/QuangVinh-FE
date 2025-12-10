@@ -1,11 +1,9 @@
-import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog'
 
 export function CustomDialog({
@@ -18,23 +16,18 @@ export function CustomDialog({
   children: React.ReactNode
   title: string
   description: string
-  open: any
-  onOpenChange: any
+  open: boolean
+  onOpenChange: (open: boolean) => void
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <form>
-        <DialogTrigger asChild>
-          <Button variant="outline">{title}</Button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>{title}</DialogTitle>
-            <DialogDescription>{description}</DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4">{children}</div>
-        </DialogContent>
-      </form>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4">{children}</div>
+      </DialogContent>
     </Dialog>
   )
 }
