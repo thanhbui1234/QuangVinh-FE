@@ -7,6 +7,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { SocketProvider } from './providers/SocketProvider.tsx'
 import { Toaster } from 'sonner'
 import { registerSW } from 'virtual:pwa-register'
+import { initOneSignal } from '@/service/onesignal/initOneSignal'
 
 const registerServiceWorker = () => {
   if ('serviceWorker' in navigator) {
@@ -29,3 +30,4 @@ createRoot(document.getElementById('root')!).render(
 )
 
 registerServiceWorker()
+initOneSignal()

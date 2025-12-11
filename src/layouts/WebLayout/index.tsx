@@ -30,7 +30,6 @@ export interface INavigateItems {
 }
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import BellNotification from '@/components/ui/bell'
-import { EnablePushButton } from '@/components/ui/enable-push-button'
 import { ROLE } from '@/constants'
 import { useNotifications } from '@/hooks/notifications/useNotifications'
 import { useAuthStore } from '@/stores/authStore'
@@ -237,6 +236,11 @@ const WebLayout = ({ children }: Props) => {
             className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
             onClick={() => navigate('/dashboard')}
           >
+            <img
+              src="/assets/icon/QuangVinhIconApp192.png"
+              alt="Quang Vinh Mobile"
+              className="h-8 w-8 rounded-md object-contain"
+            />
             {!isCollapsed && (
               <span className="text-xl font-bold text-gray-900">Quang vinh Mobile</span>
             )}
@@ -332,9 +336,8 @@ const WebLayout = ({ children }: Props) => {
             <h1 className="text-2xl font-semibold text-gray-900">
               {getPageTitle(location.pathname, navigationItems)}
             </h1>
-            <div className="flex items-center gap-10">
+            <div className="flex items-center gap-4">
               <BellNotification />
-              <EnablePushButton />
               <Avatar onClick={() => handleLogout()} className="cursor-pointer">
                 <AvatarImage src={user?.avatar} />
                 <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white">
