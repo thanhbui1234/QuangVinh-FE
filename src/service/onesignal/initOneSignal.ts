@@ -1,3 +1,5 @@
+import { registerPlayerIdToDashboard } from './onesignalService'
+
 declare global {
   interface Window {
     OneSignal?: any
@@ -39,6 +41,19 @@ export async function initOneSignal() {
 
       console.log('OneSignal initialized successfully')
 
+      // Lắng nghe khi subscription thay đổi để tự động gửi Player ID
+      OneSignal.User.PushSubscription.addEventListener('change', async () => {
+        try {
+          const playerId = await OneSignal.User.PushSubscription.id
+          if (playerId) {
+            console.log('OneSignal subscription changed, Player ID:', playerId)
+            await registerPlayerIdToDashboard()
+          }
+        } catch (err) {
+          console.warn('Error handling subscription change:', err)
+        }
+      })
+
       const hasPermission = OneSignal.Notifications.permission
       console.log('Current notification permission:', hasPermission)
 
@@ -52,6 +67,11 @@ export async function initOneSignal() {
 
           const user = await OneSignal.User.id
           console.log('OneSignal User ID:', user)
+
+          // Tự động gửi Player ID lên dashboard nếu user đã đăng nhập
+          if (userId) {
+            await registerPlayerIdToDashboard()
+          }
         } catch (err) {
           console.warn('Could not get Player ID yet:', err)
         }
@@ -145,6 +165,10 @@ export async function requestOneSignalPermissionIfNeeded(): Promise<boolean> {
         const OneSignal = window.OneSignal
         const userId = await OneSignal.User.PushSubscription.id
         console.log('OneSignal Player ID:', userId)
+
+        if (userId) {
+          await registerPlayerIdToDashboard()
+        }
       } catch (err) {
         console.warn('Could not get Player ID yet:', err)
       }
