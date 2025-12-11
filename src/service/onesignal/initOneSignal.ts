@@ -39,12 +39,11 @@ export async function initOneSignal() {
 
       console.log('OneSignal initialized successfully')
 
-      const permission = await OneSignal.Notifications.requestPermission()
-      console.log('Notification permission:', permission)
+      const hasPermission = OneSignal.Notifications.permission
+      console.log('Current notification permission:', hasPermission)
 
-      if (permission === 'granted') {
-        console.log('Notification permission granted')
-
+      if (hasPermission) {
+        console.log('Notification permission already granted')
         await new Promise((resolve) => setTimeout(resolve, 1000))
 
         try {
@@ -56,8 +55,6 @@ export async function initOneSignal() {
         } catch (err) {
           console.warn('Could not get Player ID yet:', err)
         }
-      } else {
-        console.warn('Notification permission not granted:', permission)
       }
     } catch (err) {
       console.error('OneSignal initialization failed:', err)
@@ -87,10 +84,78 @@ async function waitForOneSignal(maxAttempts = 50, delay = 100): Promise<void> {
   throw new Error('OneSignal SDK failed to load')
 }
 
-export async function requestOneSignalPermission() {
+export async function getOneSignalPermissionStatus(): Promise<
+  'default' | 'granted' | 'denied' | null
+> {
+  const OneSignal = window.OneSignal
+  if (!OneSignal?.Notifications) {
+    return null
+  }
+  try {
+    if ('Notification' in window) {
+      return Notification.permission as 'default' | 'granted' | 'denied'
+    }
+    const hasPermission = OneSignal.Notifications.permission
+    return hasPermission ? 'granted' : 'default'
+  } catch (err) {
+    console.error('Error checking notification permission:', err)
+    return null
+  }
+}
+
+export async function requestOneSignalPermission(): Promise<'default' | 'granted' | 'denied'> {
   const OneSignal = window.OneSignal
   if (!OneSignal?.Notifications) {
     throw new Error('OneSignal SDK chưa sẵn sàng')
   }
-  return OneSignal.Notifications.requestPermission()
+  if ('Notification' in window && Notification.requestPermission) {
+    const permission = await Notification.requestPermission()
+    return permission as 'default' | 'granted' | 'denied'
+  }
+
+  const result = await OneSignal.Notifications.requestPermission()
+  if (typeof result === 'boolean') {
+    return result ? 'granted' : 'denied'
+  }
+  return result as 'default' | 'granted' | 'denied'
+}
+
+export async function requestOneSignalPermissionIfNeeded(): Promise<boolean> {
+  try {
+    const currentPermission = await getOneSignalPermissionStatus()
+
+    if (currentPermission === 'granted') {
+      console.log('Notification permission already granted')
+      return true
+    }
+
+    if (currentPermission === 'denied') {
+      console.log('Notification permission was previously denied')
+      return false
+    }
+
+    console.log('Requesting notification permission...')
+    const permission = await requestOneSignalPermission()
+
+    if (permission === 'granted') {
+      console.log('Notification permission granted')
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+
+      try {
+        const OneSignal = window.OneSignal
+        const userId = await OneSignal.User.PushSubscription.id
+        console.log('OneSignal Player ID:', userId)
+      } catch (err) {
+        console.warn('Could not get Player ID yet:', err)
+      }
+
+      return true
+    } else {
+      console.log('Notification permission not granted:', permission)
+      return false
+    }
+  } catch (err) {
+    console.error('Error requesting notification permission:', err)
+    return false
+  }
 }
