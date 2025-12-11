@@ -29,5 +29,8 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>
 )
 
+// Initialize OneSignal after service worker registration
 registerServiceWorker()
-initOneSignal()
+initOneSignal().catch((err) => {
+  console.error('Failed to initialize OneSignal:', err)
+})
