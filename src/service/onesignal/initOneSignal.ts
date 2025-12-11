@@ -16,7 +16,7 @@ export async function initOneSignal() {
     return
   }
 
-  if (window.OneSignal) {
+  if (window.OneSignal?.initialized) {
     console.log('OneSignal already initialized')
     return
   }
