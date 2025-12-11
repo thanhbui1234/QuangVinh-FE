@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router'
 import { useAuthStore } from '@/stores/authStore'
 import { API_ENDPOINT } from '@/common'
 import { requestOneSignalPermissionIfNeeded } from '@/service/onesignal/initOneSignal'
+import { registerPlayerIdToDashboard } from '@/service/onesignal/onesignalService'
 
 export const useLogin = () => {
   const navigate = useNavigate()
@@ -29,6 +30,9 @@ export const useLogin = () => {
 
         if (permissionGranted) {
           console.log('Notification permission đã được cấp')
+          // Đợi một chút để OneSignal khởi tạo xong rồi gửi Player ID
+          await new Promise((resolve) => setTimeout(resolve, 1000))
+          await registerPlayerIdToDashboard()
         } else {
           console.log('Người dùng chưa cấp quyền thông báo')
         }
