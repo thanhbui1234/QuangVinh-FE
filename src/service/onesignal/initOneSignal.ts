@@ -13,15 +13,6 @@ export async function initOneSignal() {
   if (typeof window === 'undefined') return
 
   const appId = import.meta.env.VITE_ONESIGNAL_APP_ID
-  if (!appId) {
-    console.warn('VITE_ONESIGNAL_APP_ID is missing, skip OneSignal init')
-    return
-  }
-
-  if (window.OneSignal?.initialized) {
-    console.log('OneSignal already initialized')
-    return
-  }
 
   if (document.querySelector(`script[src="${ONE_SIGNAL_SDK_URL}"]`)) {
     await waitForOneSignal()
@@ -41,7 +32,6 @@ export async function initOneSignal() {
 
       console.log('OneSignal initialized successfully')
 
-      // Lắng nghe khi subscription thay đổi để tự động gửi Player ID
       OneSignal.User.PushSubscription.addEventListener('change', async () => {
         try {
           const playerId = await OneSignal.User.PushSubscription.id
@@ -68,7 +58,6 @@ export async function initOneSignal() {
           const user = await OneSignal.User.id
           console.log('OneSignal User ID:', user)
 
-          // Tự động gửi Player ID lên dashboard nếu user đã đăng nhập
           if (userId) {
             await registerPlayerIdToDashboard()
           }
