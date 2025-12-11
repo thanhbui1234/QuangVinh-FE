@@ -6,16 +6,7 @@ import { queryClient } from './lib/queryClient.ts'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { SocketProvider } from './providers/SocketProvider.tsx'
 import { Toaster } from 'sonner'
-import { registerSW } from 'virtual:pwa-register'
 import { initOneSignal } from '@/service/onesignal/initOneSignal'
-
-const registerServiceWorker = () => {
-  if ('serviceWorker' in navigator) {
-    registerSW({
-      immediate: true,
-    })
-  }
-}
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -29,8 +20,6 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>
 )
 
-// Initialize OneSignal after service worker registration
-registerServiceWorker()
 initOneSignal().catch((err) => {
   console.error('Failed to initialize OneSignal:', err)
 })
