@@ -96,37 +96,96 @@ async function waitForOneSignal(maxAttempts = 50, delay = 100): Promise<void> {
 export async function getOneSignalPermissionStatus(): Promise<
   'default' | 'granted' | 'denied' | null
 > {
-  const OneSignal = window.OneSignal
-  if (!OneSignal?.Notifications) {
-    return null
-  }
   try {
+    let attempts = 0
+    while (!window.OneSignal && attempts < 10) {
+      await new Promise((resolve) => setTimeout(resolve, 100))
+      attempts++
+    }
+
+    const OneSignal = window.OneSignal
+    if (!OneSignal?.Notifications) {
+      if ('Notification' in window) {
+        return Notification.permission as 'default' | 'granted' | 'denied'
+      }
+      return null
+    }
+
+    try {
+      const permission = OneSignal.Notifications.permission
+
+      if (typeof permission === 'boolean') {
+        return permission ? 'granted' : 'default'
+      }
+
+      if (typeof permission === 'string') {
+        const normalized = permission.toLowerCase()
+        if (normalized === 'granted') return 'granted'
+        if (normalized === 'denied') return 'denied'
+        return 'default'
+      }
+
+      if ('Notification' in window) {
+        return Notification.permission as 'default' | 'granted' | 'denied'
+      }
+
+      return 'default'
+    } catch (err) {
+      if ('Notification' in window) {
+        return Notification.permission as 'default' | 'granted' | 'denied'
+      }
+      throw err
+    }
+  } catch (err) {
+    console.error('Error checking notification permission:', err)
     if ('Notification' in window) {
       return Notification.permission as 'default' | 'granted' | 'denied'
     }
-    const hasPermission = OneSignal.Notifications.permission
-    return hasPermission ? 'granted' : 'default'
-  } catch (err) {
-    console.error('Error checking notification permission:', err)
     return null
   }
 }
 
 export async function requestOneSignalPermission(): Promise<'default' | 'granted' | 'denied'> {
+  await waitForOneSignal()
+
   const OneSignal = window.OneSignal
   if (!OneSignal?.Notifications) {
     throw new Error('OneSignal SDK chưa sẵn sàng')
   }
-  if ('Notification' in window && Notification.requestPermission) {
-    const permission = await Notification.requestPermission()
-    return permission as 'default' | 'granted' | 'denied'
-  }
 
-  const result = await OneSignal.Notifications.requestPermission()
-  if (typeof result === 'boolean') {
-    return result ? 'granted' : 'denied'
+  try {
+    const result = await OneSignal.Notifications.requestPermission()
+
+    if (typeof result === 'boolean') {
+      return result ? 'granted' : 'denied'
+    }
+
+    if (typeof result === 'string') {
+      const normalized = result.toLowerCase()
+      if (normalized === 'granted') return 'granted'
+      if (normalized === 'denied') return 'denied'
+      return 'default'
+    }
+
+    if ('Notification' in window && Notification.requestPermission) {
+      const permission = await Notification.requestPermission()
+      return permission as 'default' | 'granted' | 'denied'
+    }
+
+    return 'default'
+  } catch (error) {
+    console.error('Error requesting OneSignal permission:', error)
+    if ('Notification' in window && Notification.requestPermission) {
+      try {
+        const permission = await Notification.requestPermission()
+        return permission as 'default' | 'granted' | 'denied'
+      } catch (err) {
+        console.error('Error using browser Notification API:', err)
+        return 'denied'
+      }
+    }
+    throw error
   }
-  return result as 'default' | 'granted' | 'denied'
 }
 
 export async function requestOneSignalPermissionIfNeeded(): Promise<boolean> {
