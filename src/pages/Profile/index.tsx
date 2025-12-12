@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
+import { Switch } from '@/components/ui/switch'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { ProfileInfoGrid } from '@/components/Profile/ProfileInfoGrid'
 import { useAuthStore } from '@/stores/authStore'
@@ -15,6 +16,7 @@ import { useUploadFile } from '@/hooks/useUploadFile'
 import { ProfileSchema, type ProfileFormData } from '@/schemas/profileSchema'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
+import { initOneSignal } from '@/service/onesignalService/initOnesignal'
 
 export const Profile = () => {
   const { id } = useParams()
@@ -38,6 +40,8 @@ export const Profile = () => {
     phone: '',
     position: '',
   })
+  const [isNotificationsOn, setIsNotificationsOn] = useState(false)
+  const [isRequestingNotifications, setIsRequestingNotifications] = useState(false)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   // Hooks
@@ -59,6 +63,13 @@ export const Profile = () => {
   })
 
   const currentValues = watch()
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if ('Notification' in window && Notification.permission === 'granted') {
+      setIsNotificationsOn(true)
+    }
+  }, [])
 
   // Populate form when data loads
   useEffect(() => {
@@ -251,6 +262,32 @@ export const Profile = () => {
     navigate('/login')
   }
 
+  const handleToggleNotifications = async (checked: boolean) => {
+    if (!checked) {
+      setIsNotificationsOn(false)
+      toast.info('Bạn có thể bật lại thông báo bất cứ lúc nào.')
+      return
+    }
+
+    setIsRequestingNotifications(true)
+    try {
+      const granted = await initOneSignal()
+      if (granted) {
+        setIsNotificationsOn(true)
+        toast.success('Đã bật thông báo đẩy.')
+      } else {
+        setIsNotificationsOn(false)
+        toast.error('Thông báo chưa được bật. Vui lòng kiểm tra quyền trình duyệt.')
+      }
+    } catch (error) {
+      console.error('initOneSignal error', error)
+      setIsNotificationsOn(false)
+      toast.error('Không thể khởi tạo thông báo. Thử lại sau.')
+    } finally {
+      setIsRequestingNotifications(false)
+    }
+  }
+
   const isUploading = uploadFileMutation.isPending
 
   // Check if field has changed
@@ -338,7 +375,19 @@ export const Profile = () => {
 
         {/* Logout Button */}
         {isOwnProfile && (
-          <div className="mt-8 w-full max-w-md">
+          <div className="mt-8 w-full max-w-md space-y-3">
+            <div className="flex items-center justify-between rounded-lg border bg-white px-4 py-3 shadow-sm">
+              <div>
+                <p className="text-sm font-medium text-gray-900">Nhận thông báo</p>
+                <p className="text-xs text-gray-500">Bật để nhận thông báo đẩy từ hệ thống</p>
+              </div>
+              <Switch
+                checked={isNotificationsOn}
+                disabled={isRequestingNotifications}
+                onCheckedChange={handleToggleNotifications}
+              />
+            </div>
+
             <Button variant="destructive" onClick={handleLogout} className="w-full">
               Đăng xuất
             </Button>
