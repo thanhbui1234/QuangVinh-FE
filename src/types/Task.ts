@@ -7,6 +7,14 @@ export interface Task {
     id: number
     name: string
   }
+  assignees?: Array<{
+    id: number
+    name: string
+  }>
+  supervisor?: {
+    id: number
+    name: string
+  }
   status?: number
   startTime?: number
   estimateTime: number

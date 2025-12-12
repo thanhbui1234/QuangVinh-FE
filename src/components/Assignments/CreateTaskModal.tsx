@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { MultiSelect } from '@/components/ui/multi-select'
 import { TASK_PRIORITY_LABELS, TASK_TYPE_LABELS, TASK_STATUS } from '@/constants/assignments/task'
 import { X, Image as ImageIcon, ListChecks } from 'lucide-react'
 import { EditorJSComponent } from '../Editor'
@@ -27,7 +28,10 @@ export type CreateTaskFormData = {
   priority: number
   taskType: number
   estimateTime: number
-  assigneeId?: number
+  assigneeIds?: number[]
+  assignees?: Array<{ id: number }>
+  supervisorId?: number
+  supervisor?: { id: number }
   status?: number
   startTime?: number
   imageUrls?: string[]
@@ -67,9 +71,10 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
         status: String(initialData.status || TASK_STATUS.CREATED),
         startDate: formatDate(initialData.startTime),
         estimateDate: formatDate(initialData.estimateTime),
-        assigneeId: initialData.assigneeId ? String(initialData.assigneeId) : '',
+        assigneeIds: initialData.assigneeIds?.map(String) || [],
         imageUrls: initialData.imageUrls || [],
         checkList: initialData.checkList || '',
+        supervisor: initialData.supervisorId ? String(initialData.supervisorId) : '',
       }
     }
     return {
@@ -79,11 +84,12 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
       status: String(TASK_STATUS.CREATED),
       startDate: '',
       estimateDate: '',
-      assigneeId: '',
+      assigneeIds: [],
       imageUrls: [],
       checkList: '',
+      supervisor: '',
     }
-  }, [mode, initialData])
+  }, [mode, initialData, formatDate])
 
   const {
     register,
@@ -132,23 +138,41 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
     const estimateTime = new Date(data.estimateDate).getTime()
     const startTime = data.startDate ? new Date(data.startDate).getTime() : undefined
 
-    // Find selected member
-    const selectedMember = data.assigneeId
-      ? memberTask.find((m: any) => String(m.id) === data.assigneeId)
-      : undefined
+    // Convert assigneeIds from string[] to number[]
+    const assigneeIds = data.assigneeIds?.map((id) => Number(id)).filter((id) => !isNaN(id))
 
-    // Call onCreate - parent will handle success/error and close modal
-    onCreate({
+    // Find selected supervisor
+    const supervisorId = data.supervisor ? Number(data.supervisor) : undefined
+
+    // Base payload
+    const basePayload = {
       description: data.description.trim(),
       priority: Number(data.priority),
       taskType: Number(data.taskType),
       estimateTime,
-      assigneeId: selectedMember ? Number(selectedMember.id) : undefined,
       status: Number(data.status),
       startTime,
       imageUrls: data.imageUrls,
       checkList: data.checkList?.trim() || undefined,
-    })
+    }
+
+    // Format differs between CREATE and UPDATE
+    if (mode === 'edit') {
+      // UPDATE: API expects objects format
+      onCreate({
+        ...basePayload,
+        assignees:
+          assigneeIds && assigneeIds.length > 0 ? assigneeIds.map((id) => ({ id })) : undefined,
+        supervisor: supervisorId ? { id: supervisorId } : undefined,
+      })
+    } else {
+      // CREATE: API expects IDs format
+      onCreate({
+        ...basePayload,
+        assigneeIds: assigneeIds && assigneeIds.length > 0 ? assigneeIds : undefined,
+        supervisorId,
+      })
+    }
   }
 
   if (!open) return null
@@ -333,53 +357,51 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="assignee" className="text-sm font-medium text-gray-700">
+                <Label htmlFor="assignees" className="text-sm font-medium text-gray-700">
                   Người thực hiện
                 </Label>
                 <Controller
-                  name="assigneeId"
+                  name="assigneeIds"
                   control={control}
                   render={({ field }) => (
-                    <Select
-                      value={field.value || 'unassigned'}
-                      onValueChange={(val) => field.onChange(val === 'unassigned' ? '' : val)}
-                    >
-                      <SelectTrigger id="assignee" className="w-full">
-                        <SelectValue placeholder="Chọn người thực hiện" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="unassigned">Chưa phân công</SelectItem>
-                        {Array.isArray(memberTask) &&
-                          memberTask
-                            .filter((member) => member && member.id != null && member.id !== '')
-                            .map((member) => (
-                              <SelectItem key={String(member.id)} value={String(member.id)}>
-                                {String(member.name || member.email || 'Unknown')}
-                              </SelectItem>
-                            ))}
-                      </SelectContent>
-                    </Select>
+                    <MultiSelect
+                      options={
+                        Array.isArray(memberTask)
+                          ? memberTask
+                              .filter((member) => member && member.id != null && member.id !== '')
+                              .map((member) => ({
+                                label: String(member.name || member.email || 'Unknown'),
+                                value: String(member.id),
+                              }))
+                          : []
+                      }
+                      selected={field.value || []}
+                      onChange={field.onChange}
+                      placeholder="Chọn người thực hiện"
+                      emptyText="Không tìm thấy thành viên"
+                      className="w-full"
+                    />
                   )}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="assignee" className="text-sm font-medium text-gray-700">
+                <Label htmlFor="supervisor" className="text-sm font-medium text-gray-700">
                   Người chịu trách nhiệm
                 </Label>
                 <Controller
-                  name="assigneeId"
+                  name="supervisor"
                   control={control}
                   render={({ field }) => (
                     <Select
-                      value={field.value || 'unassigned'}
-                      onValueChange={(val) => field.onChange(val === 'unassigned' ? '' : val)}
+                      value={(field.value as string) || 'unsupervisor'}
+                      onValueChange={(val) => field.onChange(val === 'unsupervisor' ? '' : val)}
                     >
-                      <SelectTrigger id="assignee" className="w-full">
+                      <SelectTrigger id="supervisor" className="w-full">
                         <SelectValue placeholder="Chọn người chịu trách nhiệm" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="unassigned">Chưa phân công</SelectItem>
+                        <SelectItem value="unsupervisor">Chưa phân công</SelectItem>
                         {Array.isArray(memberTask) &&
                           memberTask
                             .filter((member) => member && member.id != null && member.id !== '')

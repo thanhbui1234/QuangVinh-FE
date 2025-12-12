@@ -13,7 +13,8 @@ export interface CreateTaskPayload {
   estimateTime: number
   imageUrls?: string[]
   checkList?: string
-  assigneeId?: number
+  assigneeIds?: number[]
+  supervisorId?: number
   status?: number
   startTime?: number
 }

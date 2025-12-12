@@ -79,22 +79,13 @@ export const DetailTask = () => {
       taskType: projectAssignmentDetail.taskType,
       estimateTime: projectAssignmentDetail.estimateTime,
       status: projectAssignmentDetail.status,
-      assigneeId: projectAssignmentDetail.assignee?.id,
+      assigneeIds: projectAssignmentDetail.assignees?.map((a: any) => a.id) || [],
+      supervisorId: projectAssignmentDetail.supervisor?.id,
       startTime: projectAssignmentDetail.startTime,
       checkList: projectAssignmentDetail.checkList,
       imageUrls: projectAssignmentDetail.imageUrls,
     }
-  }, [
-    projectAssignmentDetail?.description,
-    projectAssignmentDetail?.priority,
-    projectAssignmentDetail?.taskType,
-    projectAssignmentDetail?.estimateTime,
-    projectAssignmentDetail?.status,
-    projectAssignmentDetail?.assignee?.id,
-    projectAssignmentDetail?.startTime,
-    projectAssignmentDetail?.checkList,
-    JSON.stringify(projectAssignmentDetail?.imageUrls),
-  ])
+  }, [projectAssignmentDetail])
 
   if (isFetching)
     return (
@@ -233,7 +224,8 @@ export const DetailTask = () => {
               taskType: data.taskType,
               estimateTime: data.estimateTime,
               status: data.status,
-              assigneeId: data.assigneeId,
+              assignees: data.assignees,
+              supervisor: data.supervisor,
               startTime: data.startTime,
               imageUrls: data.imageUrls,
             },

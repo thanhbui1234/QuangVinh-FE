@@ -20,7 +20,7 @@ import { initOneSignal } from '@/service/onesignalService/initOnesignal'
 
 export const Profile = () => {
   const { id } = useParams()
-  const { user, logout } = useAuthStore()
+  const { user, logout, setUser } = useAuthStore()
   const navigate = useNavigate()
 
   const isOwnProfile = useMemo(() => !id || id === user?.id.toString(), [id, user?.id])
@@ -43,6 +43,7 @@ export const Profile = () => {
   const [isNotificationsOn, setIsNotificationsOn] = useState(false)
   const [isRequestingNotifications, setIsRequestingNotifications] = useState(false)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const isUploadingRef = useRef(false)
 
   // Hooks
   const uploadFileMutation = useUploadFile()
@@ -71,6 +72,24 @@ export const Profile = () => {
     }
   }, [])
 
+  // Sync avatar preview only when user/profile ID or avatar URL changes
+  useEffect(() => {
+    console.log('Avatar sync useEffect - isUploading:', isUploadingRef.current)
+
+    if (isUploadingRef.current) {
+      console.log('Skipping avatar sync - upload in progress')
+      return
+    }
+
+    if (isOwnProfile && user?.avatar) {
+      console.log('Syncing avatar from user:', user.avatar)
+      setAvatarPreview(user.avatar)
+    } else if (!isOwnProfile && profile?.avatar) {
+      console.log('Syncing avatar from profile:', profile.avatar)
+      setAvatarPreview(profile.avatar)
+    }
+  }, [isOwnProfile, user?.id, user?.avatar, profile?.id, profile?.avatar])
+
   // Populate form when data loads
   useEffect(() => {
     let data: ProfileFormData
@@ -81,7 +100,6 @@ export const Profile = () => {
         phone: user.phone ?? '',
         position: user.roles?.[0] ?? '',
       }
-      setAvatarPreview(user.avatar)
     } else if (profile) {
       data = {
         name: profile.name ?? '',
@@ -89,7 +107,6 @@ export const Profile = () => {
         phone: profile.phone ?? '',
         position: profile.position ?? profile.roles?.[0] ?? '',
       }
-      setAvatarPreview(profile.avatar)
     } else {
       return
     }
@@ -121,30 +138,44 @@ export const Profile = () => {
     // Show preview immediately with local blob URL
     const preview = URL.createObjectURL(file)
     setAvatarPreview(preview)
+    isUploadingRef.current = true
 
     // Auto upload and update
     uploadFileMutation.mutate(file, {
       onSuccess: (response) => {
+        console.log('Upload response:', response)
         // Update avatar with URL
         updateAvatarMutate(
           { avatar: response.viewUrl },
           {
-            onSuccess: () => {
+            onSuccess: (updateResponse) => {
+              console.log('Update avatar response:', updateResponse)
+              console.log('Setting avatarPreview to:', response.viewUrl)
               toast.success('Cập nhật ảnh đại diện thành công')
 
-              // Keep using the local blob URL for preview (don't switch to server URL)
-              // This prevents image loading issues on re-renders
-              // The blob URL will be cleaned up when component unmounts or user reloads page
+              // Revoke the blob URL to free memory
+              URL.revokeObjectURL(preview)
 
-              // Note: We don't update authStore here because it would trigger useEffect
-              // which would overwrite our blob preview with user.avatar
-              // AuthStore will be updated naturally when user reloads page and fetches from API
+              // Update preview with the server URL - this is the source of truth
+              setAvatarPreview(response.viewUrl)
+
+              // Update store (will trigger useEffect but it will be skipped due to isUploadingRef)
+              if (user) {
+                setUser({ ...user, avatar: response.viewUrl })
+              }
+
+              // Reset flag after state updates have been flushed
+              queueMicrotask(() => {
+                console.log('Resetting upload flag')
+                isUploadingRef.current = false
+              })
             },
             onError: () => {
               toast.error('Cập nhật ảnh đại diện thất bại')
               // Revert preview on error
               setAvatarPreview(user?.avatar || profile?.avatar)
               URL.revokeObjectURL(preview)
+              isUploadingRef.current = false
             },
           }
         )
@@ -154,6 +185,7 @@ export const Profile = () => {
         // Revert preview on error
         setAvatarPreview(user?.avatar || profile?.avatar)
         URL.revokeObjectURL(preview)
+        isUploadingRef.current = false
       },
     })
 
@@ -305,13 +337,10 @@ export const Profile = () => {
         {/* Avatar Section */}
         <div className="relative mb-6">
           <Avatar className="size-32 ring-4 ring-white shadow-xl">
-            {avatarPreview ? (
-              <AvatarImage src={avatarPreview} alt="Avatar" />
-            ) : (
-              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white text-3xl">
-                {currentValues.name?.charAt(0).toUpperCase() || 'U'}
-              </AvatarFallback>
-            )}
+            <AvatarImage src={avatarPreview} alt="Avatar" />
+            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white text-3xl">
+              {currentValues.name?.charAt(0).toUpperCase() || 'U'}
+            </AvatarFallback>
           </Avatar>
 
           {isOwnProfile && (

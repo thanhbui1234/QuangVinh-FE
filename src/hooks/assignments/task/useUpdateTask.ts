@@ -14,7 +14,8 @@ export interface updateTaskPayload {
   estimateTime?: number
   imageUrls?: string[]
   checkList?: string
-  assigneeId?: number
+  assignees?: Array<{ id: number }>
+  supervisor?: { id: number }
   status?: number
   startTime?: number
   progressScore?: number
