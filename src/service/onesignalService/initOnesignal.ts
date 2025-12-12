@@ -1,4 +1,9 @@
-import OneSignal from 'react-onesignal'
+declare global {
+  interface Window {
+    OneSignal?: any
+    OneSignalDeferred?: Array<(OneSignal: any) => void>
+  }
+}
 
 const ONE_SIGNAL_SDK_URL = 'https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.js'
 
@@ -12,44 +17,36 @@ function loadOneSignalSDK() {
 }
 
 export async function requestNotificationPermission() {
-  const permission = await (OneSignal.Notifications as any).getPermissionStatus()
-
+  const permission = await window.OneSignal.User.Push.getPermissionStatus()
   console.log('Permission:', permission)
 
-  if (permission === 'granted') {
-    console.log('Đã được cấp quyền')
-    return true
-  }
+  if (permission === 'granted') return true
 
-  if (permission === 'denied') {
-    console.log('Người dùng đã chặn thông báo')
-    return false
-  }
+  const result = await window.OneSignal.User.Push.requestPermission()
+  console.log('Result requestPermission:', result)
 
-  const result = await OneSignal.Notifications.requestPermission()
-
-  if ((result as any) === 'granted') {
-    console.log('User đã Allow')
-    return true
-  }
-
-  console.log('User đã Block hoặc tắt popup')
-  return false
+  return result === 'granted'
 }
 
 export async function initOneSignal() {
   if (typeof window === 'undefined') return
-  await requestNotificationPermission()
-
-  // if (resultPermission) {
-  //   return
-  // }
 
   loadOneSignalSDK()
 
-  await OneSignal.init({
-    appId: import.meta.env.VITE_ONESIGNAL_APP_ID,
-    allowLocalhostAsSecureOrigin: true,
-    serviceWorkerPath: '/OneSignalSDKWorker.js',
+  window.OneSignalDeferred = window.OneSignalDeferred || []
+  window.OneSignalDeferred.push(async (OneSignal) => {
+    await OneSignal.init({
+      appId: import.meta.env.VITE_ONESIGNAL_APP_ID,
+      allowLocalhostAsSecureOrigin: true,
+      serviceWorkerPath: '/OneSignalSDKWorker.js',
+    })
+
+    console.log('OneSignal init success')
+
+    const granted = await requestNotificationPermission()
+    console.log('Permission granted?', granted)
+
+    const playerId = await OneSignal.User.Push.getSubscriptionId()
+    console.log('playerId:', playerId)
   })
 }
