@@ -7,6 +7,8 @@ declare global {
 
 const ONE_SIGNAL_SDK_URL = 'https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.js'
 
+let initPromise: Promise<boolean> | null = null
+
 function loadOneSignalSDK() {
   if (document.querySelector(`script[src="${ONE_SIGNAL_SDK_URL}"]`)) return
 
@@ -28,25 +30,48 @@ export async function requestNotificationPermission() {
   return result === 'granted'
 }
 
-export async function initOneSignal() {
-  if (typeof window === 'undefined') return
+export async function initOneSignal(): Promise<boolean> {
+  if (typeof window === 'undefined') return false
 
-  loadOneSignalSDK()
+  if (initPromise) return initPromise
 
-  window.OneSignalDeferred = window.OneSignalDeferred || []
-  window.OneSignalDeferred.push(async (OneSignal) => {
-    await OneSignal.init({
-      appId: import.meta.env.VITE_ONESIGNAL_APP_ID,
-      allowLocalhostAsSecureOrigin: true,
-      serviceWorkerPath: '/OneSignalSDKWorker.js',
-    })
+  initPromise = new Promise<boolean>((resolve, reject) => {
+    try {
+      loadOneSignalSDK()
 
-    console.log('OneSignal init success')
+      window.OneSignalDeferred = window.OneSignalDeferred || []
+      window.OneSignalDeferred.push(async (OneSignal) => {
+        try {
+          await OneSignal.init({
+            appId: import.meta.env.VITE_ONESIGNAL_APP_ID,
+            allowLocalhostAsSecureOrigin: true,
+            serviceWorkerPath: '/OneSignalSDKWorker.js',
+          })
 
-    const granted = await requestNotificationPermission()
-    console.log('Permission granted?', granted)
+          console.log('OneSignal init success')
 
-    const playerId = await OneSignal.User.Push.getSubscriptionId()
-    console.log('playerId:', playerId)
+          const granted = await requestNotificationPermission()
+          console.log('Permission granted?', granted)
+
+          if (!granted) {
+            // Allow re-try when user toggles again after granting permission in browser settings.
+            initPromise = null
+          }
+
+          const playerId = await OneSignal.User.Push.getSubscriptionId()
+          console.log('playerId:', playerId)
+
+          resolve(granted)
+        } catch (error) {
+          initPromise = null
+          reject(error)
+        }
+      })
+    } catch (error) {
+      initPromise = null
+      reject(error)
+    }
   })
+
+  return initPromise
 }
