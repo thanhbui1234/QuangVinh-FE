@@ -6,7 +6,6 @@ import { queryClient } from './lib/queryClient.ts'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { SocketProvider } from './providers/SocketProvider.tsx'
 import { Toaster } from 'sonner'
-import { initOneSignal } from '@/service/onesignal/initOneSignal'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -19,7 +18,3 @@ createRoot(document.getElementById('root')!).render(
     </QueryClientProvider>
   </StrictMode>
 )
-
-initOneSignal().catch((err) => {
-  console.error('Failed to initialize OneSignal:', err)
-})
