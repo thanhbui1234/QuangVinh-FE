@@ -5,8 +5,6 @@ import { useMutation } from '@tanstack/react-query'
 import { useNavigate } from 'react-router'
 import { useAuthStore } from '@/stores/authStore'
 import { API_ENDPOINT } from '@/common'
-import { requestOneSignalPermissionIfNeeded } from '@/service/onesignal/initOneSignal'
-import { registerPlayerIdToDashboard } from '@/service/onesignal/onesignalService'
 
 export const useLogin = () => {
   const navigate = useNavigate()
@@ -23,22 +21,6 @@ export const useLogin = () => {
         message: 'Đăng nhập thành công',
       })
       setAuth(user, token, refreshToken)
-
-      try {
-        await new Promise((resolve) => setTimeout(resolve, 500))
-        const permissionGranted = await requestOneSignalPermissionIfNeeded()
-
-        if (permissionGranted) {
-          console.log('Notification permission đã được cấp')
-          // Đợi một chút để OneSignal khởi tạo xong rồi gửi Player ID
-          await new Promise((resolve) => setTimeout(resolve, 1000))
-          await registerPlayerIdToDashboard()
-        } else {
-          console.log('Người dùng chưa cấp quyền thông báo')
-        }
-      } catch (error) {
-        console.error('Lỗi khi xin quyền thông báo:', error)
-      }
 
       navigate('/dashboard')
     },
