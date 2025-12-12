@@ -17,6 +17,7 @@ export interface AuthActions {
   clearError: () => void
   setLoading: (loading: boolean) => void
   setAuth: (user: User, token: string, role?: string) => void
+  setUser: (user: User) => void
 }
 
 export type AuthStore = AuthState & AuthActions

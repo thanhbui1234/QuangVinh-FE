@@ -11,35 +11,38 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { useAssigneTask } from '@/hooks/assignments/task/useAssigneTask'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { MultiSelect } from '@/components/ui/multi-select'
+import { useUpdateTask } from '@/hooks/assignments/task/useUpdateTask'
 
 export function DialogAssignee({ memberTask, task }: { memberTask: any; task: any }) {
-  const [selectedAssignee, setSelectedAssignee] = useState<string>(() => {
-    // If task has an assignee, use their ID as default
-    return task.assignee?.id ? String(task.assignee.id) : ''
+  const [selectedAssignees, setSelectedAssignees] = useState<string[]>(() => {
+    // If task has assignees, use their IDs as default
+    return task.assignees?.map((a: any) => String(a.id)) || []
   })
   const [open, setOpen] = useState(false)
-  const assigneTaskMutation = useAssigneTask(task)
+  const { updateTaskMutation } = useUpdateTask()
 
   const handleAssignTask = () => {
-    if (!selectedAssignee) {
+    if (selectedAssignees.length === 0) {
       return
     }
-    assigneTaskMutation.mutate(Number(selectedAssignee), {
-      onSuccess: () => {
-        setOpen(false)
-        // Reset to current assignee after successful update
-        setSelectedAssignee(task.assignee?.id ? String(task.assignee.id) : '')
+
+    const assigneesPayload = selectedAssignees.map((id) => ({ id: Number(id) }))
+
+    updateTaskMutation.mutate(
+      {
+        taskId: task.taskId,
+        groupId: task.groupId,
+        assignees: assigneesPayload,
       },
-    })
+      {
+        onSuccess: () => {
+          setOpen(false)
+          // Reset to current assignees after successful update
+          setSelectedAssignees(task.assignees?.map((a: any) => String(a.id)) || [])
+        },
+      }
+    )
   }
 
   return (
@@ -52,29 +55,25 @@ export function DialogAssignee({ memberTask, task }: { memberTask: any; task: an
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Giao việc</DialogTitle>
-          <DialogDescription>Chọn người để giao việc này</DialogDescription>
+          <DialogDescription>
+            Chọn người để giao việc này (có thể chọn nhiều người)
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div className="grid gap-2">
-            <Label htmlFor="assignee">Người thực hiện</Label>
-            <Select value={selectedAssignee} onValueChange={setSelectedAssignee}>
-              <SelectTrigger>
-                <SelectValue placeholder="Chọn người thực hiện..." />
-              </SelectTrigger>
-              <SelectContent>
-                {memberTask?.map((member: any) => (
-                  <SelectItem key={member.id} value={String(member.id)}>
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-6 w-6">
-                        <AvatarImage src={member.avatar} alt={member.name} />
-                        <AvatarFallback>{member.name?.charAt(0).toUpperCase()}</AvatarFallback>
-                      </Avatar>
-                      <span>{member.name}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label htmlFor="assignees">Người thực hiện</Label>
+            <MultiSelect
+              options={
+                memberTask?.map((member: any) => ({
+                  label: member.name || member.email,
+                  value: String(member.id),
+                })) || []
+              }
+              selected={selectedAssignees}
+              onChange={setSelectedAssignees}
+              placeholder="Chọn người thực hiện..."
+              emptyText="Không tìm thấy thành viên"
+            />
           </div>
         </div>
         <DialogFooter className="gap-2">
@@ -86,11 +85,13 @@ export function DialogAssignee({ memberTask, task }: { memberTask: any; task: an
           <Button
             type="button"
             onClick={handleAssignTask}
-            disabled={!selectedAssignee || assigneTaskMutation.isPending || task.status === 9}
+            disabled={
+              selectedAssignees.length === 0 || updateTaskMutation.isPending || task.status === 9
+            }
           >
-            {assigneTaskMutation.isPending
+            {updateTaskMutation.isPending
               ? 'Đang giao...'
-              : `${task.status === 9 ? 'Công việc đã hoàn thành ' : 'Giao việc'}`}
+              : `${task.status === 9 ? 'Công việc đã hoàn thành' : 'Giao việc'}`}
           </Button>
         </DialogFooter>
       </DialogContent>

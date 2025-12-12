@@ -20,6 +20,7 @@ import { DialogConfirm } from '../ui/alertComponent'
 import { isMobile } from 'react-device-detect'
 import { PhotoProvider, PhotoView } from 'react-photo-view'
 import 'react-photo-view/dist/react-photo-view.css'
+import dayjs from 'dayjs'
 
 const mentionsInputStyle = {
   control: {
@@ -346,9 +347,11 @@ export const CommentTask = ({ member, taskId }: { member: IMemberTask[]; taskId:
           {/* Comment Input */}
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="flex gap-3 mb-6 pb-6 border-b border-gray-100">
-              <Avatar className="w-9 h-9 shrink-0">
-                <AvatarImage src="/photo_2025-09-26_12-28-52 (2).jpg" />
-                <AvatarFallback>JD</AvatarFallback>
+              <Avatar>
+                <AvatarImage src={user?.avatar} />
+                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white">
+                  {user?.name?.charAt(0).toUpperCase() || 'U'}
+                </AvatarFallback>
               </Avatar>
               <div className="flex-1 space-y-3">
                 <div className="flex gap-2">
@@ -531,12 +534,7 @@ export const CommentTask = ({ member, taskId }: { member: IMemberTask[]; taskId:
                         {c.creator?.name}
                       </span>
                       <span className="text-xs text-gray-500">
-                        {new Date(c.createdTime).toLocaleString('vi-VN', {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                          day: '2-digit',
-                          month: '2-digit',
-                        })}
+                        {dayjs(c.createdTime).fromNow()}
                       </span>
                     </div>
 
