@@ -10,7 +10,7 @@ import {
   MappingLeavesType,
   StatusLeaves,
 } from '@/types/Leave.ts'
-import { calculateDays, formatDate } from '@/utils/CommonUtils.ts'
+import { formatDate } from '@/utils/CommonUtils.ts'
 
 type LeaveListItemMobileProps = {
   request: LeavesListDataResponse
@@ -26,11 +26,7 @@ export default function LeaveListItemMobile({
   onActionClick,
 }: LeaveListItemMobileProps) {
   const Icon = getLeaveIcon(request?.absenceType)
-  const getTimeLeaves = () => {
-    if (!request.offFrom && !request.offTo) return null
-    const { days, hours } = calculateDays(request.offFrom, request.offTo)
-    return { days, hours }
-  }
+
   return (
     <div
       className="bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-800"
@@ -89,7 +85,7 @@ export default function LeaveListItemMobile({
               {mapDayOffType?.[request?.dayOffType] || ''}
             </span>
             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              {getTimeLeaves()?.days} ngày {getTimeLeaves()?.hours} giờ
+              {request?.dayOff || ''} ngày
             </span>
           </div>
           <StatusPill status={request.status} size="sm" />

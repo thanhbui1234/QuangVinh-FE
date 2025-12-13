@@ -11,7 +11,7 @@ type UpdateLeavePayload = LeaveFormValues & {
 }
 
 export const useUpdateLeaves = () => {
-  const { mutate } = useMutation({
+  const { mutate, isPending } = useMutation({
     mutationFn: async (payload: UpdateLeavePayload) => {
       return await POST(API_ENDPOINT.UPDATE_LEAVES, payload)
     },
@@ -25,5 +25,5 @@ export const useUpdateLeaves = () => {
     },
   })
 
-  return { updateLeavesMutate: mutate }
+  return { updateLeavesMutate: mutate, isUpdatePending: isPending }
 }

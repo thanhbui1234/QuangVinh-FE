@@ -1,6 +1,6 @@
 import React from 'react'
 import { useLocation, useNavigate } from 'react-router'
-import { Home, FileText, BookOpen, User, Bell } from 'lucide-react'
+import { Home, FileText, User, Bell } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -30,12 +30,6 @@ const navItems: NavItem[] = [
     label: 'Lịch nghỉ',
     icon: FileText,
     path: '/mobile/leaves',
-  },
-  {
-    id: 'documents',
-    label: 'Tài liệu',
-    icon: BookOpen,
-    path: '/mobile/documents',
   },
   {
     id: 'profile',

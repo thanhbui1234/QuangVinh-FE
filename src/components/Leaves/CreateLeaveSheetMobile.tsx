@@ -26,6 +26,7 @@ type CreateLeaveSheetMobileProps = {
   mode?: 'create' | 'update'
   leaveId?: number
   initialValues?: Partial<LeaveFormValues> | null
+  onSuccess?: () => void
 }
 
 export default function CreateLeaveSheetMobile({
@@ -34,6 +35,7 @@ export default function CreateLeaveSheetMobile({
   mode = 'create',
   leaveId,
   initialValues,
+  onSuccess,
 }: CreateLeaveSheetMobileProps) {
   const { createLeavesMutate } = useCreateLeaves()
   const { updateLeavesMutate } = useUpdateLeaves()
@@ -95,12 +97,23 @@ export default function CreateLeaveSheetMobile({
       }
 
       if (mode === 'update' && leaveId) {
-        updateLeavesMutate({
-          id: leaveId,
-          ...payload,
-        })
+        updateLeavesMutate(
+          {
+            id: leaveId,
+            ...payload,
+          },
+          {
+            onSuccess: () => {
+              onSuccess?.()
+            },
+          }
+        )
       } else {
-        createLeavesMutate(payload)
+        createLeavesMutate(payload, {
+          onSuccess: () => {
+            onSuccess?.()
+          },
+        })
       }
 
       onOpenChange(false)

@@ -69,22 +69,57 @@ export default function LeavesMobile() {
 
   const prevAbsenceRequestsRef = useRef<LeavesListDataResponse[]>([])
   const prevOffsetRef = useRef<number>(offset)
+  const prevFilterStatusRef = useRef<LeavesStatus[]>(filterStatus)
+  const prevIsUpdatingStatusRef = useRef<boolean>(isUpdatingStatus)
 
   useEffect(() => {
-    setOffset(0)
-    setAllItems([])
-    setHasMore(false)
-    prevAbsenceRequestsRef.current = []
-    prevOffsetRef.current = 0
+    const filterStatusChanged =
+      JSON.stringify(filterStatus) !== JSON.stringify(prevFilterStatusRef.current)
+    if (filterStatusChanged) {
+      setOffset(0)
+      setAllItems([])
+      setHasMore(false)
+      prevAbsenceRequestsRef.current = []
+      prevOffsetRef.current = 0
+      prevFilterStatusRef.current = filterStatus
+    }
   }, [filterStatus])
+
+  // Reset offset when status update completes
+  useEffect(() => {
+    // When isUpdatingStatus changes from true to false, mutation completed
+    // Note: invalidateQueries in useUpdateLeavesStatus will automatically trigger refetch
+    if (prevIsUpdatingStatusRef.current && !isUpdatingStatus) {
+      // Reset to first page to get updated list
+      setOffset(0)
+      prevOffsetRef.current = 0
+      setAllItems([])
+    }
+    prevIsUpdatingStatusRef.current = isUpdatingStatus
+  }, [isUpdatingStatus])
 
   useEffect(() => {
     const offsetChanged = offset !== prevOffsetRef.current
+    // More comprehensive data change detection
     const dataChanged =
       absenceRequests.length !== prevAbsenceRequestsRef.current.length ||
       (absenceRequests.length > 0 &&
         prevAbsenceRequestsRef.current.length > 0 &&
-        absenceRequests[0]?.id !== prevAbsenceRequestsRef.current[0]?.id)
+        (absenceRequests[0]?.id !== prevAbsenceRequestsRef.current[0]?.id ||
+          absenceRequests.some((item, index) => {
+            const prevItem = prevAbsenceRequestsRef.current[index]
+            if (!prevItem) return true
+            // Check if any field has changed (not just ID and status)
+            return (
+              prevItem.id !== item.id ||
+              prevItem.status !== item.status ||
+              prevItem.reason !== item.reason ||
+              prevItem.offFrom !== item.offFrom ||
+              prevItem.offTo !== item.offTo ||
+              prevItem.absenceType !== item.absenceType ||
+              prevItem.dayOffType !== item.dayOffType
+            )
+          })))
 
     if (offsetChanged || dataChanged) {
       if (absenceRequests && absenceRequests.length > 0) {
@@ -141,6 +176,14 @@ export default function LeavesMobile() {
       setEditLeaveId(undefined)
       setEditInitialValues(null)
     }
+  }
+
+  const handleCreateOrUpdateSuccess = () => {
+    // Reset to first page to get updated list
+    // Note: invalidateQueries in useUpdateLeaves will automatically trigger refetch
+    setOffset(0)
+    prevOffsetRef.current = 0
+    setAllItems([])
   }
 
   const handleDeleteLeave = (request: LeavesListDataResponse) => {
@@ -261,6 +304,7 @@ export default function LeavesMobile() {
         mode={editMode}
         leaveId={editLeaveId}
         initialValues={editInitialValues}
+        onSuccess={handleCreateOrUpdateSuccess}
       />
 
       <ConfirmationSheetMobile
