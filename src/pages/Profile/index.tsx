@@ -17,6 +17,13 @@ import { ProfileSchema, type ProfileFormData } from '@/schemas/profileSchema'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
 import { initOneSignal, checkSubscriptionStatus } from '@/service/onesignalService/initOnesignal'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 
 export const Profile = () => {
   const { id } = useParams()
@@ -42,6 +49,8 @@ export const Profile = () => {
   })
   const [isNotificationsOn, setIsNotificationsOn] = useState(false)
   const [isRequestingNotifications, setIsRequestingNotifications] = useState(false)
+  const [showPlayerIdModal, setShowPlayerIdModal] = useState(false)
+  const [playerIdData, setPlayerIdData] = useState<{ playerId: string; response: any } | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const isUploadingRef = useRef(false)
 
@@ -323,7 +332,10 @@ export const Profile = () => {
 
     setIsRequestingNotifications(true)
     try {
-      const success = await initOneSignal()
+      const success = await initOneSignal((playerId, response) => {
+        setPlayerIdData({ playerId, response })
+        setShowPlayerIdModal(true)
+      })
 
       if (success) {
         // Verify subscription status
@@ -450,6 +462,36 @@ export const Profile = () => {
           </div>
         )}
       </div>
+
+      {/* PlayerId Modal */}
+      <Dialog open={showPlayerIdModal} onOpenChange={setShowPlayerIdModal}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Thông tin đăng ký thông báo</DialogTitle>
+            <DialogDescription>
+              PlayerId và Response từ API khi đăng ký thiết bị nhận thông báo
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium text-gray-700">PlayerId:</label>
+              <div className="mt-1 p-3 bg-gray-50 rounded-md border border-gray-200">
+                <code className="text-xs break-all text-gray-900">
+                  {playerIdData?.playerId || 'N/A'}
+                </code>
+              </div>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-700">Response từ API:</label>
+              <div className="mt-1 p-3 bg-gray-50 rounded-md border border-gray-200 max-h-64 overflow-auto">
+                <pre className="text-xs text-gray-900 whitespace-pre-wrap break-words">
+                  {playerIdData?.response ? JSON.stringify(playerIdData.response, null, 2) : 'N/A'}
+                </pre>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
