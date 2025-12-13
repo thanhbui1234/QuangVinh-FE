@@ -16,7 +16,7 @@ import { useUploadFile } from '@/hooks/useUploadFile'
 import { ProfileSchema, type ProfileFormData } from '@/schemas/profileSchema'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
-import { initOneSignal } from '@/service/onesignalService/initOnesignal'
+import { initOneSignal, checkSubscriptionStatus } from '@/service/onesignalService/initOnesignal'
 
 export const Profile = () => {
   const { id } = useParams()
@@ -65,16 +65,31 @@ export const Profile = () => {
 
   const currentValues = watch()
 
-  // Check notification status on mount (simple check)
+  // Check notification status on mount (only if OneSignal is already initialized)
   useEffect(() => {
     if (typeof window === 'undefined') return
 
-    // Simple check: if browser permission is granted, assume notifications are on
-    if ('Notification' in window && Notification.permission === 'granted') {
-      setIsNotificationsOn(true)
-    } else {
-      setIsNotificationsOn(false)
+    const checkStatus = async () => {
+      try {
+        // Only check if OneSignal is already loaded
+        if (window.OneSignal) {
+          const isSubscribed = await checkSubscriptionStatus()
+          setIsNotificationsOn(isSubscribed)
+        } else {
+          // Fallback to browser permission check
+          if ('Notification' in window && Notification.permission === 'granted') {
+            setIsNotificationsOn(true)
+          } else {
+            setIsNotificationsOn(false)
+          }
+        }
+      } catch (error) {
+        console.error('Error checking notification status:', error)
+        setIsNotificationsOn(false)
+      }
     }
+
+    checkStatus()
   }, [])
 
   // Sync avatar preview only when user/profile ID or avatar URL changes
@@ -308,14 +323,25 @@ export const Profile = () => {
 
     setIsRequestingNotifications(true)
     try {
-      await initOneSignal()
-      // Set switch to ON immediately after init
-      setIsNotificationsOn(true)
-      toast.success('Đã bật thông báo đẩy.')
+      const success = await initOneSignal()
+
+      if (success) {
+        // Verify subscription status
+        const isSubscribed = await checkSubscriptionStatus()
+        setIsNotificationsOn(isSubscribed)
+
+        if (isSubscribed) {
+          toast.success('Đã bật thông báo đẩy thành công')
+        } else {
+          toast.warning('Thông báo chưa được kích hoạt. Vui lòng thử lại.')
+        }
+      } else {
+        setIsNotificationsOn(false)
+      }
     } catch (error) {
       console.error('initOneSignal error', error)
       setIsNotificationsOn(false)
-      toast.error('Không thể khởi tạo thông báo. Thử lại sau.')
+      toast.error('Không thể khởi tạo thông báo. Vui lòng thử lại sau.')
     } finally {
       setIsRequestingNotifications(false)
     }
@@ -413,7 +439,7 @@ export const Profile = () => {
               </div>
               <Switch
                 checked={isNotificationsOn}
-                disabled={isRequestingNotifications || isNotificationsOn}
+                disabled={isRequestingNotifications}
                 onCheckedChange={handleToggleNotifications}
               />
             </div>
