@@ -12,6 +12,8 @@ import { MobileRoutes } from './DeviceRouter/MobileRoute'
 import { ProjectAssignmentDetail } from '@/pages/Assignments/DetailProject/ProjectAssigmentDetail'
 import ProjectAssignment from '@/pages/Assignments/ProjectAssignment/Web'
 import { DetailTask } from '@/pages/Assignments/DetailTask/DetailTask'
+import { WorkBoardDetail } from '@/pages/Assignments/WorkBoards/WorkBoardDetail'
+import { WorkBoardsList } from '@/pages/Assignments/WorkBoards/WorkBoardsList'
 const router = createBrowserRouter([
   {
     path: '/',
@@ -34,6 +36,20 @@ const router = createBrowserRouter([
       {
         path: ':id',
         element: <ProjectAssignmentDetail />,
+      },
+    ],
+  },
+  {
+    path: '/work-boards',
+    element: <PrivateRoute children={<ResponsiveLayout />} />,
+    children: [
+      {
+        index: true,
+        element: <WorkBoardsList />,
+      },
+      {
+        path: ':id',
+        element: <WorkBoardDetail />,
       },
     ],
   },

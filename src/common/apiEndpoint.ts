@@ -41,6 +41,7 @@ export const API_ENDPOINT = {
   CREATE_LEAVES: '/api/absence-request/create',
   GET_USER_APPROVE_LEAVES: '/api/absence-request/get_approvable_users',
   REMOVE_LEAVES: '/api/absence-request/remove',
+  GET_APPROVED_LEAVES_BY_TIME: '/api/absence-request/get-approved-by-time',
   // profile
   GET_PROFILE: '/api/user/get-info',
   UPDATE_EMAIL: '/api/user/update-email',
@@ -63,4 +64,7 @@ export const API_ENDPOINT = {
   // documents
   UPLOAD_DOCUMENT: '/api/upload/document',
   GET_DOCUMENTS: '/api/upload/document/get-list',
+  GET_MY_DOCUMENTS: '/api/documents/my',
+  GET_SHARED_DOCUMENTS: '/api/documents/shared',
+  DELETE_DOCUMENT: '/api/documents',
 }

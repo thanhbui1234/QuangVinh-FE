@@ -10,6 +10,7 @@ import {
   Edit,
   Trash2,
   MoreVertical,
+  Calendar,
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -48,6 +49,7 @@ type LeavesTableProps = {
   onEdit?: (request: LeavesListDataResponse) => void
   onDelete?: (request: LeavesListDataResponse) => void
   canEditOrDelete?: (request: LeavesListDataResponse) => any
+  onOpenCalendar?: () => void
 }
 
 const LeavesTable: React.FC<LeavesTableProps> = (props) => {
@@ -66,6 +68,7 @@ const LeavesTable: React.FC<LeavesTableProps> = (props) => {
     onEdit,
     onDelete,
     canEditOrDelete,
+    onOpenCalendar,
   } = props
 
   const columns = [
@@ -274,11 +277,17 @@ const LeavesTable: React.FC<LeavesTableProps> = (props) => {
   return (
     <>
       <Card className="p-6 rounded-xl border-muted shadow-sm">
-        <div className="mb-4">
+        <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold flex items-center gap-2">
             <Briefcase className="size-5" />
             Danh sách đơn xin nghỉ
           </h2>
+          {onOpenCalendar && (
+            <Button variant="outline" size="sm" onClick={onOpenCalendar} className="gap-2">
+              <Calendar className="size-4" />
+              Xem lịch nghỉ phép tuần
+            </Button>
+          )}
         </div>
 
         <TableBase

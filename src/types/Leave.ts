@@ -86,6 +86,21 @@ export type GetListLeavesParams = {
   limit: number
 }
 
+export type GetApprovedLeavesByTimeParams = {
+  fromTime: number
+  toTime: number
+  offset: number
+  limit: number
+}
+
+export type ApprovedLeavesByTimeResponse = {
+  fromTime: number
+  toTime: number
+  offset: number
+  limit: number
+  absenceRequests: LeavesListDataResponse[]
+}
+
 export const getLeaveIcon = (type: LeavesType) => {
   const icons = {
     2: Plane,
