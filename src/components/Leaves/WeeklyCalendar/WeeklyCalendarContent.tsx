@@ -39,13 +39,12 @@ export function WeeklyCalendarContent({
 
   const weekDays = useMemo(() => getWeekDays(weekStart), [weekStart])
   const leaveDates = useMemo(() => {
-    // Debug logging
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.NODE_ENV === 'development') {
       console.log('WeeklyCalendar - absenceRequests:', absenceRequests)
       console.log('WeeklyCalendar - weekStart:', weekStart, 'weekEnd:', weekEnd)
     }
     const dates = getLeaveDates(weekStart, weekEnd, absenceRequests)
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.NODE_ENV === 'development') {
       console.log('WeeklyCalendar - leaveDates:', Array.from(dates))
     }
     return dates
