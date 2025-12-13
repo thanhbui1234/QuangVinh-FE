@@ -39,7 +39,7 @@ const BottomSheet = ({
       <SheetContent
         side="bottom"
         className={cn(
-          'rounded-t-3xl',
+          'rounded-t-3xl z-[70]',
           maxHeightClassName,
           padded ? 'p-4 pb-6' : 'p-0',
           contentClassName

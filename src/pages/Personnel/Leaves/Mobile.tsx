@@ -7,6 +7,7 @@ import LeaveListMobile from '@/components/Leaves/LeaveListMobile.tsx'
 import ViewDetailsSheetMobile from '@/components/Leaves/ViewDetailsSheetMobile.tsx'
 import CreateLeaveSheetMobile from '@/components/Leaves/CreateLeaveSheetMobile.tsx'
 import useGetLeavesList from '@/hooks/leaves/useGetLeavesList.ts'
+import WeeklyCalendarMobile from '@/components/Leaves/WeeklyCalendar/WeeklyCalendarMobile.tsx'
 import {
   type LeavesStatus,
   StatusLeaves,
@@ -171,6 +172,10 @@ export default function LeavesMobile() {
   return (
     <div className="flex flex-col min-h-screen dark:bg-gray-950">
       <StatisticsCardsMobile pending={statusCounts?.pending} approved={statusCounts?.approved} />
+
+      <div className="px-4 pb-4">
+        <WeeklyCalendarMobile className="mb-4" />
+      </div>
 
       <div className="px-4 pb-2">
         <SegmentedControl

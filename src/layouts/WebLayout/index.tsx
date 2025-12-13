@@ -132,6 +132,12 @@ const WebLayout = ({ children }: Props) => {
     if (pathname.startsWith('/assignments/')) {
       return 'Chi tiết dự án'
     }
+    if (pathname.startsWith('/work-boards/')) {
+      return 'Chi tiết bảng công việc'
+    }
+    if (pathname.startsWith('/work-boards')) {
+      return 'Bảng công việc'
+    }
     if (pathname.startsWith('/profile')) {
       return 'Cá nhân'
     }
@@ -145,7 +151,7 @@ const WebLayout = ({ children }: Props) => {
     const submenuMapping: Record<string, string[]> = {
       personnel: ['/personnel/list', '/personnel/leaves', '/personnel/positions'],
       documents: ['/documents/my', '/documents/shared'],
-      // 'assignments': ['/assignments/pending', '/assignments/completed'],
+      assignments: ['/assignments', '/work-boards'],
     }
 
     Object.entries(submenuMapping).forEach(([parentId, subPaths]) => {
@@ -193,7 +199,22 @@ const WebLayout = ({ children }: Props) => {
       id: 'assignments',
       label: 'Công việc',
       icon: CheckSquare,
+      active:
+        location.pathname.startsWith('/assignments') ||
+        location.pathname.startsWith('/work-boards'),
       href: '/assignments',
+      hasSubmenu: true,
+      expanded: expandedItems.has('assignments'),
+      subItems: [
+        {
+          label: 'Dự án',
+          href: '/assignments',
+        },
+        {
+          label: 'Bảng công việc',
+          href: '/work-boards',
+        },
+      ],
     },
     {
       id: 'documents',

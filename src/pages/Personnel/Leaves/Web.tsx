@@ -8,6 +8,7 @@ import ConfirmationDialog from '@/components/Leaves/ConfirmationDialog.tsx'
 import CreateLeaveDialog from '@/components/Leaves/CreateLeaveDialog.tsx'
 import DeleteLeaveDialog from '@/components/Leaves/DeleteLeaveDialog.tsx'
 import useGetLeavesList from '@/hooks/leaves/useGetLeavesList.ts'
+import WeeklyCalendarWeb from '@/components/Leaves/WeeklyCalendar/WeeklyCalendarWeb.tsx'
 import {
   type LeavesStatus,
   StatusLeaves,
@@ -48,6 +49,7 @@ export default function LeavesWeb() {
   const [editInitialValues, setEditInitialValues] = useState<Partial<LeaveFormValues> | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deleteRequest, setDeleteRequest] = useState<LeavesListDataResponse | null>(null)
+  const [calendarOpen, setCalendarOpen] = useState(false)
 
   const { removeLeavesMutate, isRemovingLeave } = useRemoveLeaves()
   const { user } = useAuthStore()
@@ -284,6 +286,8 @@ export default function LeavesWeb() {
         })}
       </div>
 
+      <WeeklyCalendarWeb open={calendarOpen} onOpenChange={setCalendarOpen} />
+
       <StatisticsCards requests={statusCounts} />
       <LeavesTable
         data={allItems}
@@ -305,6 +309,7 @@ export default function LeavesWeb() {
         onEdit={handleEditLeave}
         onDelete={handleDeleteLeave}
         canEditOrDelete={canEditOrDelete}
+        onOpenCalendar={() => setCalendarOpen(true)}
       />
 
       {/* View Details Dialog */}
