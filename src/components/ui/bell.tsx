@@ -2,124 +2,120 @@ import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
+  DropdownMenuItem,
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { useCheckNotiUnread } from '@/hooks/notifications/useCheckNotiUnread'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import { Bell } from 'lucide-react'
+import { formatDistanceToNow } from 'date-fns'
+import { vi } from 'date-fns/locale'
+import { useGetNotiBell } from '@/hooks/notifications/useGetNotiBell'
+import { Link, useNavigate } from 'react-router'
+import { useSeenNotification } from '@/hooks/notifications/useSeenNotification'
 
-/**
- * Bell Notification Component
- *
- * Features:
- * - Hiển thị badge khi có notification chưa đọc
- * - Real-time notification qua Socket.IO (auto-handled by useNotifications in WebLayout)
- * - Dropdown hiển thị preview notifications
- */
 export default function BellNotification() {
-  // const { isConnected, hasNewNoti } = useSocketContext()
-  const { isUnread, notifications } = useCheckNotiUnread()
+  const navigate = useNavigate()
+  const { notifications } = useGetNotiBell()
+  const { seenNotificationMutation } = useSeenNotification()
 
-  // Show badge nếu có unread hoặc có notification mới từ socket
-  const showBadge = isUnread
-  const unreadCount = notifications.filter((n) => !n.read).length
+  const unreadCount = notifications?.filter((n: any) => !n.seen)?.length
+
+  const handleClickNoti = (taskId: string) => {
+    navigate(`/tasks/${taskId}`)
+  }
+
+  const handleSeenNoti = (notiId: number) => {
+    seenNotificationMutation.mutate({ notiId, seen: true })
+  }
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="outline"
-          size="icon"
-          className="relative rounded-full cursor-pointer"
-          title={isUnread ? 'Notifications' : 'Reconnecting...'}
-        >
-          <BellIcon className="h-5 w-5 rounded-full" />
-
-          {/* Badge hiển thị số notification chưa đọc */}
-          {showBadge && unreadCount > 0 && (
-            <Badge className="absolute -top-2 -right-2 rounded-full bg-red-500 text-white px-2 py-0.5 text-xs font-medium">
+        <Button variant="ghost" size="icon" className="relative rounded-full hover:bg-gray-100">
+          <Bell className="h-5 w-5 text-gray-700" />
+          {unreadCount > 0 && (
+            <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 p-0 text-xs text-white flex items-center justify-center">
               {unreadCount > 99 ? '99+' : unreadCount}
             </Badge>
           )}
         </Button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="end" className="w-80 p-4">
-        <DropdownMenuLabel className="mb-2 text-lg font-medium">Notifications</DropdownMenuLabel>
-        <DropdownMenuSeparator className="my-2" />
+      <DropdownMenuContent
+        align="end"
+        className="w-96 p-0 rounded-2xl shadow-2xl bg-white border-0 overflow-hidden"
+      >
+        <div className="flex items-center justify-between px-6 py-4 bg-white border-b border-gray-100">
+          <h2 className="text-2xl font-bold text-gray-900">Thông báo</h2>
+        </div>
 
-        {/* Hiển thị danh sách notifications */}
-        <div className="space-y-4 max-h-96 overflow-y-auto">
-          {notifications.length === 0 ? (
-            <p className="text-sm text-gray-500 text-center py-4">Không có thông báo nào</p>
+        <div className="max-h-96 overflow-y-auto">
+          {notifications?.length === 0 ? (
+            <p className="text-center text-gray-500 py-8">Không có thông báo</p>
           ) : (
-            notifications.slice(0, 5).map((notification) => (
-              <div
-                key={notification.id}
-                className={`flex items-start gap-3 p-2 rounded-lg transition-colors ${
-                  !notification.read ? 'bg-blue-50' : 'hover:bg-gray-50'
-                }`}
+            notifications?.map((noti: any) => (
+              <DropdownMenuItem
+                key={noti.id}
+                onClick={() => {
+                  handleSeenNoti(noti.id)
+                  handleClickNoti(noti.extraId)
+                }}
+                className={`flex items-start gap-4 px-6 py-4 hover:bg-gray-50 cursor-pointer border-b last:border-b-0
+              ${!noti.seen ? 'bg-blue-50/30' : ''}`}
               >
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-500 text-white flex-shrink-0">
-                  <BellIcon className="h-4 w-4" />
+                <div className="relative flex-shrink-0">
+                  <Avatar className="h-12 w-12">
+                    <AvatarImage src={noti.trigger.avatar} />
+                    <AvatarFallback>{noti.trigger.name[0]}</AvatarFallback>
+                  </Avatar>
                 </div>
-                <div className="flex-1 space-y-1">
-                  <p className={`text-sm ${!notification.read ? 'font-medium' : ''}`}>
-                    {notification.message}
+
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-gray-900 leading-relaxed">
+                    {noti.message.split(noti.trigger.name).reduce(
+                      (acc: any, part: any, i: any) =>
+                        i === 0
+                          ? [...acc, part]
+                          : [
+                              ...acc,
+                              <span
+                                key={i}
+                                className="font-semibold hover:underline cursor-pointer"
+                                onClick={(e) => {
+                                  e.stopPropagation() // 🔥 chặn click lan lên DropdownMenuItem
+                                  navigate(`/profile/${noti.trigger.id}`)
+                                }}
+                              >
+                                {noti.trigger.name}
+                              </span>,
+                              part,
+                            ],
+                      [] as React.ReactNode[]
+                    )}
                   </p>
-                  <p className="text-xs text-gray-500">{formatTime(notification.created_at)}</p>
+
+                  <p className="text-xs text-gray-500 mt-1">
+                    {formatDistanceToNow(noti.createdTime, {
+                      addSuffix: true,
+                      locale: vi,
+                    }).replace('khoảng ', '')}
+                  </p>
                 </div>
-              </div>
+              </DropdownMenuItem>
             ))
           )}
         </div>
-
-        {/* View all link */}
-        {notifications.length > 0 && (
-          <>
-            <DropdownMenuSeparator className="my-2" />
-            <a
-              href="/notifications"
-              className="block text-sm text-blue-600 hover:text-blue-700 text-center font-medium"
-            >
-              Xem tất cả →
-            </a>
-          </>
-        )}
+        <div className="border-t border-gray-100">
+          <Button
+            variant="ghost"
+            className="w-full rounded-none py-6 text-base font-medium text-gray-700 hover:bg-gray-50"
+            onClick={() => navigate('/notifications')} // thay bằng route phù hợp
+          >
+            Xem thông báo cũ hơn
+          </Button>
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
-  )
-}
-
-// Helper function để format thời gian
-function formatTime(timestamp: string): string {
-  const now = new Date()
-  const time = new Date(timestamp)
-  const diff = Math.floor((now.getTime() - time.getTime()) / 1000)
-
-  if (diff < 60) return 'Vừa xong'
-  if (diff < 3600) return `${Math.floor(diff / 60)} phút trước`
-  if (diff < 86400) return `${Math.floor(diff / 3600)} giờ trước`
-  return `${Math.floor(diff / 86400)} ngày trước`
-}
-
-function BellIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
-      <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-    </svg>
   )
 }

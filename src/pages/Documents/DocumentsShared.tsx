@@ -12,7 +12,8 @@ import 'react-photo-view/dist/react-photo-view.css'
 const DocumentsShared = () => {
   const { documents, isFetching } = useGetListDocument({
     statuses: [0],
-    limit: 10,
+    limit: 100,
+    offset: 0,
   })
 
   const [tab, setTab] = useState('all')

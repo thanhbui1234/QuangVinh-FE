@@ -67,4 +67,7 @@ export const API_ENDPOINT = {
   GET_MY_DOCUMENTS: '/api/documents/my',
   GET_SHARED_DOCUMENTS: '/api/documents/shared',
   DELETE_DOCUMENT: '/api/documents',
+  //NOTIFICATION BELL
+  GET_NOTIFICATION: '/api/noti/get-list-by-user',
+  UPDATE_SEEN_NOTIFICATION: '/api/noti/update-seen',
 }
