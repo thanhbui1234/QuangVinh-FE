@@ -16,7 +16,7 @@ import { useUploadFile } from '@/hooks/useUploadFile'
 import { ProfileSchema, type ProfileFormData } from '@/schemas/profileSchema'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
-import { initOneSignal } from '@/service/onesignalService/initOnesignal'
+import { initOneSignal, checkSubscriptionStatus } from '@/service/onesignalService/initOnesignal'
 
 export const Profile = () => {
   const { id } = useParams()
@@ -65,11 +65,34 @@ export const Profile = () => {
 
   const currentValues = watch()
 
+  // Check subscription status on mount and when OneSignal is ready
   useEffect(() => {
-    if (typeof window === 'undefined') return
-    if ('Notification' in window && Notification.permission === 'granted') {
-      setIsNotificationsOn(true)
+    const checkStatus = async () => {
+      if (typeof window === 'undefined') return
+
+      if ('Notification' in window && Notification.permission === 'granted') {
+        try {
+          const isSubscribed = await checkSubscriptionStatus()
+          setIsNotificationsOn(isSubscribed)
+        } catch (error) {
+          console.error('Error checking subscription status:', error)
+          setIsNotificationsOn(Notification.permission === 'granted')
+        }
+      } else {
+        setIsNotificationsOn(false)
+      }
     }
+
+    checkStatus()
+
+    const interval = setInterval(() => {
+      if (window.OneSignal) {
+        checkStatus()
+        clearInterval(interval)
+      }
+    }, 1000)
+
+    return () => clearInterval(interval)
   }, [])
 
   // Sync avatar preview only when user/profile ID or avatar URL changes
@@ -305,8 +328,22 @@ export const Profile = () => {
     try {
       const granted = await initOneSignal()
       if (granted) {
-        setIsNotificationsOn(true)
-        toast.success('Đã bật thông báo đẩy.')
+        const isSubscribed = await checkSubscriptionStatus()
+        setIsNotificationsOn(isSubscribed)
+
+        if (isSubscribed) {
+          toast.success('Đã bật thông báo đẩy.')
+        } else {
+          await new Promise((resolve) => setTimeout(resolve, 1000))
+          const recheck = await checkSubscriptionStatus()
+          setIsNotificationsOn(recheck)
+
+          if (recheck) {
+            toast.success('Đã bật thông báo đẩy.')
+          } else {
+            toast.error('Thông báo chưa được bật. Vui lòng kiểm tra quyền trình duyệt.')
+          }
+        }
       } else {
         setIsNotificationsOn(false)
         toast.error('Thông báo chưa được bật. Vui lòng kiểm tra quyền trình duyệt.')
