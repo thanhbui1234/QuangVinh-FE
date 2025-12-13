@@ -54,8 +54,10 @@ async function sendPlayerIdToBackend(playerId: string): Promise<void> {
   try {
     await POST(API_ENDPOINT.ADD_NOTI_PLAYER, { playerId })
     console.log('PlayerId đã được gửi lên backend:', playerId)
+    toast.success('Đã đăng ký thiết bị nhận thông báo thành công')
   } catch (error) {
     console.error('Lỗi khi gửi playerId lên backend:', error)
+    toast.error('Không thể đăng ký thiết bị nhận thông báo')
     throw error
   }
 }
