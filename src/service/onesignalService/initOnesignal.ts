@@ -174,6 +174,7 @@ export async function initOneSignal(
       await new Promise((resolve) => setTimeout(resolve, 2000))
       playerId = await window.OneSignal.User.Push.getSubscriptionId()
     }
+    toast.info('playerId của bạn là', playerId)
 
     if (playerId) {
       await sendPlayerIdToBackend(playerId, (response) => {
