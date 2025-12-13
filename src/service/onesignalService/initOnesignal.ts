@@ -102,8 +102,8 @@ export async function initOneSignal(): Promise<boolean> {
     })
   }
 
-  // 4️⃣ Request permission (user gesture)
   const permission = await window.OneSignal.User.Push.requestPermission()
+  // 4️⃣ Request permission (user gesture)
 
   if (permission !== 'granted') {
     toast.warning('Bạn chưa cho phép nhận thông báo')
