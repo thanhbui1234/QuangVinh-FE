@@ -50,11 +50,21 @@ async function loadOneSignalSDK(): Promise<boolean> {
 /**
  * Send playerId to backend
  */
-async function sendPlayerIdToBackend(playerId: string): Promise<void> {
+async function sendPlayerIdToBackend(
+  playerId: string,
+  onSuccess?: (response: any) => void
+): Promise<any> {
   try {
-    await POST(API_ENDPOINT.ADD_NOTI_PLAYER, { playerId })
+    const response = await POST(API_ENDPOINT.ADD_NOTI_PLAYER, { playerId })
     console.log('PlayerId đã được gửi lên backend:', playerId)
+    console.log('Response từ API:', response)
     toast.success('Đã đăng ký thiết bị nhận thông báo thành công')
+
+    if (onSuccess) {
+      onSuccess(response)
+    }
+
+    return response
   } catch (error) {
     console.error('Lỗi khi gửi playerId lên backend:', error)
     toast.error('Không thể đăng ký thiết bị nhận thông báo')
@@ -98,7 +108,9 @@ async function requestNotificationPermission(): Promise<boolean> {
 /**
  * Initialize OneSignal and get playerId
  */
-export async function initOneSignal(): Promise<boolean> {
+export async function initOneSignal(
+  onPlayerIdSent?: (playerId: string, response: any) => void
+): Promise<boolean> {
   const appId = import.meta.env.VITE_ONESIGNAL_APP_ID
 
   if (!appId) {
@@ -164,7 +176,11 @@ export async function initOneSignal(): Promise<boolean> {
     }
 
     if (playerId) {
-      await sendPlayerIdToBackend(playerId)
+      await sendPlayerIdToBackend(playerId, (response) => {
+        if (onPlayerIdSent) {
+          onPlayerIdSent(playerId, response)
+        }
+      })
       return true
     } else {
       toast.warning('Không thể lấy playerId. Vui lòng thử lại.')
