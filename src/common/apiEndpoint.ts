@@ -57,6 +57,7 @@ export const API_ENDPOINT = {
   // web push notification
   NOTIFICATION_SUBSCRIBE: '/api/notifications/webpush/subscribe',
   NOTIFICATION_TEST_PUSH: '/api/notifications/webpush/test',
+  ADD_NOTI_PLAYER: '/api/noti-player/add',
   // upload file
   UPLOAD_FILE: '/api/upload/file',
   // documents
