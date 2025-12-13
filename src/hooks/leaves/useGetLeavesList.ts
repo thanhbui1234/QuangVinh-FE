@@ -21,7 +21,7 @@ const useGetLeavesList = (payload: GetListLeavesParams) => {
     }
   }
 
-  const { data, isFetching } = useQuery({
+  const { data, isFetching, refetch } = useQuery({
     queryKey: [leavesKey.getAll, payload],
     queryFn: async () => {
       const response = await POST(apiEndpoint, payload, {
@@ -56,6 +56,7 @@ const useGetLeavesList = (payload: GetListLeavesParams) => {
     statuses: data?.statuses || [],
     creator: data?.creator || '',
     isFetching,
+    refetch,
   }
 }
 

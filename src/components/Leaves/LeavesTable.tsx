@@ -22,7 +22,7 @@ import { TableBase } from '@/components/base/DataTable'
 import { Badge } from '@/components/ui/badge.tsx'
 import { Button } from '@/components/ui/button.tsx'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar.tsx'
-import { calculateDays, formatDate } from '@/utils/CommonUtils.ts'
+import { formatDate } from '@/utils/CommonUtils.ts'
 import {
   getLeaveIcon,
   type LeavesListDataResponse,
@@ -139,14 +139,11 @@ const LeavesTable: React.FC<LeavesTableProps> = (props) => {
       dataIndex: 'dayOff',
       key: 'days',
       sorter: true,
-      render: (_: any, record: any) => {
-        const { days, hours } = calculateDays(record.offFrom, record.offTo)
+      render: (value: any) => {
         return (
           <div className="flex items-center gap-1.5">
             <Clock className="size-3.5 text-muted-foreground" />
-            <span className="font-medium">
-              {days} ngày {hours > 0 ? `${hours} giờ` : ''}
-            </span>
+            <span className="font-medium">{value}</span>
           </div>
         )
       },
