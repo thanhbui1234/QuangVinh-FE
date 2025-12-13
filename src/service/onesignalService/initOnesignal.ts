@@ -8,41 +8,32 @@ declare global {
   }
 }
 
+const ONE_SIGNAL_SDK_URL = 'https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js'
+
+let isListenerAttached = false
+
 /**
- * Load OneSignal SDK dynamically
+ * Load OneSignal SDK
  */
 async function loadOneSignalSDK(): Promise<boolean> {
   return new Promise((resolve) => {
-    // Check if already loaded
     if (window.OneSignal) {
       resolve(true)
       return
     }
 
-    // Create script element
-    const script = document.createElement('script')
-    script.src = 'https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js'
-    script.defer = true
-    script.onload = () => {
-      // Wait for OneSignal to be available
-      const checkOneSignal = setInterval(() => {
-        if (window.OneSignal) {
-          clearInterval(checkOneSignal)
-          resolve(true)
-        }
-      }, 100)
+    if (document.querySelector(`script[src="${ONE_SIGNAL_SDK_URL}"]`)) {
+      resolve(true)
+      return
+    }
 
-      // Timeout after 10 seconds
-      setTimeout(() => {
-        clearInterval(checkOneSignal)
-        if (!window.OneSignal) {
-          resolve(false)
-        }
-      }, 10000)
-    }
-    script.onerror = () => {
-      resolve(false)
-    }
+    const script = document.createElement('script')
+    script.src = ONE_SIGNAL_SDK_URL
+    script.defer = true
+
+    script.onload = () => resolve(true)
+    script.onerror = () => resolve(false)
+
     document.head.appendChild(script)
   })
 }
@@ -50,168 +41,93 @@ async function loadOneSignalSDK(): Promise<boolean> {
 /**
  * Send playerId to backend
  */
-async function sendPlayerIdToBackend(
-  playerId: string,
-  onSuccess?: (response: any) => void
-): Promise<any> {
+async function sendPlayerIdToBackend(playerId: string) {
   try {
-    const response = await POST(API_ENDPOINT.ADD_NOTI_PLAYER, { playerId })
-    console.log('PlayerId đã được gửi lên backend:', playerId)
-    console.log('Response từ API:', response)
-    toast.success('Đã đăng ký thiết bị nhận thông báo thành công')
-
-    if (onSuccess) {
-      onSuccess(response)
-    }
-
-    return response
+    await POST(API_ENDPOINT.ADD_NOTI_PLAYER, { playerId })
+    console.log('[OneSignal] playerId sent:', playerId)
+    toast.success('Đã đăng ký thiết bị nhận thông báo')
   } catch (error) {
-    console.error('Lỗi khi gửi playerId lên backend:', error)
+    console.error('[OneSignal] send playerId error:', error)
     toast.error('Không thể đăng ký thiết bị nhận thông báo')
-    throw error
   }
 }
 
 /**
- * Request notification permission
+ * Init OneSignal & handle subscription
+ * ⚠️ BẮT BUỘC gọi trong user action (onClick)
  */
-async function requestNotificationPermission(): Promise<boolean> {
-  if (!window.OneSignal) {
-    return false
-  }
-
-  try {
-    const permission = await window.OneSignal.User.Push.getPermissionStatus()
-
-    if (permission === 'granted') {
-      return true
-    }
-
-    // Request permission
-    const result = await window.OneSignal.User.Push.requestPermission()
-
-    if (result === 'granted') {
-      return true
-    } else if (result === 'denied') {
-      toast.error('Quyền thông báo bị từ chối. Vui lòng bật trong cài đặt trình duyệt.')
-      return false
-    } else {
-      return false
-    }
-  } catch (error) {
-    console.error('Lỗi khi yêu cầu quyền thông báo:', error)
-    toast.error('Không thể yêu cầu quyền thông báo')
-    return false
-  }
-}
-
-/**
- * Initialize OneSignal and get playerId
- */
-export async function initOneSignal(
-  onPlayerIdSent?: (playerId: string, response: any) => void
-): Promise<boolean> {
+export async function initOneSignal(): Promise<boolean> {
   const appId = import.meta.env.VITE_ONESIGNAL_APP_ID
 
   if (!appId) {
-    console.error('VITE_ONESIGNAL_APP_ID chưa được cấu hình')
-    toast.error('Cấu hình OneSignal chưa đầy đủ')
+    toast.error('Thiếu VITE_ONESIGNAL_APP_ID')
     return false
   }
 
+  // 1️⃣ Load SDK
+  const sdkLoaded = await loadOneSignalSDK()
+  if (!sdkLoaded || !window.OneSignal) {
+    toast.error('Không thể tải OneSignal SDK')
+    return false
+  }
+
+  // 2️⃣ Init OneSignal (chỉ init 1 lần)
   try {
-    // Load OneSignal SDK
-    const sdkLoaded = await loadOneSignalSDK()
-
-    if (!sdkLoaded) {
-      toast.error('Không thể tải OneSignal SDK. Vui lòng thử lại.')
-      return false
-    }
-
-    // Initialize OneSignal
-    if (!window.OneSignal) {
-      toast.error('OneSignal SDK không sẵn sàng')
-      return false
-    }
-
-    // Check if already initialized
-    try {
-      const currentAppId = await window.OneSignal.getAppId()
-      if (currentAppId === appId) {
-        console.log('OneSignal đã được khởi tạo')
-      } else {
-        // Reinitialize with new appId
-        await window.OneSignal.init({
-          appId,
-          allowLocalhostAsSecureOrigin: true,
-          serviceWorkerPath: '/OneSignalSDKWorker.js',
-        })
-      }
-    } catch {
-      // Not initialized, initialize now
+    const currentAppId = await window.OneSignal.getAppId()
+    if (currentAppId !== appId) {
       await window.OneSignal.init({
         appId,
         allowLocalhostAsSecureOrigin: true,
         serviceWorkerPath: '/OneSignalSDKWorker.js',
       })
     }
+  } catch {
+    await window.OneSignal.init({
+      appId,
+      allowLocalhostAsSecureOrigin: true,
+      serviceWorkerPath: '/OneSignalSDKWorker.js',
+    })
+  }
 
-    // Request notification permission
-    const permissionGranted = await requestNotificationPermission()
+  // 3️⃣ Listen subscription change (CHỈ GẮN 1 LẦN)
+  if (!isListenerAttached) {
+    isListenerAttached = true
 
-    if (!permissionGranted) {
-      return false
-    }
+    window.OneSignal.User.Push.addEventListener('subscriptionChange', (event: any) => {
+      const playerId = event.current?.id
+      if (playerId) {
+        console.log('[OneSignal] subscription ready:', playerId)
+        sendPlayerIdToBackend(playerId)
+      }
+    })
+  }
 
-    // Wait for subscription to be created
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+  // 4️⃣ Request permission (user gesture)
+  const permission = await window.OneSignal.User.Push.requestPermission()
 
-    // Get playerId
-    let playerId = await window.OneSignal.User.Push.getSubscriptionId()
-
-    if (!playerId) {
-      // Retry after longer wait
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-      playerId = await window.OneSignal.User.Push.getSubscriptionId()
-    }
-    toast.info(`playerId của bạn là: ${playerId}`)
-    toast.info(`playerId của bạn là: ${playerId}`)
-    toast.info(`playerId của bạn là: ${playerId}`)
-    toast.info(`playerId của bạn là: ${playerId}`)
-
-    if (playerId) {
-      await sendPlayerIdToBackend(playerId, (response) => {
-        if (onPlayerIdSent) {
-          onPlayerIdSent(playerId, response)
-        }
-      })
-      return true
-    } else {
-      toast.warning('Không thể lấy playerId. Vui lòng thử lại.')
-      return false
-    }
-  } catch (error) {
-    console.error('Lỗi khi khởi tạo OneSignal:', error)
-    toast.error('Không thể khởi tạo thông báo. Vui lòng thử lại.')
+  if (permission !== 'granted') {
+    toast.warning('Bạn chưa cho phép nhận thông báo')
     return false
   }
+
+  // 5️⃣ Nếu đã có sẵn subscription → gửi luôn
+  const existingPlayerId = await window.OneSignal.User.Push.getSubscriptionId()
+
+  if (existingPlayerId) {
+    sendPlayerIdToBackend(existingPlayerId)
+  }
+
+  return true
 }
 
 /**
- * Check if user is subscribed to push notifications
+ * Check subscription status
  */
 export async function checkSubscriptionStatus(): Promise<boolean> {
-  if (typeof window === 'undefined' || !window.OneSignal) {
-    return false
-  }
+  if (!window.OneSignal) return false
 
-  try {
-    const subscriptionId = await window.OneSignal.User.Push.getSubscriptionId()
-    const permission = await window.OneSignal.User.Push.getPermissionStatus()
+  const permission = await window.OneSignal.User.Push.getPermissionStatus()
+  const playerId = await window.OneSignal.User.Push.getSubscriptionId()
 
-    return permission === 'granted' && !!subscriptionId
-  } catch (error) {
-    console.error('Error checking subscription status:', error)
-    return false
-  }
+  return permission === 'granted' && !!playerId
 }
