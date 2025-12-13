@@ -7,7 +7,6 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { useSocketContext } from '@/providers/SocketProvider'
 import { useCheckNotiUnread } from '@/hooks/notifications/useCheckNotiUnread'
 
 /**
@@ -19,11 +18,11 @@ import { useCheckNotiUnread } from '@/hooks/notifications/useCheckNotiUnread'
  * - Dropdown hiển thị preview notifications
  */
 export default function BellNotification() {
-  const { isConnected, hasNewNoti } = useSocketContext()
+  // const { isConnected, hasNewNoti } = useSocketContext()
   const { isUnread, notifications } = useCheckNotiUnread()
 
   // Show badge nếu có unread hoặc có notification mới từ socket
-  const showBadge = hasNewNoti || isUnread
+  const showBadge = isUnread
   const unreadCount = notifications.filter((n) => !n.read).length
 
   return (
@@ -33,7 +32,7 @@ export default function BellNotification() {
           variant="outline"
           size="icon"
           className="relative rounded-full cursor-pointer"
-          title={isConnected ? 'Notifications' : 'Reconnecting...'}
+          title={isUnread ? 'Notifications' : 'Reconnecting...'}
         >
           <BellIcon className="h-5 w-5 rounded-full" />
 
@@ -42,11 +41,6 @@ export default function BellNotification() {
             <Badge className="absolute -top-2 -right-2 rounded-full bg-red-500 text-white px-2 py-0.5 text-xs font-medium">
               {unreadCount > 99 ? '99+' : unreadCount}
             </Badge>
-          )}
-
-          {/* Connection indicator (optional - for debugging) */}
-          {!isConnected && (
-            <span className="absolute -bottom-1 -right-1 w-2 h-2 bg-yellow-500 rounded-full border border-white" />
           )}
         </Button>
       </DropdownMenuTrigger>

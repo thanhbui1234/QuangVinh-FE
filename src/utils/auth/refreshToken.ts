@@ -18,7 +18,6 @@ export const refreshAccessToken = async (): Promise<string> => {
     `${import.meta.env.VITE_BASE_URL}${API_ENDPOINT.REFRESH_TOKEN}`,
     { refreshToken }
   )
-  console.log(response, 'refresh')
 
   // Backend trả về { data: { token, refreshToken } }
   const { token, refreshToken: newRefreshToken } = response.data.data

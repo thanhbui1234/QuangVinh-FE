@@ -94,18 +94,13 @@ export const Profile = () => {
 
   // Sync avatar preview only when user/profile ID or avatar URL changes
   useEffect(() => {
-    console.log('Avatar sync useEffect - isUploading:', isUploadingRef.current)
-
     if (isUploadingRef.current) {
-      console.log('Skipping avatar sync - upload in progress')
       return
     }
 
     if (isOwnProfile && user?.avatar) {
-      console.log('Syncing avatar from user:', user.avatar)
       setAvatarPreview(user.avatar)
     } else if (!isOwnProfile && profile?.avatar) {
-      console.log('Syncing avatar from profile:', profile.avatar)
       setAvatarPreview(profile.avatar)
     }
   }, [isOwnProfile, user?.id, user?.avatar, profile?.id, profile?.avatar])
@@ -163,14 +158,10 @@ export const Profile = () => {
     // Auto upload and update
     uploadFileMutation.mutate(file, {
       onSuccess: (response) => {
-        console.log('Upload response:', response)
-        // Update avatar with URL
         updateAvatarMutate(
           { avatar: response.viewUrl },
           {
-            onSuccess: (updateResponse) => {
-              console.log('Update avatar response:', updateResponse)
-              console.log('Setting avatarPreview to:', response.viewUrl)
+            onSuccess: () => {
               toast.success('Cập nhật ảnh đại diện thành công')
 
               // Revoke the blob URL to free memory

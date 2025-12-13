@@ -76,7 +76,6 @@ const DocumentsMy = () => {
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    console.log(file)
     if (!file) return
 
     if (file.size > 10 * 1024 * 1024) {
@@ -102,7 +101,6 @@ const DocumentsMy = () => {
 
     try {
       const uploadRes = await uploadFileMutation.mutateAsync(selectedFile)
-      console.log('uploadRes', uploadRes)
       await uploadDocumentMutation.mutateAsync({
         title: data.title,
         fileUrl: uploadRes.viewUrl,

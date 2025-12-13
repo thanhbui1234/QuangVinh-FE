@@ -27,7 +27,6 @@ const useGetLeavesList = (payload: GetListLeavesParams) => {
       const response = await POST(apiEndpoint, payload, {
         rawResponse: true,
       })
-      console.log('resonse', response)
 
       return response
     },
