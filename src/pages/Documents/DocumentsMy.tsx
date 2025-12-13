@@ -19,6 +19,7 @@ import { useUploadDocument } from '@/hooks/documents/useDocument'
 import { Loader2, Upload, FileIcon, X, Users, Lock, Globe } from 'lucide-react'
 import { toast } from 'sonner'
 import { useGetAllUser } from '@/hooks/assignments/useGetAllUser'
+import { allowedTypes } from '@/constants/file'
 
 const DocumentStatus = {
   ACTIVE: 0,
@@ -75,10 +76,16 @@ const DocumentsMy = () => {
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
+    console.log(file)
     if (!file) return
 
-    if (file.size > 50 * 1024 * 1024) {
-      toast.error('File không được lớn hơn 50MB')
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('File không được lớn hơn 10MB')
+      return
+    }
+
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('File chỉ được sử dụng định dạng PDF và hình ảnh')
       return
     }
 
@@ -95,7 +102,7 @@ const DocumentsMy = () => {
 
     try {
       const uploadRes = await uploadFileMutation.mutateAsync(selectedFile)
-
+      console.log('uploadRes', uploadRes)
       await uploadDocumentMutation.mutateAsync({
         title: data.title,
         fileUrl: uploadRes.viewUrl,
@@ -103,6 +110,7 @@ const DocumentsMy = () => {
         contentType: selectedFile.type || 'application/octet-stream',
         status: data.status,
         privacyLevel: data.privacyLevel,
+        downloadUrl: uploadRes.downloadUrl,
         viewableUserIds:
           data.privacyLevel === PrivacyLevel.PUBLIC
             ? []
@@ -151,9 +159,7 @@ const DocumentsMy = () => {
                   Chọn file từ máy
                 </Button>
                 <input id="file-input" type="file" className="hidden" onChange={handleFileSelect} />
-                <p className="text-sm text-gray-500 mt-3">
-                  Hỗ trợ PDF, Word, Excel, hình ảnh... (tối đa 50MB)
-                </p>
+                <p className="text-sm text-gray-500 mt-3">Hỗ trợ PDF, hình ảnh (tối đa 10MB)</p>
               </div>
             ) : (
               <div className="flex items-center justify-between p-6 bg-blue-50 rounded-xl border border-blue-200">

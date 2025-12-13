@@ -3,6 +3,8 @@ import { useMutation } from '@tanstack/react-query'
 import { API_ENDPOINT } from '@/common'
 import type { UploadDocumentPayload, UploadDocumentResponse } from '@/types/Document'
 import { toast } from 'sonner'
+import { listDocumentKey } from '@/constants'
+import { queryClient } from '@/lib/queryClient'
 
 // Upload document hook
 export const useUploadDocument = () => {
@@ -12,6 +14,9 @@ export const useUploadDocument = () => {
         ...payload,
       })
       return response as UploadDocumentResponse
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [listDocumentKey.list] })
     },
     onError: () => {
       toast.error('Tải lên tài liệu thất bại')

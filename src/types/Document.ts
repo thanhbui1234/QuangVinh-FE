@@ -38,6 +38,7 @@ export interface UploadDocumentPayload {
   viewableUserIds?: number[]
   status?: DocumentStatus
   privacyLevel?: PrivacyLevel
+  downloadUrl: string
 }
 
 // API Response
