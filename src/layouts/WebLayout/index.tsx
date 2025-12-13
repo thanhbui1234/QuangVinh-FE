@@ -224,7 +224,7 @@ const WebLayout = ({ children }: Props) => {
       expanded: expandedItems.has('documents'),
       href: '/documents',
       subItems: [
-        { label: 'Tải tài liệu', href: '/documents/my' },
+        { label: 'Tải tài liệu', href: '/documents/my', roles: [ROLE.DIRECTOR, ROLE.MANAGER] },
         { label: 'Tài liệu được chia sẻ', href: '/documents/shared' },
       ],
     },

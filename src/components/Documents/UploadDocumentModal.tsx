@@ -77,6 +77,7 @@ export const UploadDocumentModal = ({ open, onOpenChange }: UploadDocumentModalP
         sizeBytes: selectedFile.size,
         contentType: selectedFile.type,
         privacyLevel: data.privacyLevel,
+        downloadUrl: uploadResponse.downloadUrl,
         viewableUserIds: [], // Can be extended to select users
       })
 
