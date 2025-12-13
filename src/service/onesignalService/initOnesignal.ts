@@ -67,29 +67,23 @@ export async function checkSubscriptionStatus(): Promise<boolean> {
 export async function initOneSignal(): Promise<boolean> {
   if (typeof window === 'undefined') return false
 
-  // If OneSignal is already initialized, check subscription status directly
+  // If OneSignal is already initialized, just request permission and get playerId
   if (window.OneSignal) {
     try {
-      const isSubscribed = await checkSubscriptionStatus()
-      if (isSubscribed) {
-        const playerId = await window.OneSignal.User.Push.getSubscriptionId()
-        if (playerId) {
-          await addPlayerIdToBackend(playerId)
-        }
-        return true
+      // Request permission if not granted
+      await requestNotificationPermission()
+
+      // Wait a bit for subscription to be created
+      await new Promise((resolve) => setTimeout(resolve, 500))
+
+      const playerId = await window.OneSignal.User.Push.getSubscriptionId()
+      console.log('playerId:', playerId)
+
+      if (playerId) {
+        await addPlayerIdToBackend(playerId)
       }
-      // If not subscribed but OneSignal is initialized, request permission
-      const granted = await requestNotificationPermission()
-      if (granted) {
-        // Wait a bit for subscription to be created
-        await new Promise((resolve) => setTimeout(resolve, 500))
-        const playerId = await window.OneSignal.User.Push.getSubscriptionId()
-        if (playerId) {
-          await addPlayerIdToBackend(playerId)
-        }
-        return true
-      }
-      return false
+
+      return true
     } catch (error) {
       console.error('Error initializing OneSignal (already loaded):', error)
       return false
@@ -113,14 +107,8 @@ export async function initOneSignal(): Promise<boolean> {
 
           console.log('OneSignal init success')
 
-          const granted = await requestNotificationPermission()
-          console.log('Permission granted?', granted)
-
-          if (!granted) {
-            initPromise = null
-            resolve(false)
-            return
-          }
+          // Request permission
+          await requestNotificationPermission()
 
           // Wait a bit for subscription to be created after permission is granted
           await new Promise((resolve) => setTimeout(resolve, 500))
