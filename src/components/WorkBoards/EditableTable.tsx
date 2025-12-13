@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import type { IWorkBoard, IWorkBoardCell, IWorkBoardColumn } from '@/types/WorkBoard'
+import { type IWorkBoard, type IWorkBoardCell, type IWorkBoardColumn } from '@/types/WorkBoard'
 
 interface EditableTableProps {
   workBoard: IWorkBoard | null
@@ -140,12 +140,12 @@ export const EditableTable: React.FC<EditableTableProps> = ({
   }, [editingCell])
 
   const handleAddRow = () => {
-    setRows((prev) => prev + 1)
+    setRows((prev: any) => prev + 1)
   }
 
   const handleDeleteRow = (rowIndex: number) => {
     if (rows > 1) {
-      setRows((prev) => prev - 1)
+      setRows((prev: any) => prev - 1)
       // Remove cells in deleted row
       setCells((prev) => {
         const newMap = new Map()
@@ -165,7 +165,7 @@ export const EditableTable: React.FC<EditableTableProps> = ({
   }
 
   const handleAddColumn = () => {
-    setColumns((prev) => prev + 1)
+    setColumns((prev: any) => prev + 1)
     const newColumn: IWorkBoardColumn = {
       id: `col-${columns}`,
       label: `Cột ${columns + 1}`,
@@ -176,7 +176,7 @@ export const EditableTable: React.FC<EditableTableProps> = ({
 
   const handleDeleteColumn = (colIndex: number) => {
     if (columns > 1) {
-      setColumns((prev) => prev - 1)
+      setColumns((prev: any) => prev - 1)
       setColumnHeaders((prev) => prev.filter((_, i) => i !== colIndex))
       // Remove cells in deleted column
       setCells((prev) => {
