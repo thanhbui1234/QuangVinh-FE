@@ -8,11 +8,10 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Bell } from 'lucide-react'
-import { formatDistanceToNow } from 'date-fns'
-import { vi } from 'date-fns/locale'
 import { useGetNotiBell } from '@/hooks/notifications/useGetNotiBell'
-import { Link, useNavigate } from 'react-router'
+import { useNavigate } from 'react-router'
 import { useSeenNotification } from '@/hooks/notifications/useSeenNotification'
+import dayjs from 'dayjs'
 
 export default function BellNotification() {
   const navigate = useNavigate()
@@ -95,12 +94,7 @@ export default function BellNotification() {
                     )}
                   </p>
 
-                  <p className="text-xs text-gray-500 mt-1">
-                    {formatDistanceToNow(noti.createdTime, {
-                      addSuffix: true,
-                      locale: vi,
-                    }).replace('khoảng ', '')}
-                  </p>
+                  <p className="text-xs text-gray-500 mt-1">{dayjs(noti.createdTime).fromNow()}</p>
                 </div>
               </DropdownMenuItem>
             ))
