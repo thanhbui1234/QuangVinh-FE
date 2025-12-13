@@ -12,7 +12,7 @@ interface LeaveUsersListProps {
   variant?: 'mobile' | 'web'
 }
 
-export function LeaveUsersList({ date, leaves, onClose, variant = 'mobile' }: LeaveUsersListProps) {
+export function LeaveUsersList({ date, leaves, variant = 'mobile' }: LeaveUsersListProps) {
   const usersOnLeave = useMemo(() => {
     return leaves.filter((leave) => isDateInLeaveRange(date, leave))
   }, [date, leaves])
