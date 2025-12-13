@@ -1,3 +1,6 @@
+import { POST } from '@/core/api'
+import { API_ENDPOINT } from '@/common'
+
 declare global {
   interface Window {
     OneSignal?: any
@@ -6,6 +9,15 @@ declare global {
 }
 
 const ONE_SIGNAL_SDK_URL = 'https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.js'
+
+async function addPlayerIdToBackend(playerId: string) {
+  try {
+    await POST(API_ENDPOINT.ADD_NOTI_PLAYER, { playerId })
+    console.log('PlayerId đã được thêm vào backend:', playerId)
+  } catch (error) {
+    console.error('Lỗi khi thêm playerId vào backend:', error)
+  }
+}
 
 let initPromise: Promise<boolean> | null = null
 
@@ -54,12 +66,15 @@ export async function initOneSignal(): Promise<boolean> {
           console.log('Permission granted?', granted)
 
           if (!granted) {
-            // Allow re-try when user toggles again after granting permission in browser settings.
             initPromise = null
           }
 
           const playerId = await OneSignal.User.Push.getSubscriptionId()
           console.log('playerId:', playerId)
+
+          if (playerId) {
+            await addPlayerIdToBackend(playerId)
+          }
 
           resolve(granted)
         } catch (error) {

@@ -26,7 +26,7 @@ const processQueue = (error: any, token: string | null = null) => {
 
 export const api = axios.create({
   baseURL: import.meta.env.VITE_BASE_URL,
-  timeout: 10000,
+  timeout: 30000 * 40,
 })
 
 // Attach JWT to every request if exists
