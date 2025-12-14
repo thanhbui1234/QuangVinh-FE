@@ -215,12 +215,10 @@ export default function LeavesMobile() {
   return (
     <div className="flex flex-col min-h-screen dark:bg-gray-950">
       <StatisticsCardsMobile pending={statusCounts?.pending} approved={statusCounts?.approved} />
-
-      <div className="px-4 pb-4">
+      <div className="pb-4">
         <WeeklyCalendarMobile className="mb-4" />
       </div>
-
-      <div className="px-4 pb-2">
+      <div className="pb-2">
         <SegmentedControl
           options={[
             {
@@ -234,9 +232,8 @@ export default function LeavesMobile() {
           onChange={(v) => setFilterStatus(v as LeavesStatus[])}
         />
       </div>
-
       {/* iOS-style List */}
-      <div className="flex-1 overflow-y-auto px-4 pb-28">
+      <div className="flex-1 overflow-y-auto pb-28">
         <LeaveListMobile
           items={allItems}
           canApprove={canApprove}
@@ -248,7 +245,6 @@ export default function LeavesMobile() {
           isLoading={isFetching}
         />
       </div>
-
       {/* Fixed Bottom CTA - pill style (above bottom nav) */}
       <BottomCTA
         visible={!(createDialogOpen || viewDialogOpen || confirmDialogOpen)}
@@ -257,7 +253,6 @@ export default function LeavesMobile() {
         icon={<Plus className="size-4" />}
         bottomOffsetClassName="bottom-22"
       />
-
       <ViewDetailsSheetMobile
         open={viewDialogOpen}
         onOpenChange={setViewDialogOpen}
@@ -266,7 +261,6 @@ export default function LeavesMobile() {
         onDelete={handleDeleteLeave}
         canEditOrDelete={canEditOrDelete}
       />
-
       {actionType && (
         <ConfirmationSheetMobile
           open={confirmDialogOpen}
@@ -297,7 +291,6 @@ export default function LeavesMobile() {
           loadingText={actionType === 'approve' ? 'Đang duyệt...' : 'Đang từ chối...'}
         />
       )}
-
       <CreateLeaveSheetMobile
         open={createDialogOpen}
         onOpenChange={handleSheetClose}
@@ -306,7 +299,6 @@ export default function LeavesMobile() {
         initialValues={editInitialValues}
         onSuccess={handleCreateOrUpdateSuccess}
       />
-
       <ConfirmationSheetMobile
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
