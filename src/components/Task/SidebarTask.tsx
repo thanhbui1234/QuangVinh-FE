@@ -9,87 +9,95 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Input } from '../ui/input'
+import { Input } from '@/components/ui/input'
+import UserAvatar from '../ui/avatarUser'
+
 export const SidebarTask = ({ projectAssignmentDetail }: { projectAssignmentDetail: any }) => {
   const path = window.location.href
+
+  const assignees = projectAssignmentDetail?.assignees || []
+  const supervisor = projectAssignmentDetail?.supervisor
+
   return (
     <div className="relative lg:col-span-1">
       <Card className="border-0 shadow-sm sticky top-6 hidden lg:block">
         <CardContent className="p-6">
+          {/* Header */}
           <div className="flex items-center justify-between mb-5">
             <h3 className="text-sm font-semibold text-gray-900">Thông tin công việc</h3>
             <DropdownMenu>
-              <DropdownMenuTrigger className="cursor-pointer hover:bg-gray-100 p-2 rounded-md transition-colors">
+              <DropdownMenuTrigger className="cursor-pointer hover:bg-gray-100 p-2 rounded-md">
                 <MdOutlineContentCopy className="w-4 h-4" />
               </DropdownMenuTrigger>
-              <DropdownMenuContent side="bottom" align="end" sideOffset={4} alignOffset={4}>
-                <DropdownMenuLabel>Sao chép liên đường dẫn</DropdownMenuLabel>
-                <Input
-                  value={path}
-                  readOnly
-                  className="fit-content"
-                  autoFocus
-                  onFocus={(e) => e.target.select()}
-                />
+              <DropdownMenuContent side="bottom" align="end">
+                <DropdownMenuLabel>Sao chép liên kết</DropdownMenuLabel>
+                <Input value={path} readOnly autoFocus onFocus={(e) => e.target.select()} />
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
 
           <div className="space-y-5">
+            {/* ASSIGNEES */}
             <div>
               <label className="text-xs font-medium text-gray-500 mb-2 block">
                 Người được giao
               </label>
-              <div className="flex items-center gap-3 p-3 bg-blue-50/50 rounded-lg">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shrink-0 text-white font-semibold">
-                  {projectAssignmentDetail?.assignee?.name}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium text-sm text-gray-900 truncate">
-                    {projectAssignmentDetail?.assignee?.name}
-                  </div>
-                  <div className="text-xs text-gray-500">Assignee</div>
-                </div>
+
+              <div className="space-y-2">
+                {assignees.length > 0 ? (
+                  assignees.map((user: any) => (
+                    <div key={user.id} className="p-3 bg-blue-50/50 rounded-lg">
+                      <UserAvatar name={user.name} avatar={user.avatar} />
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-xs text-gray-400">Chưa có người được giao</div>
+                )}
               </div>
             </div>
 
-            {/* Assigner */}
+            {/* REPORTER */}
             <div>
               <label className="text-xs font-medium text-gray-500 mb-2 block">
                 Người giao việc
               </label>
-              <div className="flex items-center gap-3 p-3 bg-purple-50/50 rounded-lg">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center shrink-0 text-white font-semibold"></div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium text-sm text-gray-900 truncate">
-                    {projectAssignmentDetail?.creator.name}
-                  </div>
-                  <div className="text-xs text-gray-500">Reporter</div>
-                </div>
+              <div className="p-3 bg-purple-50/50 rounded-lg">
+                <UserAvatar
+                  name={projectAssignmentDetail?.creator?.name}
+                  avatar={projectAssignmentDetail?.creator?.avatar}
+                />
               </div>
             </div>
 
-            {/* Estimate */}
+            {/* SUPERVISOR */}
+            <div>
+              <label className="text-xs font-medium text-gray-500 mb-2 block">
+                Người chịu trách nhiệm
+              </label>
+              <div className="p-3 bg-green-50/50 rounded-lg">
+                <UserAvatar name={supervisor?.name} avatar={supervisor?.avatar} />
+              </div>
+            </div>
+
+            {/* ESTIMATE */}
             <div>
               <label className="text-xs font-medium text-gray-500 mb-2 block">
                 Thời gian ước lượng
               </label>
               <div className="flex items-center gap-3 p-3 bg-orange-50/50 rounded-lg">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center">
                   <Clock4 className="w-5 h-5 text-white" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  {getFormattedEstimate(
-                    projectAssignmentDetail?.startTime,
-                    projectAssignmentDetail?.estimateTime
-                  )}
-                </div>
+                {getFormattedEstimate(
+                  projectAssignmentDetail?.startTime,
+                  projectAssignmentDetail?.estimateTime
+                )}
               </div>
             </div>
 
-            <Separator className="my-4" />
+            <Separator />
 
-            {/* Dates */}
+            {/* DATES */}
             <div className="space-y-3">
               <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div className="flex items-center gap-3">

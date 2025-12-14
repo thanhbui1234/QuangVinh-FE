@@ -156,23 +156,12 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
       checkList: data.checkList?.trim() || undefined,
     }
 
-    // Format differs between CREATE and UPDATE
-    if (mode === 'edit') {
-      // UPDATE: API expects objects format
-      onCreate({
-        ...basePayload,
-        assignees:
-          assigneeIds && assigneeIds.length > 0 ? assigneeIds.map((id) => ({ id })) : undefined,
-        supervisor: supervisorId ? { id: supervisorId } : undefined,
-      })
-    } else {
-      // CREATE: API expects IDs format
-      onCreate({
-        ...basePayload,
-        assigneeIds: assigneeIds && assigneeIds.length > 0 ? assigneeIds : undefined,
-        supervisorId,
-      })
-    }
+    // Unified payload for both CREATE and EDIT modes
+    onCreate({
+      ...basePayload,
+      assigneeIds: assigneeIds && assigneeIds.length > 0 ? assigneeIds : undefined,
+      supervisorId,
+    })
   }
 
   if (!open) return null

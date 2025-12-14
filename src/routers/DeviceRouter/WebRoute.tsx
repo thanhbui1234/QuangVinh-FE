@@ -9,7 +9,7 @@ import {
   LeavesWeb,
 } from '@/pages'
 import { AddMember } from '@/pages/Personnel/AddMember'
-
+import { NotificationPage } from '@/pages/Notification'
 export const WebRoutes: RouteObject[] = [
   {
     index: true,
@@ -47,5 +47,9 @@ export const WebRoutes: RouteObject[] = [
   {
     path: '/personnel/member',
     element: <AddMember />,
+  },
+  {
+    path: '/notifications',
+    element: <NotificationPage />,
   },
 ]
