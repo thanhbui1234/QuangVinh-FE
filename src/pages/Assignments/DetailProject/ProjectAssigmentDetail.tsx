@@ -9,15 +9,13 @@ import { Overview } from '@/components/Assignments/overview'
 import { useGetDetailProject } from '@/hooks/assignments/useGetDetailProject'
 import { useGetMemberTask, type IMemberTask } from '@/hooks/assignments/useGetMemberTask'
 import { useCreateTask } from '@/hooks/assignments/task/useCreateTask'
-import { TASK_STATUS } from '@/constants/assignments/task'
 import AssignmentsAction from '@/components/Assignments/AssignmentsAction'
+import { mapTaskStatus, type TaskStatus } from '@/utils/getLable'
 
 export type User = {
   id: string
   name: string
 }
-
-export type TaskStatus = 'todo' | 'visible' | 'in_progress' | 'done'
 
 export type Task = {
   id: string
@@ -36,22 +34,6 @@ export type Project = {
   description?: string
   tasks: Task[]
   members: string[] // user ids
-}
-
-// Map API task status number to TaskStatus
-function mapTaskStatus(statusCode: number): TaskStatus {
-  switch (statusCode) {
-    case TASK_STATUS.CREATED:
-      return 'todo'
-    case TASK_STATUS.VISIBLE:
-      return 'visible'
-    case TASK_STATUS.IN_PROGRESS:
-      return 'in_progress'
-    case TASK_STATUS.COMPLETED:
-      return 'done'
-    default:
-      return 'todo'
-  }
 }
 
 export const ProjectAssignmentDetail: React.FC = () => {

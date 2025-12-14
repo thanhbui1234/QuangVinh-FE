@@ -15,36 +15,19 @@ import SectionTitle from '@/components/dashboard/SectionTitle'
 import { Clock } from 'lucide-react'
 import { PaginationControl } from '@/components/common/PaginationControl'
 import { useOverdueTasks } from '@/hooks/dashboard/useOverdueTasks'
-import { getTaskPriorityLabel } from '@/utils/getLable'
-import { TASK_STATUS } from '@/constants/assignments/task'
+import { getTaskPriorityLabel, mapTaskStatus } from '@/utils/getLable'
+import { STATUS_LABEL, STATUS_ICON } from '@/components/Assignments/ProjectDetailTable/columns'
 import type { OverdueTask } from '@/types/DashBoard'
 
-// Map numeric status to label
-const getStatusLabel = (status: number): string => {
-  switch (status) {
-    case TASK_STATUS.CREATED:
-      return 'Mới tạo'
-    case TASK_STATUS.VISIBLE:
-      return 'Hiển thị'
-    case TASK_STATUS.IN_PROGRESS:
-      return 'Đang làm'
-    case TASK_STATUS.COMPLETED:
-      return 'Hoàn thành'
-    default:
-      return 'Không xác định'
+// Map task status to color classes
+const getStatusClassName = (status: 'todo' | 'visible' | 'in_progress' | 'done'): string => {
+  const statusClassMap: Record<string, string> = {
+    todo: 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200',
+    visible: 'bg-amber-100 text-amber-700 border-amber-300 hover:bg-amber-200',
+    in_progress: 'bg-blue-100 text-blue-700 border-blue-300 hover:bg-blue-200',
+    done: 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200',
   }
-}
-
-// Map numeric status to badge variant
-const getStatusVariant = (status: number): 'default' | 'secondary' | 'destructive' | 'outline' => {
-  switch (status) {
-    case TASK_STATUS.COMPLETED:
-      return 'default'
-    case TASK_STATUS.IN_PROGRESS:
-      return 'outline'
-    default:
-      return 'secondary'
-  }
+  return statusClassMap[status] || statusClassMap.todo
 }
 
 interface OverdueTasksTableProps {
@@ -122,9 +105,15 @@ export function OverdueTasksTable({
                 <TableCell className="max-w-md truncate">{task.description}</TableCell>
                 <TableCell>{task.assignee?.name || 'Chưa gán'}</TableCell>
                 <TableCell>
-                  <Badge variant={getStatusVariant(task.status)}>
-                    {getStatusLabel(task.status)}
-                  </Badge>
+                  {(() => {
+                    const mappedStatus = mapTaskStatus(task.status)
+                    return (
+                      <Badge variant="outline" className={getStatusClassName(mappedStatus)}>
+                        <span className="mr-1.5">{STATUS_ICON[mappedStatus]}</span>
+                        {STATUS_LABEL[mappedStatus]}
+                      </Badge>
+                    )
+                  })()}
                 </TableCell>
                 <TableCell>
                   <Badge variant="outline">{getTaskPriorityLabel(task.priority)}</Badge>

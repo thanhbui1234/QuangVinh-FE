@@ -6,35 +6,18 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import { ClipboardList } from 'lucide-react'
 import { useMyTasksInfinite } from '@/hooks/dashboard/useMyTasks'
-import { getTaskPriorityLabel } from '@/utils/getLable'
-import { TASK_STATUS } from '@/constants/assignments/task'
+import { getTaskPriorityLabel, mapTaskStatus } from '@/utils/getLable'
+import { STATUS_LABEL, STATUS_ICON } from '@/components/Assignments/ProjectDetailTable/columns'
 
-// Map numeric status to label
-const getStatusLabel = (status: number): string => {
-  switch (status) {
-    case TASK_STATUS.CREATED:
-      return 'Mới tạo'
-    case TASK_STATUS.VISIBLE:
-      return 'Hiển thị'
-    case TASK_STATUS.IN_PROGRESS:
-      return 'Đang làm'
-    case TASK_STATUS.COMPLETED:
-      return 'Hoàn thành'
-    default:
-      return 'Không xác định'
+// Map task status to color classes
+const getStatusClassName = (status: 'todo' | 'visible' | 'in_progress' | 'done'): string => {
+  const statusClassMap: Record<string, string> = {
+    todo: 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200',
+    visible: 'bg-amber-100 text-amber-700 border-amber-300 hover:bg-amber-200',
+    in_progress: 'bg-blue-100 text-blue-700 border-blue-300 hover:bg-blue-200',
+    done: 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200',
   }
-}
-
-// Map numeric status to badge variant
-const getStatusVariant = (status: number): 'default' | 'secondary' | 'destructive' | 'outline' => {
-  switch (status) {
-    case TASK_STATUS.COMPLETED:
-      return 'default'
-    case TASK_STATUS.IN_PROGRESS:
-      return 'outline'
-    default:
-      return 'secondary'
-  }
+  return statusClassMap[status] || statusClassMap.todo
 }
 
 interface MyTasksListProps {
@@ -104,9 +87,18 @@ export function MyTasksList({ limit = 5, className = '', enabled = true }: MyTas
               <div className="flex items-center justify-between">
                 <span className="text-xs text-muted-foreground">T-{task.taskId}</span>
                 <div className="flex items-center gap-2">
-                  <Badge variant={getStatusVariant(task.status)} className="text-[10px]">
-                    {getStatusLabel(task.status)}
-                  </Badge>
+                  {(() => {
+                    const mappedStatus = mapTaskStatus(task.status)
+                    return (
+                      <Badge
+                        variant="outline"
+                        className={`${getStatusClassName(mappedStatus)} text-[10px]`}
+                      >
+                        <span className="mr-1">{STATUS_ICON[mappedStatus]}</span>
+                        {STATUS_LABEL[mappedStatus]}
+                      </Badge>
+                    )
+                  })()}
                   {task.estimateTime && (
                     <span className="text-[11px] text-muted-foreground">
                       {new Date(task.estimateTime).toLocaleDateString('vi-VN')}
@@ -140,9 +132,15 @@ export function MyTasksList({ limit = 5, className = '', enabled = true }: MyTas
                     <span className="text-sm">{task.description}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge variant={getStatusVariant(task.status)}>
-                      {getStatusLabel(task.status)}
-                    </Badge>
+                    {(() => {
+                      const mappedStatus = mapTaskStatus(task.status)
+                      return (
+                        <Badge variant="outline" className={getStatusClassName(mappedStatus)}>
+                          <span className="mr-1.5">{STATUS_ICON[mappedStatus]}</span>
+                          {STATUS_LABEL[mappedStatus]}
+                        </Badge>
+                      )
+                    })()}
                     <Badge variant="outline">{getTaskPriorityLabel(task.priority)}</Badge>
                   </div>
                 </div>
