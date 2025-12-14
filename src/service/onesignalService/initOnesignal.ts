@@ -5,43 +5,54 @@ import { toast } from 'sonner'
 declare global {
   interface Window {
     OneSignal?: any
+    OneSignalDeferred?: Array<(os: any) => void>
   }
 }
 
 const ONE_SIGNAL_SDK_URL = 'https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js'
 
 let isListenerAttached = false
+let lastSentPlayerId: string | null = null
 
-/**
- * Load OneSignal SDK
- */
+function ensureDeferred() {
+  window.OneSignalDeferred = window.OneSignalDeferred || []
+}
+
 async function loadOneSignalSDK(): Promise<boolean> {
+  if (window.OneSignal) return true
+
   return new Promise((resolve) => {
-    if (window.OneSignal) {
-      resolve(true)
-      return
-    }
-
-    if (document.querySelector(`script[src="${ONE_SIGNAL_SDK_URL}"]`)) {
-      resolve(true)
-      return
-    }
-
     const script = document.createElement('script')
     script.src = ONE_SIGNAL_SDK_URL
     script.defer = true
-
     script.onload = () => resolve(true)
     script.onerror = () => resolve(false)
-
     document.head.appendChild(script)
   })
 }
 
-/**
- * Send playerId to backend
- */
-async function sendPlayerIdToBackend(playerId: string) {
+function getPlayerIdSafe(): Promise<string | null> {
+  return new Promise((resolve) => {
+    ensureDeferred()
+    window.OneSignalDeferred!.push((OneSignal: any) => {
+      try {
+        const id = OneSignal?.User?.PushSubscription?.id as string | undefined
+        resolve(id ?? null)
+      } catch (e) {
+        console.error('[OneSignal] read PushSubscription.id error', e)
+        resolve(null)
+      }
+    })
+  })
+}
+
+async function sendPlayerIdIfNeeded() {
+  const playerId = await getPlayerIdSafe()
+  if (!playerId) return
+
+  if (playerId === lastSentPlayerId) return
+  lastSentPlayerId = playerId
+
   try {
     await POST(API_ENDPOINT.ADD_NOTI_PLAYER, { playerId })
     console.log('[OneSignal] playerId sent:', playerId)
@@ -52,82 +63,84 @@ async function sendPlayerIdToBackend(playerId: string) {
   }
 }
 
-/**
- * Init OneSignal & handle subscription
- * ⚠️ BẮT BUỘC gọi trong user action (onClick)
- */
 export async function initOneSignal(): Promise<boolean> {
   const appId = import.meta.env.VITE_ONESIGNAL_APP_ID
-
   if (!appId) {
     toast.error('Thiếu VITE_ONESIGNAL_APP_ID')
     return false
   }
 
-  // 1️⃣ Load SDK
-  const sdkLoaded = await loadOneSignalSDK()
-  if (!sdkLoaded || !window.OneSignal) {
+  // 1) Load SDK
+  const loaded = await loadOneSignalSDK()
+  if (!loaded || !window.OneSignal) {
     toast.error('Không thể tải OneSignal SDK')
     return false
   }
 
-  // 2️⃣ Init OneSignal (chỉ init 1 lần)
-  try {
-    const currentAppId = await window.OneSignal.getAppId()
-    if (currentAppId !== appId) {
-      await window.OneSignal.init({
+  ensureDeferred()
+  window.OneSignalDeferred!.push(async (OneSignal: any) => {
+    try {
+      await OneSignal.init({
         appId,
         allowLocalhostAsSecureOrigin: true,
         serviceWorkerPath: '/OneSignalSDKWorker.js',
       })
+      console.log('[OneSignal] init done')
+    } catch (e) {
+      console.error('[OneSignal] init error', e)
+      toast.error('Khởi tạo OneSignal thất bại')
     }
-  } catch {
-    await window.OneSignal.init({
-      appId,
-      allowLocalhostAsSecureOrigin: true,
-      serviceWorkerPath: '/OneSignalSDKWorker.js',
-    })
-  }
+  })
 
-  // 3️⃣ Listen subscription change (CHỈ GẮN 1 LẦN)
   if (!isListenerAttached) {
     isListenerAttached = true
-
-    window.OneSignal.User.Push.addEventListener('subscriptionChange', (event: any) => {
-      const playerId = event.current?.id
-      if (playerId) {
-        console.log('[OneSignal] subscription ready:', playerId)
-        sendPlayerIdToBackend(playerId)
+    window.OneSignalDeferred!.push((OneSignal: any) => {
+      try {
+        OneSignal?.User?.PushSubscription?.addEventListener('change', async (ev: any) => {
+          console.log('[OneSignal] PushSubscription.change:', ev?.current)
+          if (ev?.current?.id && ev?.current?.optedIn) {
+            await sendPlayerIdIfNeeded()
+          }
+        })
+      } catch (e) {
+        console.error('[OneSignal] attach change listener error', e)
       }
     })
   }
 
-  const permission = await window.OneSignal.User.Push.requestPermission()
-  // 4️⃣ Request permission (user gesture)
+  const granted = await new Promise<boolean>((resolve) => {
+    window.OneSignalDeferred!.push(async (OneSignal: any) => {
+      try {
+        const ok = await OneSignal?.Notifications?.requestPermission()
+        resolve(!!ok)
+      } catch {
+        resolve(false)
+      }
+    })
+  })
 
-  if (permission !== 'granted') {
+  console.log('[OneSignal] permission granted:', granted)
+
+  if (!granted) {
     toast.warning('Bạn chưa cho phép nhận thông báo')
     return false
   }
 
-  // 5️⃣ Nếu đã có sẵn subscription → gửi luôn
-  const existingPlayerId = await window.OneSignal.User.Push.getSubscriptionId()
-
-  if (existingPlayerId) {
-    sendPlayerIdToBackend(existingPlayerId)
-  }
-
+  await sendPlayerIdIfNeeded()
   return true
 }
 
-/**
- * Check subscription status
- */
 export async function checkSubscriptionStatus(): Promise<boolean> {
-  if (!window.OneSignal) return false
-
-  const permission = await window.OneSignal.User.Push.getPermissionStatus()
-  const playerId = await window.OneSignal.User.Push.getSubscriptionId()
-
-  return permission === 'granted' && !!playerId
+  return new Promise((resolve) => {
+    ensureDeferred()
+    window.OneSignalDeferred!.push((OneSignal: any) => {
+      try {
+        const hasPerm: boolean = !!OneSignal?.Notifications?.permission
+        const playerId: string | null = OneSignal?.User?.PushSubscription?.id ?? null
+        resolve(!!hasPerm && !!playerId)
+      } catch {
+        resolve(false)
+      }
+    })
+  })
 }
