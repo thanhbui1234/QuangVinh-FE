@@ -45,14 +45,12 @@ export const Profile = () => {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const isUploadingRef = useRef(false)
 
-  // Hooks
   const uploadFileMutation = useUploadFile()
   const { updateAvatarMutate } = useUpdateAvatar(currentUserId)
   const { updateNameMutate } = useUpdateName(currentUserId)
   const { updateEmailMutate } = useUpdateEmail(currentUserId)
   const { updatePhoneMutate } = useUpdatePhone(currentUserId)
 
-  // Form
   const { control, reset, watch, trigger } = useForm<ProfileFormData>({
     resolver: zodResolver(ProfileSchema),
     defaultValues: {
@@ -65,7 +63,6 @@ export const Profile = () => {
 
   const currentValues = watch()
 
-  // Check notification status on mount (only if OneSignal is already initialized)
   useEffect(() => {
     if (typeof window === 'undefined') return
 
@@ -324,7 +321,7 @@ export const Profile = () => {
     setIsRequestingNotifications(true)
     try {
       const success = await initOneSignal()
-
+      console.log('succe123123612736712ss', success)
       if (success) {
         // Verify subscription status
         const isSubscribed = await checkSubscriptionStatus()
