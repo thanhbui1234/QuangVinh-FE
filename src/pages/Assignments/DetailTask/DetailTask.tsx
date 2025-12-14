@@ -226,6 +226,8 @@ export const DetailTask = () => {
               status: data.status,
               assignees: data.assignees,
               supervisor: data.supervisor,
+              assigneeIds: data.assigneeIds,
+              supervisorId: data.supervisorId,
               startTime: data.startTime,
               imageUrls: data.imageUrls,
             },

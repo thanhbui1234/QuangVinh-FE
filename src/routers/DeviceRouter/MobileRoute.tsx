@@ -2,6 +2,7 @@ import { type RouteObject, Navigate } from 'react-router'
 import { DashboardMobile, PersonnelMobile, LeavesMobile } from '@/pages'
 import ProjectAssignment from '@/pages/Assignments/ProjectAssignment/Web'
 import { AddMember } from '@/pages/Personnel/AddMember'
+import { NotificationPage } from '@/pages/Notification'
 
 export const MobileRoutes: RouteObject[] = [
   {
@@ -30,6 +31,6 @@ export const MobileRoutes: RouteObject[] = [
   },
   {
     path: 'notifications',
-    element: <h1>Notifications</h1>,
+    element: <NotificationPage />,
   },
 ]

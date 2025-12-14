@@ -13,6 +13,8 @@ export interface updateTaskPayload {
   groupId?: number
   estimateTime?: number
   imageUrls?: string[]
+  assigneeIds?: number[]
+  supervisorId?: number
   checkList?: string
   assignees?: Array<{ id: number }>
   supervisor?: { id: number }

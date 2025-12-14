@@ -10,10 +10,14 @@ import { PhotoProvider, PhotoView } from 'react-photo-view'
 import 'react-photo-view/dist/react-photo-view.css'
 
 const DocumentsShared = () => {
-  const { documents, isFetching } = useGetListDocument({
-    statuses: [0],
-    limit: 100,
-    offset: 0,
+  const {
+    data: documents,
+    isFetching,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useGetListDocument({
+    statuses: [],
   })
 
   const [tab, setTab] = useState('all')
@@ -27,9 +31,9 @@ const DocumentsShared = () => {
     tab === 'all'
       ? docs
       : tab === 'images'
-        ? docs.filter((doc: any) => doc.contentType.startsWith('image/'))
+        ? docs?.filter((doc: any) => doc.contentType.startsWith('image/'))
         : tab === 'pdf'
-          ? docs.filter((doc: any) => doc.contentType === 'application/pdf')
+          ? docs?.filter((doc: any) => doc.contentType === 'application/pdf')
           : docs
 
   const allCount = docs.length
@@ -170,6 +174,17 @@ const DocumentsShared = () => {
             </div>
           </PhotoProvider>
         </TabsContent>
+        {hasNextPage && (
+          <div className="mt-10 flex justify-center">
+            <Button
+              onClick={() => fetchNextPage()}
+              disabled={isFetchingNextPage}
+              className="rounded-full px-8"
+            >
+              {isFetchingNextPage ? 'Đang tải...' : 'Xem thêm'}
+            </Button>
+          </div>
+        )}
       </Tabs>
     </div>
   )

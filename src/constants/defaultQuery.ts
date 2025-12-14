@@ -1,2 +1,3 @@
-export const fromNotiId = 0
-export const size = 20
+export const fromNotiId = 10
+export const size = 7
+export const gtNotiId = true

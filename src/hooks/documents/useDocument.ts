@@ -16,7 +16,7 @@ export const useUploadDocument = () => {
       return response as UploadDocumentResponse
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [listDocumentKey.list] })
+      queryClient.invalidateQueries({ queryKey: listDocumentKey.all })
     },
     onError: () => {
       toast.error('Tải lên tài liệu thất bại')
