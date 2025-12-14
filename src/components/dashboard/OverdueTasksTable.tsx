@@ -51,8 +51,8 @@ export function OverdueTasksTable({
 
   if (isLoading) {
     return (
-      <Card className={className}>
-        <CardContent className="p-4">
+      <Card className={`${className} flex flex-col h-full`}>
+        <CardContent className="p-4 flex flex-col flex-1">
           <SectionTitle title="Việc quá hạn" icon={<Clock className="h-4 w-4" />} />
           <Separator className="my-3" />
           <div className="space-y-2">
@@ -67,8 +67,8 @@ export function OverdueTasksTable({
 
   if (tasks.length === 0) {
     return (
-      <Card className={className}>
-        <CardContent className="p-4">
+      <Card className={`${className} flex flex-col h-full`}>
+        <CardContent className="p-4 flex flex-col flex-1">
           <SectionTitle title="Việc quá hạn" icon={<Clock className="h-4 w-4" />} />
           <Separator className="my-3" />
           <p className="text-sm text-muted-foreground text-center py-4">
@@ -80,48 +80,50 @@ export function OverdueTasksTable({
   }
 
   return (
-    <Card className={className}>
-      <CardContent className="p-4">
+    <Card className={`${className} flex flex-col h-full`}>
+      <CardContent className="p-4 flex flex-col flex-1">
         <SectionTitle title="Việc quá hạn" icon={<Clock className="h-4 w-4" />} />
         <Separator className="my-3" />
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Mã</TableHead>
-              <TableHead>Mô tả</TableHead>
-              <TableHead>Người phụ trách</TableHead>
-              <TableHead>Trạng thái</TableHead>
-              <TableHead>Ưu tiên</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {tasks.map((task) => (
-              <TableRow
-                key={task.taskId}
-                className="cursor-pointer hover:bg-muted/50"
-                onClick={() => handleTaskClick(task)}
-              >
-                <TableCell className="font-medium">T-{task.taskId}</TableCell>
-                <TableCell className="max-w-md truncate">{task.description}</TableCell>
-                <TableCell>{task.assignee?.name || 'Chưa gán'}</TableCell>
-                <TableCell>
-                  {(() => {
-                    const mappedStatus = mapTaskStatus(task.status)
-                    return (
-                      <Badge variant="outline" className={getStatusClassName(mappedStatus)}>
-                        <span className="mr-1.5">{STATUS_ICON[mappedStatus]}</span>
-                        {STATUS_LABEL[mappedStatus]}
-                      </Badge>
-                    )
-                  })()}
-                </TableCell>
-                <TableCell>
-                  <Badge variant="outline">{getTaskPriorityLabel(task.priority)}</Badge>
-                </TableCell>
+        <div className="flex-1 overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Mã</TableHead>
+                <TableHead>Mô tả</TableHead>
+                <TableHead>Người phụ trách</TableHead>
+                <TableHead>Trạng thái</TableHead>
+                <TableHead>Ưu tiên</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {tasks.map((task) => (
+                <TableRow
+                  key={task.taskId}
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => handleTaskClick(task)}
+                >
+                  <TableCell className="font-medium">T-{task.taskId}</TableCell>
+                  <TableCell className="max-w-md truncate">{task.description}</TableCell>
+                  <TableCell>{task.assignee?.name || 'Chưa gán'}</TableCell>
+                  <TableCell>
+                    {(() => {
+                      const mappedStatus = mapTaskStatus(task.status)
+                      return (
+                        <Badge variant="outline" className={getStatusClassName(mappedStatus)}>
+                          <span className="mr-1.5">{STATUS_ICON[mappedStatus]}</span>
+                          {STATUS_LABEL[mappedStatus]}
+                        </Badge>
+                      )
+                    })()}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{getTaskPriorityLabel(task.priority)}</Badge>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
         {totalPages > 1 && (
           <>
             <Separator className="my-4" />

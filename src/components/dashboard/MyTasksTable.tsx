@@ -50,8 +50,8 @@ export function MyTasksTable({ limit = 5, className = '', enabled = true }: MyTa
 
   if (isLoading) {
     return (
-      <Card className={className}>
-        <CardContent className="p-4">
+      <Card className={`${className} flex flex-col h-full`}>
+        <CardContent className="p-4 flex flex-col flex-1">
           <SectionTitle title="Công việc của tôi" icon={<ClipboardList className="h-4 w-4" />} />
           <Separator className="my-3" />
           <div className="space-y-2">
@@ -66,8 +66,8 @@ export function MyTasksTable({ limit = 5, className = '', enabled = true }: MyTa
 
   if (tasks.length === 0) {
     return (
-      <Card className={className}>
-        <CardContent className="p-4">
+      <Card className={`${className} flex flex-col h-full`}>
+        <CardContent className="p-4 flex flex-col flex-1">
           <SectionTitle title="Công việc của tôi" icon={<ClipboardList className="h-4 w-4" />} />
           <Separator className="my-3" />
           <p className="text-sm text-muted-foreground text-center py-4">Không có công việc nào</p>
@@ -77,54 +77,56 @@ export function MyTasksTable({ limit = 5, className = '', enabled = true }: MyTa
   }
 
   return (
-    <Card className={className}>
-      <CardContent className="p-4">
+    <Card className={`${className} flex flex-col h-full`}>
+      <CardContent className="p-4 flex flex-col flex-1">
         <SectionTitle title="Công việc của tôi" icon={<ClipboardList className="h-4 w-4" />} />
         <Separator className="my-3" />
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Mã</TableHead>
-              <TableHead>Tên</TableHead>
-              <TableHead>Dự án</TableHead>
-              <TableHead>Hạn</TableHead>
-              <TableHead>Trạng thái</TableHead>
-              <TableHead>Độ ưu tiên</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {tasks.map((task) => (
-              <TableRow
-                key={task.taskId}
-                className="cursor-pointer hover:bg-muted/50"
-                onClick={() => handleTaskClick(task)}
-              >
-                <TableCell className="font-medium">T-{task.taskId}</TableCell>
-                <TableCell className="max-w-md truncate">{task.description}</TableCell>
-                <TableCell>{task.groupName || 'N/A'}</TableCell>
-                <TableCell>
-                  {task.estimateTime
-                    ? new Date(task.estimateTime).toLocaleDateString('vi-VN')
-                    : 'N/A'}
-                </TableCell>
-                <TableCell>
-                  {(() => {
-                    const mappedStatus = mapTaskStatus(task.status)
-                    return (
-                      <Badge variant="outline" className={getStatusClassName(mappedStatus)}>
-                        <span className="mr-1.5">{STATUS_ICON[mappedStatus]}</span>
-                        {STATUS_LABEL[mappedStatus]}
-                      </Badge>
-                    )
-                  })()}
-                </TableCell>
-                <TableCell>
-                  <Badge variant="outline">{getTaskPriorityLabel(task.priority)}</Badge>
-                </TableCell>
+        <div className="flex-1 overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Mã</TableHead>
+                <TableHead>Tên</TableHead>
+                <TableHead>Dự án</TableHead>
+                <TableHead>Hạn</TableHead>
+                <TableHead>Trạng thái</TableHead>
+                <TableHead>Độ ưu tiên</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {tasks.map((task) => (
+                <TableRow
+                  key={task.taskId}
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => handleTaskClick(task)}
+                >
+                  <TableCell className="font-medium">T-{task.taskId}</TableCell>
+                  <TableCell className="max-w-md truncate">{task.description}</TableCell>
+                  <TableCell>{task.groupName || 'N/A'}</TableCell>
+                  <TableCell>
+                    {task.estimateTime
+                      ? new Date(task.estimateTime).toLocaleDateString('vi-VN')
+                      : 'N/A'}
+                  </TableCell>
+                  <TableCell>
+                    {(() => {
+                      const mappedStatus = mapTaskStatus(task.status)
+                      return (
+                        <Badge variant="outline" className={getStatusClassName(mappedStatus)}>
+                          <span className="mr-1.5">{STATUS_ICON[mappedStatus]}</span>
+                          {STATUS_LABEL[mappedStatus]}
+                        </Badge>
+                      )
+                    })()}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{getTaskPriorityLabel(task.priority)}</Badge>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
         {(totalPages > 1 || currentPage > 1) && (
           <>
             <Separator className="my-4" />

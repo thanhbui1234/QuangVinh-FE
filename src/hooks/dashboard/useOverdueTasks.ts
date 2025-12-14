@@ -11,7 +11,8 @@ const DEFAULT_LIMIT = 5
 export const useOverdueTasks = (initialPage = 1, limit = DEFAULT_LIMIT, enabled = true) => {
   const [currentPage, setCurrentPage] = useState(initialPage)
 
-  const offset = (currentPage - 1) * limit
+  // Backend expects offset to be the page number starting from 0
+  const offset = currentPage - 1
 
   const { data, isLoading, isFetching, error, refetch } = useQuery<OverdueTaskResponse>({
     queryKey: dashboardOverdueTasksKey.list({ limit, offset, page: currentPage }),

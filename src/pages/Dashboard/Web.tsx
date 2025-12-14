@@ -61,7 +61,7 @@ export default function DashboardWeb() {
   }, [projectRatio])
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-semibold">Bảng điều khiển</h2>
@@ -81,100 +81,111 @@ export default function DashboardWeb() {
       )}
 
       {isManagerOrDirector ? (
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-          <div className="lg:col-span-2">
+        <div className="space-y-6">
+          {/* First row: Charts */}
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+            <div className="lg:col-span-2">
+              <ChartCard
+                title="Tiến độ hoàn thành công việc"
+                icon={<LineChart className="h-4 w-4" />}
+                badgeText={progressRangeLabel}
+                onClick={() => navigate('/assignments')}
+              >
+                <ProjectProgressDay
+                  chartData={progressChartData}
+                  dailyProgress={dailyProgress}
+                  summary={progressSummary}
+                  isLoading={isProgressLoading}
+                  showTaskList={true}
+                  maxTasksToShow={5}
+                  layout="web"
+                />
+              </ChartCard>
+            </div>
+
             <ChartCard
-              title="Tiến độ hoàn thành công việc"
-              icon={<LineChart className="h-4 w-4" />}
-              badgeText={progressRangeLabel}
+              title="Tỉ lệ trạng thái dự án"
+              icon={<PieChart className="h-4 w-4" />}
+              badgeText={projectCountBadge}
               onClick={() => navigate('/assignments')}
             >
-              <ProjectProgressDay
-                chartData={progressChartData}
-                dailyProgress={dailyProgress}
-                summary={progressSummary}
-                isLoading={isProgressLoading}
-                showTaskList={true}
-                maxTasksToShow={5}
-                layout="web"
+              <ProjectStatusRatio
+                ratio={projectRatio}
+                isLoading={isProjectRatioLoading}
+                className="mt-2"
               />
             </ChartCard>
           </div>
 
-          <ChartCard
-            title="Tỉ lệ trạng thái dự án"
-            icon={<PieChart className="h-4 w-4" />}
-            badgeText={projectCountBadge}
-            onClick={() => navigate('/assignments')}
-          >
-            <ProjectStatusRatio
-              ratio={projectRatio}
-              isLoading={isProjectRatioLoading}
-              className="mt-2"
-            />
-          </ChartCard>
-
-          <div className="lg:col-span-2">
-            <ChartCard
-              title="Lịch nghỉ nhân sự (tuần)"
-              icon={<Calendar className="h-4 w-4" />}
-              badgeText={leaveRangeLabel}
-              onClick={() => navigate('/personnel/leaves')}
-            >
-              {isLeaveStatsLoading ? (
-                <Skeleton className="h-32 w-full" />
-              ) : leaveChartData.length ? (
-                <>
-                  <MiniLeaveStacked data={leaveChartData} />
-                  <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <span className="inline-block h-2 w-2 rounded-sm bg-emerald-500" /> Đã duyệt:{' '}
-                      <span className="font-medium text-foreground">{leaveSummary.approved}</span>
+          {/* Second row: Leave chart */}
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+            <div className="lg:col-span-4">
+              <ChartCard
+                title="Lịch nghỉ nhân sự (tuần)"
+                icon={<Calendar className="h-4 w-4" />}
+                badgeText={leaveRangeLabel}
+                onClick={() => navigate('/personnel/leaves')}
+              >
+                {isLeaveStatsLoading ? (
+                  <Skeleton className="h-32 w-full" />
+                ) : leaveChartData.length ? (
+                  <>
+                    <MiniLeaveStacked data={leaveChartData} />
+                    <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <span className="inline-block h-2 w-2 rounded-sm bg-emerald-500" /> Đã
+                        duyệt:{' '}
+                        <span className="font-medium text-foreground">{leaveSummary.approved}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="inline-block h-2 w-2 rounded-sm bg-amber-500" /> Chờ duyệt:{' '}
+                        <span className="font-medium text-foreground">{leaveSummary.pending}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="inline-block h-2 w-2 rounded-sm bg-slate-400" /> Tổng:{' '}
+                        <span className="font-medium text-foreground">{leaveSummary.total}</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <span className="inline-block h-2 w-2 rounded-sm bg-amber-500" /> Chờ duyệt:{' '}
-                      <span className="font-medium text-foreground">{leaveSummary.pending}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <span className="inline-block h-2 w-2 rounded-sm bg-slate-400" /> Tổng:{' '}
-                      <span className="font-medium text-foreground">{leaveSummary.total}</span>
-                    </div>
-                  </div>
-                  {leavePendingPreview.length > 0 && (
-                    <>
-                      <Separator className="my-4" />
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Mã</TableHead>
-                            <TableHead>Người tạo</TableHead>
-                            <TableHead>Ngày</TableHead>
-                            <TableHead>Khoảng thời gian</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {leavePendingPreview.map((request) => (
-                            <TableRow key={`${request.id}-${request.offFrom}`}>
-                              <TableCell className="font-medium">{request.id}</TableCell>
-                              <TableCell>{request.creator.name}</TableCell>
-                              <TableCell>{getDayOfWeekShortLabel(request.dayOfWeek)}</TableCell>
-                              <TableCell>
-                                {formatDateRangeShort(request.offFrom, request.offTo)}
-                              </TableCell>
+                    {leavePendingPreview.length > 0 && (
+                      <>
+                        <Separator className="my-4" />
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Mã</TableHead>
+                              <TableHead>Người tạo</TableHead>
+                              <TableHead>Ngày</TableHead>
+                              <TableHead>Khoảng thời gian</TableHead>
                             </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </>
-                  )}
-                </>
-              ) : (
-                <p className="text-sm text-muted-foreground">Không có dữ liệu tuần này</p>
-              )}
-            </ChartCard>
+                          </TableHeader>
+                          <TableBody>
+                            {leavePendingPreview.map((request) => (
+                              <TableRow key={`${request.id}-${request.offFrom}`}>
+                                <TableCell className="font-medium">{request.id}</TableCell>
+                                <TableCell>{request.creator.name}</TableCell>
+                                <TableCell>{getDayOfWeekShortLabel(request.dayOfWeek)}</TableCell>
+                                <TableCell>
+                                  {formatDateRangeShort(request.offFrom, request.offTo)}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-sm text-muted-foreground">Không có dữ liệu tuần này</p>
+                )}
+              </ChartCard>
+            </div>
           </div>
 
-          <OverdueTasksTable limit={5} enabled={isManagerOrDirector} />
+          {/* Third row: Task tables - aligned side by side */}
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <OverdueTasksTable limit={5} enabled={isManagerOrDirector} />
+            <MyTasksTable limit={5} enabled={true} />
+          </div>
         </div>
       ) : (
         <MyTasksTable limit={5} enabled={true} />
