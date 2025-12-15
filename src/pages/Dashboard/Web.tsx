@@ -72,7 +72,7 @@ export default function DashboardWeb() {
           {!isDirectorPermission && isManagerPermission && (
             <Badge variant="secondary">Manager</Badge>
           )}
-          {!isManagerPermission && !isDirectorPermission && <Badge>Worker</Badge>}
+          {!isManagerPermission && !isDirectorPermission && <Badge>Staff</Badge>}
         </div>
       </div>
 

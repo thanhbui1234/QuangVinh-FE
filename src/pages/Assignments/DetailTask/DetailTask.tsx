@@ -148,21 +148,26 @@ export const DetailTask = () => {
       <div className=" mx-auto p-4 md:p-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
-            <MobileBar assignee={projectAssignmentDetail.assignee} setInfoOpen={setInfoOpen} />
+            <MobileBar assignee={projectAssignmentDetail.supervisor} setInfoOpen={setInfoOpen} />
             <Card className="border-0 shadow-sm py-0">
               <div className="flex items-center justify-between px-3">
                 <BreadcrumbTask projectAssignmentDetail={projectAssignmentDetail} />
-                {projectAssignmentDetail.status === 9 &&
-                  projectAssignmentDetail.progressScore === 0 && (
-                    <Badge onClick={() => setShowReview(true)} className="px-2 py-1 cursor-pointer">
-                      Đánh giá công việc
+                <div className="flex gap-2">
+                  {projectAssignmentDetail.status === 9 &&
+                    projectAssignmentDetail.progressScore === 0 && (
+                      <Badge
+                        onClick={() => setShowReview(true)}
+                        className="px-2 py-1 cursor-pointer"
+                      >
+                        Đánh giá công việc
+                      </Badge>
+                    )}
+                  {projectAssignmentDetail.progressScore > 0 && (
+                    <Badge className="px-2 py-1 cursor-pointer bg-green-500">
+                      Số điểm đánh giá {projectAssignmentDetail.progressScore}
                     </Badge>
                   )}
-                {projectAssignmentDetail.progressScore > 0 && (
-                  <Badge className="px-2 py-1 cursor-pointer bg-green-500">
-                    Số điểm đánh giá {projectAssignmentDetail.progressScore}
-                  </Badge>
-                )}
+                </div>
               </div>
 
               <CardContent className="p-6 pt-0">

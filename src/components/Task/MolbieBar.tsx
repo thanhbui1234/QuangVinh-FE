@@ -21,7 +21,7 @@ export const MobileBar = ({
                   <AvatarFallback>{assignee?.name?.[0] || 'U'}</AvatarFallback>
                 </Avatar>
                 <div className="min-w-0 flex-1">
-                  <div className="text-xs text-gray-500">Người được giao</div>
+                  <div className="text-xs text-gray-500">Người chịu trách nhiệm</div>
                   <div className="font-medium text-sm text-gray-900 truncate">
                     {assignee?.name || 'Chưa gán'}
                   </div>

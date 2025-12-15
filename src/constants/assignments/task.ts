@@ -25,11 +25,23 @@ export const TASK_TYPE = {
 export type TASK_TYPE_TYPE = keyof typeof TASK_TYPE
 
 export const TASK_TYPE_LABELS: Record<number, string> = {
-  1: 'Nhập hàng',
-  2: 'Xuất hàng',
-  3: 'Kiểm kho',
-  4: 'Sắp xếp',
-  5: 'Bảo trì',
+  1: 'Báo cáo hàng ngày',
+  2: 'Hàng hoá - Bảo hành',
+  3: 'Hàng hoá - Kiểm kê',
+  4: 'Hàng hoá - Nhập hàng',
+  5: 'Hàng hoá - Thiết lập giả',
+  6: 'Công nợ NCC',
+  7: 'Công nợ khách hàng',
+  8: 'Báo cáo nhân sự',
+  9: 'Báo cáo đơn hàng',
+  10: 'Báo cáo tài chính',
+  11: 'Sửa chữa',
+  12: 'Marketing',
+  13: 'TMDT',
+  14: 'Update mã mới',
+  15: 'Seller',
+  16: 'Các vấn đề phát sinh',
+  17: 'Khác',
 }
 
 export const TASK_STATUS = {

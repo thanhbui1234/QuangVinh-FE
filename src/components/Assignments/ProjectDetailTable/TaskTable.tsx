@@ -5,8 +5,12 @@ import { taskColumns, type TaskRow } from './columns'
 
 type Assignee = { id: string; name: string }
 
-export default function TaskTable(props: { tasks: any; assignees?: Assignee[] }) {
-  const { tasks, assignees } = props
+export default function TaskTable(props: {
+  tasks: any
+  assignees?: Assignee[]
+  onDelete?: (id: string) => void
+}) {
+  const { tasks, assignees, onDelete } = props
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([])
@@ -29,7 +33,7 @@ export default function TaskTable(props: { tasks: any; assignees?: Assignee[] })
       searchable
       searchPlaceholder="Tìm kiếm theo tiêu đề..."
       dataSource={tasks}
-      columns={taskColumns(assigneeIdToName)}
+      columns={taskColumns(assigneeIdToName, onDelete)}
       loading={loading}
       onRefresh={handleRefresh}
       filterable
