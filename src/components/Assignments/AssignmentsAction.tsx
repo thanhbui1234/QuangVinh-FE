@@ -20,15 +20,18 @@ export default function AssignmentsAction({
           <div className="relative flex-1 min-w-0 max-w-[220px] sm:max-w-[500px]">
             <div className="no-scrollbar flex gap-1.5 items-center min-w-0 overflow-x-auto flex-nowrap pr-6">
               {projectAssignmentDetail?.memberIds && members.length > 0 ? (
-                members.map((m: any) => (
-                  <span
-                    key={m.id}
-                    className="shrink-0 text-xs px-2 py-0.5 border border-gray-200 rounded-full bg-gray-50 truncate max-w-[120px]"
-                    title={m.name}
-                  >
-                    {m.name}
-                  </span>
-                ))
+                members.map((m: any) => {
+                  console.log('123213m', m)
+                  return (
+                    <span
+                      key={m.id}
+                      className="shrink-0 text-xs px-2 py-0.5 border border-gray-200 rounded-full bg-gray-50 truncate max-w-[120px]"
+                      title={m.name || m.email}
+                    >
+                      {m.name || m.email}
+                    </span>
+                  )
+                })
               ) : (
                 <span className="text-xs text-gray-400">Chưa có thành viên</span>
               )}

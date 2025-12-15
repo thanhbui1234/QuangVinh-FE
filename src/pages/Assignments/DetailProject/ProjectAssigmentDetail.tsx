@@ -184,7 +184,11 @@ export const ProjectAssignmentDetail: React.FC = () => {
         open={isInviteOpen}
         onOpenChange={setIsInviteOpen}
         taskGroupId={Number(id)}
-        existingMemberIds={memberTask?.map((m: IMemberTask) => String(m.id)) || []}
+        existingMemberEmails={
+          memberTask
+            ?.map((m: IMemberTask) => m.email)
+            .filter((email): email is string => !!email) || []
+        }
       />
 
       <DialogConfirm
