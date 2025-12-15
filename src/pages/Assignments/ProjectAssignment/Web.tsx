@@ -13,6 +13,7 @@ import { Link } from 'react-router'
 import { DialogConfirm } from '@/components/ui/alertComponent'
 import { useDeleteProject } from '@/hooks/assignments/useDeleteProject'
 import useCheckRole from '@/hooks/useCheckRole'
+import { PageBreadcrumb } from '@/components/common/PageBreadcrumb'
 
 const ProjectAssignment = () => {
   const [search, setSearch] = useState('')
@@ -103,6 +104,7 @@ const ProjectAssignment = () => {
 
   return (
     <div className="space-y-6 p-4">
+      <PageBreadcrumb />
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-semibold">Dự án</h1>
         <div className="flex gap-2 w-full sm:w-auto">

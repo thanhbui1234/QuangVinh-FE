@@ -1,13 +1,15 @@
 import { NotificationItem } from '@/components/Notification/NotificationItem'
 import { useGetNotiBell } from '@/hooks/notifications/useGetNotiBell'
 import { useSeenNotification } from '@/hooks/notifications/useSeenNotification'
+import { PageBreadcrumb } from '@/components/common/PageBreadcrumb'
 
 export const NotificationPage = () => {
   const { notifications } = useGetNotiBell()
   const { seenNotificationMutation } = useSeenNotification()
 
   return (
-    <div className="max-w-3xl mx-auto py-8">
+    <div className="max-w-3xl mx-auto py-8 px-4">
+      <PageBreadcrumb />
       <h1 className="text-3xl font-bold mb-6">Tất cả thông báo</h1>
 
       <div className="bg-white rounded-2xl shadow">

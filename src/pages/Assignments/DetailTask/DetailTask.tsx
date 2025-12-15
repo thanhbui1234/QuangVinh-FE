@@ -30,8 +30,10 @@ import { Button } from '@/components/ui/button'
 export const DetailTask = () => {
   const { id } = useParams()
   const { projectAssignmentDetail, isFetching } = useGetDetailTask(Number(id))
+  const groupId = projectAssignmentDetail?.groupId
+  const { memberTask } = useGetMemberTask(groupId)
+  console.log('projectAssignmentDetail?.groupId', projectAssignmentDetail?.groupId)
   const { updateTaskMutation, isUpdateTaskLoading } = useUpdateTask()
-  const { memberTask } = useGetMemberTask(projectAssignmentDetail?.groupId || 0)
   const [editOpen, setEditOpen] = useState(false)
   const [infoOpen, setInfoOpen] = useState(false)
   const [showReview, setShowReview] = useState(false)

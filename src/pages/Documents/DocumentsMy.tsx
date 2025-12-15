@@ -20,6 +20,7 @@ import { Loader2, Upload, FileIcon, X, Users, Lock, Globe } from 'lucide-react'
 import { toast } from 'sonner'
 import { useGetAllUser } from '@/hooks/assignments/useGetAllUser'
 import { allowedTypes } from '@/constants/file'
+import { PageBreadcrumb } from '@/components/common/PageBreadcrumb'
 
 const DocumentStatus = {
   ACTIVE: 0,
@@ -132,7 +133,8 @@ const DocumentsMy = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto py-10 overflow-y-hidden ">
+    <div className="max-w-4xl mx-auto py-10 overflow-y-hidden px-4">
+      <PageBreadcrumb />
       <div className="bg-white rounded-2xl border border-gray-200 shadow-lg">
         <div className="px-8 py-6 border-b border-gray-100">
           <h2 className="text-2xl font-bold flex items-center gap-3">

@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useState } from 'react'
 import { PhotoProvider, PhotoView } from 'react-photo-view'
 import 'react-photo-view/dist/react-photo-view.css'
+import { PageBreadcrumb } from '@/components/common/PageBreadcrumb'
 
 const DocumentsShared = () => {
   const {
@@ -42,6 +43,7 @@ const DocumentsShared = () => {
 
   return (
     <div className="p-6 pb-24">
+      <PageBreadcrumb />
       <h1 className="text-3xl font-bold text-gray-900 mb-2">Tài liệu được chia sẻ</h1>
       <p className="text-gray-600 mb-8">Tất cả file mà mọi người đã chia sẻ với bạn</p>
 

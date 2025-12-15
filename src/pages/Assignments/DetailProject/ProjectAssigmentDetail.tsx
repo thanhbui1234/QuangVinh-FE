@@ -15,6 +15,7 @@ import { DialogConfirm } from '@/components/ui/alertComponent'
 import { useDeleteTask } from '@/hooks/assignments/task/useDeleteTask'
 import useCheckRole from '@/hooks/useCheckRole'
 import SonnerToaster from '@/components/ui/toaster'
+import { PageBreadcrumb } from '@/components/common/PageBreadcrumb'
 
 export type User = {
   id: string
@@ -42,6 +43,7 @@ export type Project = {
 
 export const ProjectAssignmentDetail: React.FC = () => {
   const { id } = useParams()
+  console.log('id', id)
   const { projectAssignmentDetail, isFetching } = useGetDetailProject(Number(id))
   const isMobile = useIsMobile()
   const [openConfirm, setOpenConfirm] = useState(false)
@@ -153,6 +155,7 @@ export const ProjectAssignmentDetail: React.FC = () => {
 
   return (
     <div className="p-4 flex flex-col gap-4">
+      <PageBreadcrumb />
       <AssignmentsAction
         project={project}
         projectAssignmentDetail={projectAssignmentDetail}

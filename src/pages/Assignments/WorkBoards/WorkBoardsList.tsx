@@ -9,6 +9,7 @@ import { useCreateWorkBoard } from '@/hooks/workBoards/useCreateWorkBoard'
 import { Link } from 'react-router'
 import type { IWorkBoard, ICreateWorkBoard } from '@/types/WorkBoard'
 import { Card } from '@/components/ui/card'
+import { PageBreadcrumb } from '@/components/common/PageBreadcrumb'
 
 export const WorkBoardsList: React.FC = () => {
   const { workBoards, isFetching } = useGetWorkBoards()
@@ -52,6 +53,7 @@ export const WorkBoardsList: React.FC = () => {
 
   return (
     <div className="space-y-6 p-4">
+      <PageBreadcrumb />
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-semibold">Bảng công việc</h1>
         <Button onClick={() => setIsCreateOpen(true)}>
