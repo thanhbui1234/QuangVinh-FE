@@ -53,6 +53,15 @@ export const taskColumns = (
     ellipsis: true,
     filterable: true,
     filterType: 'text',
+    render: (value) => {
+      if (!value) return <span className="text-gray-400">—</span>
+      return (
+        <div
+          className="text-xs text-gray-700 leading-snug line-clamp-2 max-w-md"
+          dangerouslySetInnerHTML={{ __html: String(value) }}
+        />
+      )
+    },
   },
   {
     title: 'Trạng thái',

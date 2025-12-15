@@ -24,6 +24,7 @@ import { ProjectProgressDay } from '@/components/dashboard/ProjectProgressDay'
 import { OverdueTasksTable } from '@/components/dashboard/OverdueTasksTable'
 import { MyTasksTable } from '@/components/dashboard/MyTasksTable'
 import { Skeleton } from '@/components/ui/skeleton'
+import { PageBreadcrumb } from '@/components/common/PageBreadcrumb'
 
 export default function DashboardWeb() {
   const { isManagerPermission, isDirectorPermission } = useCheckRole()
@@ -62,6 +63,7 @@ export default function DashboardWeb() {
 
   return (
     <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+      <PageBreadcrumb />
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-semibold">Bảng điều khiển</h2>

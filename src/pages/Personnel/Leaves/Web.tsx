@@ -19,6 +19,7 @@ import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { convertToDateInput } from '@/utils/CommonUtils.ts'
 import { useRemoveLeaves } from '@/hooks/leaves/useRemoveLeaves'
 import { useAuthStore } from '@/stores/authStore'
+import { PageBreadcrumb } from '@/components/common/PageBreadcrumb'
 
 export default function LeavesWeb() {
   const {
@@ -251,6 +252,7 @@ export default function LeavesWeb() {
 
   return (
     <div className="flex flex-col gap-6 p-6">
+      <PageBreadcrumb />
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold flex items-center gap-2 tracking-tight">

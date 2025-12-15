@@ -10,12 +10,14 @@ export interface IMemberTask {
 }
 
 export const useGetMemberTask = (id: number) => {
+  console.log('id123123', id)
   const { data, isFetching, error } = useQuery({
-    queryKey: [memberTaskKey.detail(id.toString())],
+    queryKey: [memberTaskKey.detail(id?.toString())],
     queryFn: () => POST(API_ENDPOINT.GET_MEMBER_TASK, { taskGroupId: id }),
     select(data) {
       return data.users as IMemberTask[]
     },
+    enabled: !!id,
   })
   return { memberTask: data, isFetching, error }
 }

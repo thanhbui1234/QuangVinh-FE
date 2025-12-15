@@ -102,7 +102,10 @@ export function MultiSelect({
           <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0" align="start">
+      <PopoverContent
+        align="start"
+        className="z-[200] w-[var(--radix-popover-trigger-width)] p-0 max-h-[60vh] overflow-hidden"
+      >
         <div className="p-2">
           <Input
             placeholder="Tìm kiếm..."
@@ -111,7 +114,7 @@ export function MultiSelect({
             className="h-9"
           />
         </div>
-        <ScrollArea className="max-h-64">
+        <ScrollArea className="h-56">
           <div className="p-2 space-y-1">
             {filteredOptions.length === 0 && (
               <div className="py-6 text-center text-sm text-muted-foreground">{emptyText}</div>

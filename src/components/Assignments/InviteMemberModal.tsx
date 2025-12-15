@@ -6,14 +6,15 @@ export type InviteMemberModalProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   taskGroupId: number
-  existingMemberIds: string[]
+  // Danh sách email của các thành viên đã được mời / đã là member
+  existingMemberEmails: string[]
 }
 
 const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
   open,
   onOpenChange,
   taskGroupId,
-  existingMemberIds,
+  existingMemberEmails,
 }) => {
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const { allUser, isLoading } = useGetAllUser()
@@ -50,7 +51,12 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
   if (!open) return null
 
   const users = allUser || []
-  const candidates = users.filter((u: IUser) => !existingMemberIds.includes(String(u.id)))
+  // Lọc theo email: chỉ hiển thị những user chưa được mời (email chưa có trong existingMemberEmails)
+  const candidates = users.filter((u: IUser) => {
+    const email = u.email || ''
+    if (!email) return false
+    return !existingMemberEmails.includes(email)
+  })
 
   return (
     <div className="fixed inset-0 z-50">

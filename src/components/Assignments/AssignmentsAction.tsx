@@ -9,10 +9,7 @@ export default function AssignmentsAction({
   setIsInviteOpen: (open: boolean) => void
   setIsCreateOpen: (open: boolean) => void
 }) {
-  const MAX_VISIBLE_MEMBERS = 5
   const members = projectAssignmentDetail?.members || []
-  const visibleMembers = members.slice(0, MAX_VISIBLE_MEMBERS)
-  const remainingCount = members.length - MAX_VISIBLE_MEMBERS
   return (
     <div className="flex flex-col gap-4 sm:gap-0 sm:flex-row sm:justify-between sm:items-start">
       {/* Project Info */}
@@ -20,26 +17,40 @@ export default function AssignmentsAction({
         <h2 className="m-0 text-xl sm:text-2xl break-words">{project.name}</h2>
         <div className="flex items-start sm:items-center gap-2">
           <span className="text-xs text-gray-500 shrink-0">Thành viên:</span>
-          <div className="flex gap-1.5 flex-wrap items-center min-w-0">
-            {projectAssignmentDetail?.memberIds && members.length > 0 ? (
-              <>
-                {visibleMembers.map((m: any) => (
-                  <span
-                    key={m.id}
-                    className="text-xs px-2 py-0.5 border border-gray-200 rounded-full bg-gray-50 truncate max-w-[120px]"
-                    title={m.name}
-                  >
-                    {m.name}
-                  </span>
-                ))}
-                {remainingCount > 0 && (
-                  <span className="text-xs px-2 py-0.5 border border-gray-300 rounded-full bg-slate-100 font-medium">
-                    +{remainingCount}
-                  </span>
-                )}
-              </>
-            ) : (
-              <span className="text-xs text-gray-400">Chưa có thành viên</span>
+          <div className="relative flex-1 min-w-0 max-w-[220px] sm:max-w-[500px]">
+            <div className="no-scrollbar flex gap-1.5 items-center min-w-0 overflow-x-auto flex-nowrap pr-6">
+              {projectAssignmentDetail?.memberIds && members.length > 0 ? (
+                members.map((m: any) => {
+                  console.log('123213m', m)
+                  return (
+                    <span
+                      key={m.id}
+                      className="shrink-0 text-xs px-2 py-0.5 border border-gray-200 rounded-full bg-gray-50 truncate max-w-[120px]"
+                      title={m.name || m.email}
+                    >
+                      {m.name || m.email}
+                    </span>
+                  )
+                })
+              ) : (
+                <span className="text-xs text-gray-400">Chưa có thành viên</span>
+              )}
+            </div>
+            {members.length > 0 && (
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center bg-gradient-to-l from-white via-white/80 to-transparent pl-2">
+                <svg
+                  className="h-3 w-3 text-gray-400"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M7.293 4.293a1 1 0 011.414 0L13.414 9l-4.707 4.707a1 1 0 01-1.414-1.414L10.586 9 7.293 5.707a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
             )}
           </div>
         </div>

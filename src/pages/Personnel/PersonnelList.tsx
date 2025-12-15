@@ -21,6 +21,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { useUpdateRole } from '@/hooks/personnel/useUpdateRole'
 import { ROLE } from '@/constants'
+import { PageBreadcrumb } from '@/components/common/PageBreadcrumb'
 const PersonnelList = () => {
   const updateRoleMutation = useUpdateRole()
   const navigate = useNavigate()
@@ -151,6 +152,7 @@ const PersonnelList = () => {
 
   return (
     <div className="space-y-6 p-6">
+      <PageBreadcrumb />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Danh sách nhân sự</h1>

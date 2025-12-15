@@ -17,6 +17,7 @@ import { ProfileSchema, type ProfileFormData } from '@/schemas/profileSchema'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
 import { initOneSignal, checkSubscriptionStatus } from '@/service/onesignalService/initOnesignal'
+import { PageBreadcrumb } from '@/components/common/PageBreadcrumb'
 
 export const Profile = () => {
   const { id } = useParams()
@@ -344,6 +345,9 @@ export const Profile = () => {
 
   return (
     <div className="w-full min-h-screen bg-gray-50">
+      <div className="px-4 pt-4">
+        <PageBreadcrumb />
+      </div>
       {/* Cover Image */}
       <div className="h-48 w-full bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600" />
 
