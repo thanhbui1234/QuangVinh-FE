@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select.tsx'
+import { Button } from '@/components/ui/button'
 import { useUpdateRole } from '@/hooks/personnel/useUpdateRole'
 import { ROLE } from '@/constants'
 const PersonnelList = () => {
@@ -28,6 +29,7 @@ const PersonnelList = () => {
   const [selectedUser, setSelectedUser] = useState<PersonnelUser | null>(null)
   const [detailDialogOpen, setDetailDialogOpen] = useState(false)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
+  const [selectedRole, setSelectedRole] = useState<UserRole | undefined>()
 
   const { allUsers, isLoading, isFetching, refetch } = useGetAllUsers()
 
@@ -137,6 +139,7 @@ const PersonnelList = () => {
                 e.stopPropagation()
                 setEditDialogOpen(true)
                 setSelectedUser(record)
+                setSelectedRole(record.roles?.[0])
               }}
               className="cursor-pointer text-2xl"
             />
@@ -210,10 +213,9 @@ const PersonnelList = () => {
       >
         <div className="grid gap-4">
           <Select
-            value={selectedUser?.roles?.[0]}
-            defaultValue={selectedUser?.roles?.[0]}
+            value={selectedRole}
             onValueChange={(value) => {
-              updateRoleMutation.mutate({ userId: selectedUser?.id, roles: value })
+              setSelectedRole(value as UserRole)
             }}
           >
             <SelectTrigger className="w-full">
@@ -225,6 +227,24 @@ const PersonnelList = () => {
               <SelectItem value={ROLE.DIRECTOR}>DIRECTOR</SelectItem>
             </SelectContent>
           </Select>
+          <div className="flex justify-end">
+            <Button
+              disabled={!selectedUser?.id || !selectedRole || updateRoleMutation.isPending}
+              onClick={() => {
+                if (!selectedUser?.id || !selectedRole) return
+                updateRoleMutation.mutate(
+                  { userId: selectedUser.id, roles: selectedRole },
+                  {
+                    onSuccess: () => {
+                      setEditDialogOpen(false)
+                    },
+                  }
+                )
+              }}
+            >
+              Cập nhật
+            </Button>
+          </div>
         </div>
       </CustomDialog>
     </div>

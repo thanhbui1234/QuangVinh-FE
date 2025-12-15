@@ -8,12 +8,12 @@ import { personnelKey } from '@/constants'
 export const useUpdateRole = () => {
   const updateRoleMutation = useMutation({
     mutationFn: async ({ userId, roles }: any) => {
-      const response = await POST(API_ENDPOINT.UPDATE_ROLE, { userId, roles })
+      const response = await POST(API_ENDPOINT.UPDATE_ROLE, { userId, roles: [roles] })
       return response
     },
     onSuccess: (response) => {
       queryClient.invalidateQueries({
-        queryKey: [personnelKey.getAll],
+        queryKey: personnelKey.getAll,
       })
       SonnerToaster({
         type: 'success',
