@@ -9,13 +9,25 @@ import { PersonnelDetailDialog } from '@/components/Personnel/PersonnelDetailDia
 import type { PersonnelUser } from '@/types/Personnel'
 import { formatTimestampToDate } from '@/utils/CommonUtils'
 import type { UserRole } from '@/constants'
-
+import { AiFillEdit } from 'react-icons/ai'
+import { CustomDialog } from '@/components/ui/customDialog'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select.tsx'
+import { useUpdateRole } from '@/hooks/personnel/useUpdateRole'
+import { ROLE } from '@/constants'
 const PersonnelList = () => {
+  const updateRoleMutation = useUpdateRole()
   const navigate = useNavigate()
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [selectedUser, setSelectedUser] = useState<PersonnelUser | null>(null)
   const [detailDialogOpen, setDetailDialogOpen] = useState(false)
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
 
   const { allUsers, isLoading, isFetching, refetch } = useGetAllUsers()
 
@@ -94,7 +106,7 @@ const PersonnelList = () => {
       filterOptions: [
         { label: 'Giám đốc', value: 'DIRECTOR' },
         { label: 'Quản lý', value: 'MANAGER' },
-        { label: 'Nhân viên', value: 'WORKER' },
+        { label: 'Nhân viên', value: 'STAFF' },
       ],
       render: (value: UserRole[] | undefined) => <PersonnelRoleBadges roles={value} />,
     },
@@ -116,7 +128,21 @@ const PersonnelList = () => {
       width: 180,
       align: 'center',
       fixed: 'right',
-      render: (_value, record) => <PersonnelActions userId={record.id} onView={handleView} />,
+      render: (_value, record) => {
+        return (
+          <div className="flex items-center gap-2">
+            <PersonnelActions userId={record.id} onView={handleView} />
+            <AiFillEdit
+              onClick={(e) => {
+                e.stopPropagation()
+                setEditDialogOpen(true)
+                setSelectedUser(record)
+              }}
+              className="cursor-pointer text-2xl"
+            />
+          </div>
+        )
+      },
     },
   ]
 
@@ -176,6 +202,31 @@ const PersonnelList = () => {
         onOpenChange={setDetailDialogOpen}
         user={selectedUser}
       />
+      <CustomDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        title="Chỉnh sửa vai trò nhân viên"
+        description=""
+      >
+        <div className="grid gap-4">
+          <Select
+            value={selectedUser?.roles?.[0]}
+            defaultValue={selectedUser?.roles?.[0]}
+            onValueChange={(value) => {
+              updateRoleMutation.mutate({ userId: selectedUser?.id, roles: value })
+            }}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Chọn vai trò" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ROLE.WORKER}>STAFF</SelectItem>
+              <SelectItem value={ROLE.MANAGER}>MANAGER</SelectItem>
+              <SelectItem value={ROLE.DIRECTOR}>DIRECTOR</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </CustomDialog>
     </div>
   )
 }

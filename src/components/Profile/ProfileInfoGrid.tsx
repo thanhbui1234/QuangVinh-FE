@@ -38,15 +38,6 @@ export const ProfileInfoGrid = ({
           onUpdate={hasNameChanged ? () => onUpdateField('name') : undefined}
         />
 
-        {/* Email Field - Only show update button if changed */}
-        <FormInlineField
-          control={control}
-          name="name"
-          placeholder="Tên"
-          disabled={disabled}
-          saving={isSaving}
-          onUpdate={() => onUpdateField('name')}
-        />
         <FormInlineField
           control={control}
           name="email"
@@ -64,16 +55,6 @@ export const ProfileInfoGrid = ({
           disabled={disabled}
           saving={isSaving}
           onUpdate={hasPhoneChanged ? () => onUpdateField('phone') : undefined}
-        />
-
-        {/* Position Field - Readonly */}
-        <FormInlineField
-          control={control}
-          name="position"
-          placeholder="Chức vụ"
-          disabled={true}
-          saving={isSaving}
-          onUpdate={undefined}
         />
       </div>
     </>

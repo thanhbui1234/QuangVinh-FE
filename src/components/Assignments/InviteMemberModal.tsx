@@ -92,7 +92,7 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
                     onChange={() => toggle(String(u.id))}
                     className="cursor-pointer"
                   />
-                  <span>{u.name}</span>
+                  <span>{u.name || u.email}</span>
                 </label>
               ))
             ) : (

@@ -5,11 +5,15 @@ import { STATUS_LABEL, STATUS_ICON } from './columns'
 import { useNavigate } from 'react-router'
 import { getTaskPriorityLabel, getTaskTypeLabel } from '@/utils/getLable'
 import { User, Clock, AlertCircle, FileText } from 'lucide-react'
-
+import { Button } from '@/components/ui/button'
 type Assignee = { id: string; name: string }
 
-export default function TaskList(props: { tasks: any; assignees?: Assignee[] }) {
-  const { tasks, assignees } = props
+export default function TaskList(props: {
+  tasks: any
+  assignees?: Assignee[]
+  onDelete?: (taskId: string) => void
+}) {
+  const { tasks, assignees, onDelete } = props
   const navigate = useNavigate()
   const assigneeIdToName = useMemo(() => {
     if (!assignees) return undefined
@@ -83,8 +87,24 @@ export default function TaskList(props: { tasks: any; assignees?: Assignee[] }) 
                 {/* Task Type */}
                 <div className="flex items-center gap-2 text-sm">
                   <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
-                  <span className="text-muted-foreground">Loại:</span>
+                  <span className="text-muted-foreground">Loại công việc:</span>
                   <span className="font-medium">{getTaskTypeLabel(t.taskType)}</span>
+                </div>
+
+                {/* Action */}
+                <div className="flex items-center gap-2 text-sm">
+                  <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
+                  <span className="text-muted-foreground">Thao tác:</span>
+                  <Button
+                    variant="outline"
+                    className="ml-2"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onDelete?.(t.id)
+                    }}
+                  >
+                    Xoá
+                  </Button>
                 </div>
               </div>
             </CardContent>

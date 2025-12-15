@@ -385,8 +385,12 @@ export const Profile = () => {
         {/* Name Display */}
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-gray-900">{currentValues.name || 'Người dùng'}</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            {currentValues.position || 'Chưa cập nhật chức vụ'}
+          <p className="text-xl text-gray-500 mt-1">
+            {currentValues.position === 'WORKER'
+              ? 'STAFF'
+              : currentValues.position === 'MANAGER'
+                ? 'MANAGER'
+                : 'DIRECTOR'}
           </p>
         </div>
 

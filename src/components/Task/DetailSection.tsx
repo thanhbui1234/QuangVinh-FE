@@ -55,7 +55,7 @@ export const DetailSection = ({ projectAssignmentDetail }: { projectAssignmentDe
         <div className="space-y-3 ml-6">
           {/* Type */}
           <div className="flex items-start gap-3">
-            <span className="text-sm text-gray-600 w-20 shrink-0">Loại:</span>
+            <span className="text-sm text-gray-600 w-20 shrink-0">Loại công việc:</span>
             <div className="flex items-center gap-2">
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">
                 <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">

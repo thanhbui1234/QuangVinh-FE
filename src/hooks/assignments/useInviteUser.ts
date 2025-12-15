@@ -29,6 +29,13 @@ export const useInviteUser = () => {
         description: respones.message,
       })
     },
+    onError: () => {
+      SonnerToaster({
+        type: 'error',
+        message: 'Mời thành viên không thành công',
+        description: 'Bạn không có quyền mời thành viên',
+      })
+    },
   })
 
   return { createProjectMutation }

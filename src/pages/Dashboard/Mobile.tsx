@@ -49,7 +49,7 @@ export default function DashboardMobile() {
           ) : isManagerPermission ? (
             <Badge variant="secondary">Manager</Badge>
           ) : (
-            <Badge>Worker</Badge>
+            <Badge>Staff</Badge>
           )}
         </div>
 

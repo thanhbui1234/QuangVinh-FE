@@ -11,6 +11,10 @@ import { useGetMemberTask, type IMemberTask } from '@/hooks/assignments/useGetMe
 import { useCreateTask } from '@/hooks/assignments/task/useCreateTask'
 import AssignmentsAction from '@/components/Assignments/AssignmentsAction'
 import { mapTaskStatus, type TaskStatus } from '@/utils/getLable'
+import { DialogConfirm } from '@/components/ui/alertComponent'
+import { useDeleteTask } from '@/hooks/assignments/task/useDeleteTask'
+import useCheckRole from '@/hooks/useCheckRole'
+import SonnerToaster from '@/components/ui/toaster'
 
 export type User = {
   id: string
@@ -40,12 +44,15 @@ export const ProjectAssignmentDetail: React.FC = () => {
   const { id } = useParams()
   const { projectAssignmentDetail, isFetching } = useGetDetailProject(Number(id))
   const isMobile = useIsMobile()
-
+  const [openConfirm, setOpenConfirm] = useState(false)
+  const [taskToDelete, setTaskToDelete] = useState<string | null>(null)
+  const deleteTaskMutation = useDeleteTask(Number(id))
   const { memberTask } = useGetMemberTask(Number(id))
   const createTaskMutation = useCreateTask()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isInviteOpen, setIsInviteOpen] = useState(false)
-
+  const { isManagerPermission, isDirectorPermission } = useCheckRole()
+  const isManagerOrDirector = isManagerPermission || isDirectorPermission
   // Transform API response to Project format
   const project: Project | null = useMemo(() => {
     if (!projectAssignmentDetail) return null
@@ -102,7 +109,25 @@ export const ProjectAssignmentDetail: React.FC = () => {
       }
     )
   }
+  const handleConfirmDelete = () => {
+    if (taskToDelete) {
+      if (!isManagerOrDirector) {
+        SonnerToaster({
+          type: 'error',
+          message: 'Bạn không có quyền xóa',
+        })
+        return
+      }
+      deleteTaskMutation.mutate(Number(taskToDelete))
+      setOpenConfirm(false)
+      setTaskToDelete(null)
+    }
+  }
 
+  const handleTaskDeleteClick = (taskId: string) => {
+    setTaskToDelete(taskId)
+    setOpenConfirm(true)
+  }
   // Loading fallback
   if (isFetching) {
     return (
@@ -139,9 +164,9 @@ export const ProjectAssignmentDetail: React.FC = () => {
       <Overview tasks={project.tasks} />
 
       {isMobile ? (
-        <TaskList tasks={project.tasks} assignees={users} />
+        <TaskList tasks={project.tasks} assignees={users} onDelete={handleTaskDeleteClick} />
       ) : (
-        <TaskTable tasks={project.tasks} assignees={users} />
+        <TaskTable tasks={project.tasks} assignees={users} onDelete={handleTaskDeleteClick} />
       )}
 
       <CreateTaskModal
@@ -157,6 +182,14 @@ export const ProjectAssignmentDetail: React.FC = () => {
         onOpenChange={setIsInviteOpen}
         taskGroupId={Number(id)}
         existingMemberIds={memberTask?.map((m: IMemberTask) => String(m.id)) || []}
+      />
+
+      <DialogConfirm
+        open={openConfirm}
+        onOpenChange={setOpenConfirm}
+        onConfirm={handleConfirmDelete}
+        title="Bạn có chắc chắn muốn xóa công việc này?"
+        description="Hành động này không thể hoàn tác."
       />
     </div>
   )

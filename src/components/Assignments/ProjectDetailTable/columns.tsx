@@ -4,7 +4,7 @@ import { type ColumnType } from '@/components/base/DataTable'
 import { CheckCircle2, CircleDashed, Clock4, Pencil } from 'lucide-react'
 import { getTaskPriorityLabel, getTaskTypeLabel } from '@/utils/getLable'
 import { formatEstimateHours } from '@/utils/CommonUtils'
-
+import { Button } from '@/components/ui/button'
 export type TaskRow = {
   id: string
   title: string
@@ -34,7 +34,10 @@ export const STATUS_ICON: Record<TaskRow['status'], React.ReactNode> = {
   done: <CheckCircle2 className="w-4 h-4 text-gray-400" />,
 }
 
-export const taskColumns = (assigneeIdToName?: Record<string, string>): ColumnType<TaskRow>[] => [
+export const taskColumns = (
+  assigneeIdToName?: Record<string, string>,
+  onDelete?: (id: string) => void
+): ColumnType<TaskRow>[] => [
   {
     title: 'Tiêu đề',
     dataIndex: 'title',
@@ -146,6 +149,27 @@ export const taskColumns = (assigneeIdToName?: Record<string, string>): ColumnTy
         <span className={isOverdue ? 'text-red-500 font-semibold' : ''}>
           {formatEstimateHours(value)}
         </span>
+      )
+    },
+  },
+  {
+    title: 'Thao tác',
+    dataIndex: 'action',
+    key: 'action',
+    render: (_, record) => {
+      return (
+        <div className="flex items-center gap-2">
+          <Button
+            className="h4"
+            onClick={(e) => {
+              e.stopPropagation()
+              onDelete?.(record.id)
+            }}
+            variant="destructive"
+          >
+            Xoá
+          </Button>
+        </div>
       )
     },
   },
