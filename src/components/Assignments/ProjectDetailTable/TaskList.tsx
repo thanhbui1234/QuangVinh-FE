@@ -7,13 +7,15 @@ import { getTaskPriorityLabel, getTaskTypeLabel } from '@/utils/getLable'
 import { User, Clock, AlertCircle, FileText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 type Assignee = { id: string; name: string }
+type Supervisor = { id: string; name: string }
 
 export default function TaskList(props: {
   tasks: any
   assignees?: Assignee[]
+  supervisors?: Supervisor[]
   onDelete?: (taskId: string) => void
 }) {
-  const { tasks, assignees, onDelete } = props
+  const { tasks, assignees, supervisors, onDelete } = props
   const navigate = useNavigate()
   const assigneeIdToName = useMemo(() => {
     if (!assignees) return undefined
@@ -22,6 +24,14 @@ export default function TaskList(props: {
       return acc
     }, {})
   }, [assignees])
+
+  const supervisorIdToName = useMemo(() => {
+    if (!supervisors) return undefined
+    return supervisors.reduce<Record<string, string>>((acc, s) => {
+      acc[s.id] = s.name
+      return acc
+    }, {})
+  }, [supervisors])
 
   const statusClassMap: Record<string, string> = {
     todo: 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200',
@@ -72,6 +82,17 @@ export default function TaskList(props: {
                     {assigneeIdToName?.[t.assigneeId as string] || 'Chưa gán'}
                   </span>
                 </div>
+
+                {/* Supervisor */}
+                {(t.supervisor || t.supervisorId) && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <User className="w-4 h-4 text-muted-foreground shrink-0" />
+                    <span className="text-muted-foreground">Người chịu trách nhiệm:</span>
+                    <span className="font-medium truncate">
+                      {t.supervisor?.name || supervisorIdToName?.[t.supervisorId as string] || '—'}
+                    </span>
+                  </div>
+                )}
 
                 {/* Estimate Hours */}
                 <div className="flex items-center gap-2 text-sm">

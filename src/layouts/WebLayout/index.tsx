@@ -32,6 +32,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import BellNotification from '@/components/ui/bell'
 import { ROLE } from '@/constants'
 import { useAuthStore } from '@/stores/authStore'
+import { useGetProfile } from '@/hooks/profile/useGetProfile'
 
 const WebLayout = ({ children }: Props) => {
   // Enable real-time notifications
@@ -42,8 +43,11 @@ const WebLayout = ({ children }: Props) => {
 
   const location = useLocation()
   const navigate = useNavigate()
-
   const { user } = useAuthStore()
+  console.log('user', user)
+  const { profile: userProfile } = useGetProfile(user?.id)
+  console.log('userProfile', userProfile)
+  console.log('userProfile avatar', userProfile?.avatar)
   const userRoles = user?.roles || []
   const handleLogout = () => {
     navigate('/profile')
@@ -357,9 +361,9 @@ const WebLayout = ({ children }: Props) => {
             <div className="flex items-center gap-4">
               <BellNotification />
               <Avatar onClick={() => handleLogout()} className="cursor-pointer">
-                <AvatarImage src={user?.avatar} />
+                <AvatarImage src={userProfile?.avatar} />
                 <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white">
-                  {user?.name?.charAt(0).toUpperCase() || 'U'}
+                  {userProfile?.name?.charAt(0).toUpperCase() || 'U'}
                 </AvatarFallback>
               </Avatar>
             </div>

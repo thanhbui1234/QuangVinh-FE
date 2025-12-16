@@ -293,7 +293,7 @@ export default function LeavesWeb() {
       <StatisticsCards requests={statusCounts} />
       <LeavesTable
         data={allItems}
-        canApprove={canApprove}
+        canApprove={canApprove as boolean}
         currentPage={currentPage}
         pageSize={pageSize}
         onPageChange={handlePageChange}

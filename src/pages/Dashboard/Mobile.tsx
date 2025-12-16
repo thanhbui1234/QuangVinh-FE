@@ -71,7 +71,7 @@ export default function DashboardMobile() {
           />
         </ChartCard>
 
-        <OverviewKpiSection isManagerOrDirector={isManagerOrDirector} layout="mobile" />
+        <OverviewKpiSection isManagerOrDirector={isManagerOrDirector as boolean} layout="mobile" />
 
         {isManagerOrDirector && (
           <>

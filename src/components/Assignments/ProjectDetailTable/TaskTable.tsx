@@ -3,25 +3,25 @@ import { useNavigate } from 'react-router'
 import { TableBase } from '@/components/base/DataTable'
 import { taskColumns, type TaskRow } from './columns'
 
-type Assignee = { id: string; name: string }
+type Supervisor = { id: string; name: string }
 
 export default function TaskTable(props: {
   tasks: any
-  assignees?: Assignee[]
+  supervisors?: Supervisor[]
   onDelete?: (id: string) => void
 }) {
-  const { tasks, assignees, onDelete } = props
+  const { tasks, supervisors, onDelete } = props
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([])
 
-  const assigneeIdToName = useMemo(() => {
-    if (!assignees) return undefined
-    return assignees.reduce<Record<string, string>>((acc, a) => {
-      acc[a.id] = a.name
+  const supervisorIdToName = useMemo(() => {
+    if (!supervisors) return undefined
+    return supervisors.reduce<Record<string, string>>((acc, s) => {
+      acc[s.id] = s.name
       return acc
     }, {})
-  }, [assignees])
+  }, [supervisors])
 
   const handleRefresh = () => {
     setLoading(true)
@@ -33,7 +33,7 @@ export default function TaskTable(props: {
       searchable
       searchPlaceholder="Tìm kiếm theo tiêu đề..."
       dataSource={tasks}
-      columns={taskColumns(assigneeIdToName, onDelete)}
+      columns={taskColumns(supervisorIdToName, onDelete)}
       loading={loading}
       onRefresh={handleRefresh}
       filterable

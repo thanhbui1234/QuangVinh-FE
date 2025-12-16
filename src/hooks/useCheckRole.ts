@@ -3,18 +3,21 @@ import { ROLE } from '@/constants'
 import { useAuthStore } from '@/stores/authStore'
 const useCheckRole = () => {
   const { user } = useAuthStore()
-  const roles = user?.roles ?? []
   const userId = user?.id
 
   const { isManagerPermission, isDirectorPermission } = useMemo(() => {
-    const isDirector = roles.includes(ROLE.DIRECTOR)
+    const isDirector = user?.roles?.includes(ROLE.DIRECTOR)
     return {
-      isManagerPermission: isDirector || roles.includes(ROLE.MANAGER),
+      isManagerPermission: isDirector || user?.roles?.includes(ROLE.MANAGER),
       isDirectorPermission: isDirector,
     }
-  }, [roles])
+  }, [user?.roles])
 
-  return { isManagerPermission, isDirectorPermission, userId }
+  const hasPermission = useMemo(() => {
+    return isManagerPermission || isDirectorPermission
+  }, [isManagerPermission, isDirectorPermission])
+
+  return { isManagerPermission, isDirectorPermission, hasPermission, userId }
 }
 
 export default useCheckRole

@@ -13,6 +13,13 @@ export type TaskRow = {
   priority: number
   taskType: number
   assigneeId?: any
+  supervisorId?: string
+  supervisor?: {
+    id: number
+    name: string
+    email?: string
+    avatar?: string
+  }
   estimateHours?: number
   groupId?: number
   startTime?: any
@@ -35,7 +42,7 @@ export const STATUS_ICON: Record<TaskRow['status'], React.ReactNode> = {
 }
 
 export const taskColumns = (
-  assigneeIdToName?: Record<string, string>,
+  supervisorIdToName?: Record<string, string>,
   onDelete?: (id: string) => void
 ): ColumnType<TaskRow>[] => [
   {
@@ -122,12 +129,22 @@ export const taskColumns = (
     },
   },
   {
-    title: 'Người phụ trách',
-    dataIndex: 'assigneeId',
-    key: 'assigneeId',
+    title: 'Người chịu trách nhiệm',
+    dataIndex: 'supervisor',
+    key: 'supervisor',
     filterable: true,
     filterType: 'text',
-    render: (value) => assigneeIdToName?.[value as string] || value || '-',
+    render: (value, record) => {
+      // Prefer direct supervisor object if available
+      if (value && typeof value === 'object' && 'name' in value) {
+        return value.name || value.email || '-'
+      }
+      // Fallback to supervisorId lookup
+      if (record.supervisorId && supervisorIdToName) {
+        return supervisorIdToName[record.supervisorId] || '-'
+      }
+      return '-'
+    },
   },
   {
     title: 'Ưu tiên',

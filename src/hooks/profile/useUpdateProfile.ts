@@ -22,7 +22,7 @@ export const useUpdateProfile = (userId: any) => {
     },
     onSuccess: (response) => {
       queryClient.invalidateQueries({
-        queryKey: [profileKey.detail(userId)],
+        queryKey: [profileKey.detail(userId.toString()), { id: userId }],
       })
       SonnerToaster({
         type: 'success',

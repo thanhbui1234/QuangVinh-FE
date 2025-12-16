@@ -30,6 +30,13 @@ export type Task = {
   priority: number
   taskType: number
   assigneeId?: string
+  supervisorId?: string
+  supervisor?: {
+    id: number
+    name: string
+    email?: string
+    avatar?: string
+  }
   estimateHours?: number
 }
 
@@ -53,8 +60,15 @@ export const ProjectAssignmentDetail: React.FC = () => {
   const createTaskMutation = useCreateTask()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isInviteOpen, setIsInviteOpen] = useState(false)
-  const { isManagerPermission, isDirectorPermission } = useCheckRole()
-  const isManagerOrDirector = isManagerPermission || isDirectorPermission
+  const { hasPermission } = useCheckRole()
+
+  const supervisors = useMemo(() => {
+    return projectAssignmentDetail?.tasks?.map((task: any) => ({
+      id: task?.supervisor?.id,
+      name: task?.supervisor?.name,
+    }))
+  }, [projectAssignmentDetail?.tasks])
+  console.log('supervisors', supervisors)
   // Transform API response to Project format
   const project: Project | null = useMemo(() => {
     if (!projectAssignmentDetail) return null
@@ -73,6 +87,8 @@ export const ProjectAssignmentDetail: React.FC = () => {
           priority: task.priority,
           taskType: task.taskType,
           assigneeId: task.assignee?.id ? String(task.assignee.id) : undefined,
+          supervisorId: task.supervisor?.id ? String(task.supervisor.id) : undefined,
+          supervisor: task.supervisor || undefined,
           estimateHours: task.estimateTime
             ? Math.round((task.estimateTime - Date.now()) / (1000 * 60 * 60))
             : undefined,
@@ -80,14 +96,14 @@ export const ProjectAssignmentDetail: React.FC = () => {
     }
   }, [projectAssignmentDetail])
 
-  // Transform members to User format
-  const users: User[] = useMemo(() => {
+  // Transform members to User format (currently not used but kept for future reference)
+  /* const users: User[] = useMemo(() => {
     if (!projectAssignmentDetail?.members) return []
     return projectAssignmentDetail.members.map((member: any) => ({
       id: String(member.id),
       name: member.name || member.email,
     }))
-  }, [projectAssignmentDetail])
+  }, [projectAssignmentDetail]) */
 
   function handleCreateTask(data: CreateTaskFormData) {
     createTaskMutation.mutate(
@@ -113,7 +129,7 @@ export const ProjectAssignmentDetail: React.FC = () => {
   }
   const handleConfirmDelete = () => {
     if (taskToDelete) {
-      if (!isManagerOrDirector) {
+      if (!hasPermission) {
         SonnerToaster({
           type: 'error',
           message: 'Bạn không có quyền xóa',
@@ -152,7 +168,6 @@ export const ProjectAssignmentDetail: React.FC = () => {
       </div>
     )
   }
-
   return (
     <div className="p-4 flex flex-col gap-4">
       <PageBreadcrumb />
@@ -167,9 +182,17 @@ export const ProjectAssignmentDetail: React.FC = () => {
       <Overview tasks={project.tasks} />
 
       {isMobile ? (
-        <TaskList tasks={project.tasks} assignees={users} onDelete={handleTaskDeleteClick} />
+        <TaskList
+          tasks={project.tasks}
+          supervisors={supervisors}
+          onDelete={handleTaskDeleteClick}
+        />
       ) : (
-        <TaskTable tasks={project.tasks} assignees={users} onDelete={handleTaskDeleteClick} />
+        <TaskTable
+          tasks={project.tasks}
+          supervisors={supervisors}
+          onDelete={handleTaskDeleteClick}
+        />
       )}
 
       <CreateTaskModal

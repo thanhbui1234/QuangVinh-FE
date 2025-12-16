@@ -35,8 +35,7 @@ const ProjectAssignment = () => {
   const [showSearchDropdown, setShowSearchDropdown] = useState(false)
   const [projectToDelete, setProjectToDelete] = useState<IProjectAssignment | null>(null)
   const { deleteProjectMutation } = useDeleteProject()
-  const { isManagerPermission, isDirectorPermission } = useCheckRole()
-  const isManagerOrDirector = isManagerPermission || isDirectorPermission
+  const { hasPermission } = useCheckRole()
   const debouncedSearch = useDebouncedCallback((searchValue: string) => {
     if (searchValue.trim()) {
       createSearchMutation.mutate(searchValue, {
@@ -150,7 +149,7 @@ const ProjectAssignment = () => {
               <div className="fixed inset-0 z-40" onClick={() => setShowSearchDropdown(false)} />
             )}
           </div>
-          {isManagerOrDirector && <Button onClick={handleCreate}>Tạo dự án</Button>}
+          {hasPermission && <Button onClick={handleCreate}>Tạo dự án</Button>}
           <AssignmentsSheet
             open={open}
             setOpen={setOpen}

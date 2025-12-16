@@ -8,12 +8,15 @@ interface UpdateAvatarPayload {
   avatar: string
 }
 export const useUpdateAvatar = (userId: any) => {
+  console.log('userId update avatar', userId)
   const { mutate } = useMutation({
     mutationFn: async (payload: UpdateAvatarPayload) => {
       return await POST(API_ENDPOINT.UPDATE_AVATAR, payload)
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [profileKey.detail(userId)] })
+      queryClient.invalidateQueries({
+        queryKey: [profileKey.detail(userId.toString()), { id: userId }],
+      })
     },
   })
 
