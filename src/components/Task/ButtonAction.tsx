@@ -11,6 +11,7 @@ import { Pencil, MessageCircle } from 'lucide-react'
 import { useUpdateStatus } from '@/hooks/assignments/task/useUpdateStatus'
 import { DialogAssignee } from './DialogAsignne'
 import { TASK_STATUS, TASK_STATUS_LABELS, TASK_STATUS_FLOW } from '@/constants/assignments/task'
+import useCheckRole from '@/hooks/useCheckRole'
 
 export const ButtonAction = ({
   setEditOpen,
@@ -21,6 +22,7 @@ export const ButtonAction = ({
   projectAssignmentDetail: any
   memberTask: any
 }) => {
+  const { hasPermission } = useCheckRole()
   type TaskStatusType = 1 | 2 | 8 | 9
   const updateStatusMutation = useUpdateStatus(projectAssignmentDetail)
   const currentStatus = (projectAssignmentDetail?.status || TASK_STATUS.CREATED) as TaskStatusType
@@ -65,15 +67,17 @@ export const ButtonAction = ({
   return (
     <div className="flex flex-wrap items-center gap-2 mb-6">
       {/* Chỉnh sửa */}
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => setEditOpen(true)}
-        className="text-gray-700 hover:bg-gray-100 bg-gray-200"
-      >
-        <Pencil className="w-4 h-4 sm:mr-1" />
-        <span className="hidden sm:inline">Chỉnh sửa</span>
-      </Button>
+      {hasPermission && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setEditOpen(true)}
+          className="text-gray-700 hover:bg-gray-100 bg-gray-200"
+        >
+          <Pencil className="w-4 h-4 sm:mr-1" />
+          <span className="hidden sm:inline">Chỉnh sửa</span>
+        </Button>
+      )}
 
       {/* Bình luận */}
       <Button
@@ -90,7 +94,7 @@ export const ButtonAction = ({
       </Button>
 
       {/* Chọn assignee */}
-      <DialogAssignee memberTask={memberTask} task={projectAssignmentDetail} />
+      {hasPermission && <DialogAssignee memberTask={memberTask} task={projectAssignmentDetail} />}
 
       {/* Dropdown chuyển trạng thái */}
       <Select

@@ -1,5 +1,5 @@
 import { Card, CardContent } from '@/components/ui/card'
-import { Calendar, Clock4 } from 'lucide-react'
+import { Calendar, Clock4, Link } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
 import { formatTimestamp, getFormattedEstimate } from '@/utils/CommonUtils'
 import { MdOutlineContentCopy } from 'react-icons/md'
@@ -47,7 +47,7 @@ export const SidebarTask = ({ projectAssignmentDetail }: { projectAssignmentDeta
                 {assignees.length > 0 ? (
                   assignees.map((user: any) => (
                     <div key={user.id} className="p-3 bg-blue-50/50 rounded-lg">
-                      <UserAvatar name={user.name} avatar={user.avatar} />
+                      <UserAvatar id={user.id} name={user.name} avatar={user.avatar} />
                     </div>
                   ))
                 ) : (
@@ -63,6 +63,7 @@ export const SidebarTask = ({ projectAssignmentDetail }: { projectAssignmentDeta
               </label>
               <div className="p-3 bg-purple-50/50 rounded-lg">
                 <UserAvatar
+                  id={projectAssignmentDetail?.creator?.id}
                   name={projectAssignmentDetail?.creator?.name}
                   avatar={projectAssignmentDetail?.creator?.avatar}
                 />
@@ -75,7 +76,11 @@ export const SidebarTask = ({ projectAssignmentDetail }: { projectAssignmentDeta
                 Người chịu trách nhiệm
               </label>
               <div className="p-3 bg-green-50/50 rounded-lg">
-                <UserAvatar name={supervisor?.name} avatar={supervisor?.avatar} />
+                <UserAvatar
+                  id={supervisor?.id}
+                  name={supervisor?.name}
+                  avatar={supervisor?.avatar}
+                />
               </div>
             </div>
 

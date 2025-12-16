@@ -13,7 +13,9 @@ export const useUpdateName = (userId: any) => {
       return await POST(API_ENDPOINT.UPDATE_NAME, payload)
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [profileKey.detail(userId)] })
+      queryClient.invalidateQueries({
+        queryKey: [profileKey.detail(userId.toString()), { id: userId }],
+      })
     },
   })
 

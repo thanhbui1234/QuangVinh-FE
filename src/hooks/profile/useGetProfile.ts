@@ -3,9 +3,9 @@ import { POST } from '@/core/api'
 import { API_ENDPOINT } from '@/common/apiEndpoint'
 import { profileKey } from '@/constants'
 
-export const useGetProfile = (id: any) => {
+export const useGetProfile = (id?: any) => {
   const { data, isFetching, error } = useQuery({
-    queryKey: [profileKey.detail(id.toString()), { id }],
+    queryKey: [profileKey.detail(id?.toString()), { id: id }],
     queryFn: () => POST(API_ENDPOINT.GET_PROFILE, { userId: Number(id) }),
     select(data) {
       return data.userInfo

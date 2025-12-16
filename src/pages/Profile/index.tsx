@@ -96,12 +96,10 @@ export const Profile = () => {
       return
     }
 
-    if (isOwnProfile && user?.avatar) {
-      setAvatarPreview(user.avatar)
-    } else if (!isOwnProfile && profile?.avatar) {
-      setAvatarPreview(profile.avatar)
+    if (isOwnProfile && profile?.avatar) {
+      setAvatarPreview(profile?.avatar)
     }
-  }, [isOwnProfile, user?.id, user?.avatar, profile?.id, profile?.avatar])
+  }, [isOwnProfile, profile?.id, profile?.avatar])
 
   // Populate form when data loads
   useEffect(() => {
@@ -205,7 +203,7 @@ export const Profile = () => {
             onError: () => {
               toast.error('Cập nhật ảnh đại diện thất bại')
               // Revert preview on error
-              setAvatarPreview(user?.avatar || profile?.avatar)
+              setAvatarPreview(profile?.avatar || user?.avatar)
               URL.revokeObjectURL(preview)
               isUploadingRef.current = false
             },
@@ -215,7 +213,7 @@ export const Profile = () => {
       onError: () => {
         toast.error('Upload ảnh thất bại')
         // Revert preview on error
-        setAvatarPreview(user?.avatar || profile?.avatar)
+        setAvatarPreview(profile?.avatar || user?.avatar)
         URL.revokeObjectURL(preview)
         isUploadingRef.current = false
       },

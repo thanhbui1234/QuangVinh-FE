@@ -13,7 +13,9 @@ export const useUpdatePhone = (userId: any) => {
       return await POST(API_ENDPOINT.UPDATE_PHONE, { phoneNumber: payload.phone })
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [profileKey.detail(userId)] })
+      queryClient.invalidateQueries({
+        queryKey: [profileKey.detail(userId.toString()), { id: userId }],
+      })
     },
   })
 
