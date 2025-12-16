@@ -162,22 +162,45 @@ export const Profile = () => {
             onSuccess: () => {
               toast.success('Cập nhật ảnh đại diện thành công')
 
-              // Revoke the blob URL to free memory
-              URL.revokeObjectURL(preview)
+              // Add cache-busting to ensure fresh image from server
+              const serverUrl = `${response.viewUrl}${response.viewUrl.includes('?') ? '&' : '?'}t=${Date.now()}`
 
-              // Update preview with the server URL - this is the source of truth
-              setAvatarPreview(response.viewUrl)
+              // Preload the server image before switching to ensure it's ready
+              const img = new Image()
+              img.onload = () => {
+                // Only switch to server URL after it's successfully loaded
+                setAvatarPreview(response.viewUrl)
 
-              // Update store (will trigger useEffect but it will be skipped due to isUploadingRef)
-              if (user) {
-                setUser({ ...user, avatar: response.viewUrl })
+                // Update store (will trigger useEffect but it will be skipped due to isUploadingRef)
+                if (user) {
+                  setUser({ ...user, avatar: response.viewUrl })
+                }
+
+                // Clean up blob URL after server image is confirmed to work
+                URL.revokeObjectURL(preview)
+
+                // Reset flag after state updates have been flushed
+                queueMicrotask(() => {
+                  console.log('Resetting upload flag')
+                  isUploadingRef.current = false
+                })
               }
+              img.onerror = () => {
+                console.error('Failed to load server image, keeping blob preview')
+                // Keep the blob preview if server image fails to load
+                // But still update the store with server URL for future page loads
+                if (user) {
+                  setUser({ ...user, avatar: response.viewUrl })
+                }
 
-              // Reset flag after state updates have been flushed
-              queueMicrotask(() => {
-                console.log('Resetting upload flag')
-                isUploadingRef.current = false
-              })
+                // Don't revoke blob URL yet since it's still being used
+                // It will be cleaned up on next avatar change or page unload
+                queueMicrotask(() => {
+                  isUploadingRef.current = false
+                })
+              }
+              // Start loading the server image
+              img.src = serverUrl
             },
             onError: () => {
               toast.error('Cập nhật ảnh đại diện thất bại')

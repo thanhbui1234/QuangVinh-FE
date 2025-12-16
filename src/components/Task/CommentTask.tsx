@@ -12,7 +12,7 @@ import { useNavigate } from 'react-router'
 import { parseMentionsToHTML } from '@/utils/mentions'
 import { useGetListComments } from '@/hooks/assignments/comments/useGetListComments'
 import { useUploadFile } from '@/hooks/useUploadFile'
-import { useState, useRef } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { useAuthStore } from '@/stores'
 import { useRemoveComment } from '@/hooks/assignments/comments/useRemoveComment'
 import { useUpdateComment } from '@/hooks/assignments/comments/useUpdateComment'
@@ -93,6 +93,7 @@ export const CommentTask = ({ member, taskId }: { member: IMemberTask[]; taskId:
   }
   const [imageUploads, setImageUploads] = useState<ImageUpload[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const isSubmittingRef = useRef(false)
 
   const removeCommentMutation = useRemoveComment({ taskId })
   const [open, setOpen] = useState(false)
@@ -206,73 +207,111 @@ export const CommentTask = ({ member, taskId }: { member: IMemberTask[]; taskId:
     return 1 // NORMAL
   }
 
-  const onSubmit = async (data: CommentFormData) => {
-    // Get uploaded URLs (only completed uploads)
-    const uploadedUrls = imageUploads
-      .filter((upload) => upload.uploadedUrl !== null)
-      .map((upload) => upload.uploadedUrl as string)
+  // Cancel editing - clear main input
+  const handleCancelEdit = useCallback(() => {
+    setEditingCommentId(null)
+    reset()
+    // Clean up ObjectURLs
+    imageUploads.forEach((upload) => {
+      if (upload.preview.startsWith('blob:')) {
+        URL.revokeObjectURL(upload.preview)
+      }
+    })
+    setImageUploads([])
+  }, [reset, imageUploads])
 
-    // Must have either message or images
-    if (!data.message.trim() && uploadedUrls.length === 0) {
-      SonnerToaster({
-        type: 'error',
-        message: 'Vui lòng nhập bình luận hoặc upload ảnh',
-      })
-      return
-    }
-
-    // Convert @[Name](ID) format to plain @Name for backend
-    const plainMessage = data.message.replace(/@\[([^\]]+)\]\((\d+)\)/g, '@$1')
-    const mentionIds = extractMentionIds(data.message)
-    const hasMentions = mentionIds.length > 0
-    const hasImages = uploadedUrls.length > 0
-
-    try {
-      if (editingCommentId) {
-        // Update existing comment
-        await updateCommentMutation.mutateAsync({
-          commentId: editingCommentId,
-          taskId: taskId,
-          message: plainMessage.trim() || undefined,
-          imageUrls: hasImages ? uploadedUrls : undefined,
-          commentType: getCommentType(plainMessage, hasImages, hasMentions),
-          mentionIds: hasMentions ? mentionIds : undefined,
-        })
-
-        SonnerToaster({
-          type: 'success',
-          message: 'Cập nhật bình luận thành công',
-        })
-        handleCancelEdit()
-      } else {
-        // Create new comment
-        await createCommentMutation.mutateAsync({
-          taskId: taskId,
-          message: plainMessage.trim() || undefined,
-          imageUrls: hasImages ? uploadedUrls : undefined,
-          commentType: getCommentType(plainMessage, hasImages, hasMentions),
-          mentionIds: hasMentions ? mentionIds : undefined,
-        })
-
-        SonnerToaster({
-          type: 'success',
-          message: 'Đã thêm bình luận thành công',
-        })
+  const onSubmit = useCallback(
+    async (data: CommentFormData) => {
+      // Prevent double submit
+      if (isSubmittingRef.current) {
+        console.log('Already submitting, skipping...')
+        return
       }
 
-      // Reset form and images
-      reset()
-      // Clean up ObjectURLs
-      imageUploads.forEach((upload) => URL.revokeObjectURL(upload.preview))
-      setImageUploads([])
-    } catch (error) {
-      console.error(error)
-      SonnerToaster({
-        type: 'error',
-        message: editingCommentId ? 'Có lỗi khi cập nhật bình luận' : 'Có lỗi khi thêm bình luận',
-      })
-    }
-  }
+      isSubmittingRef.current = true
+
+      // Get uploaded URLs (only completed uploads)
+      const uploadedUrls = imageUploads
+        .filter((upload) => upload.uploadedUrl !== null)
+        .map((upload) => upload.uploadedUrl as string)
+
+      // Must have either message or images
+      if (!data.message.trim() && uploadedUrls.length === 0) {
+        SonnerToaster({
+          type: 'error',
+          message: 'Vui lòng nhập bình luận hoặc upload ảnh',
+        })
+        isSubmittingRef.current = false
+        return
+      }
+
+      // Convert @[Name](ID) format to plain @Name for backend
+      const plainMessage = data.message.replace(/@\[([^\]]+)\]\((\d+)\)/g, '@$1')
+      const mentionIds = extractMentionIds(data.message)
+      const hasMentions = mentionIds.length > 0
+      const hasImages = uploadedUrls.length > 0
+
+      try {
+        if (editingCommentId) {
+          // Update existing comment
+          await updateCommentMutation.mutateAsync({
+            commentId: editingCommentId,
+            taskId: taskId,
+            message: plainMessage.trim() || undefined,
+            imageUrls: hasImages ? uploadedUrls : undefined,
+            commentType: getCommentType(plainMessage, hasImages, hasMentions),
+            mentionIds: hasMentions ? mentionIds : undefined,
+          })
+
+          SonnerToaster({
+            type: 'success',
+            message: 'Cập nhật bình luận thành công',
+          })
+          handleCancelEdit()
+        } else {
+          // Create new comment
+          await createCommentMutation.mutateAsync({
+            taskId: taskId,
+            message: plainMessage.trim() || undefined,
+            imageUrls: hasImages ? uploadedUrls : undefined,
+            commentType: getCommentType(plainMessage, hasImages, hasMentions),
+            mentionIds: hasMentions ? mentionIds : undefined,
+          })
+
+          SonnerToaster({
+            type: 'success',
+            message: 'Đã thêm bình luận thành công',
+          })
+        }
+
+        // Reset form and images
+        reset()
+        // Clean up ObjectURLs
+        imageUploads.forEach((upload) => URL.revokeObjectURL(upload.preview))
+        setImageUploads([])
+      } catch (error) {
+        console.error(error)
+        SonnerToaster({
+          type: 'error',
+          message: editingCommentId ? 'Có lỗi khi cập nhật bình luận' : 'Có lỗi khi thêm bình luận',
+        })
+      } finally {
+        // Reset flag after a short delay to prevent rapid re-submissions
+        setTimeout(() => {
+          isSubmittingRef.current = false
+        }, 500)
+      }
+    },
+    [
+      imageUploads,
+      editingCommentId,
+      updateCommentMutation,
+      createCommentMutation,
+      taskId,
+      reset,
+      handleCancelEdit,
+    ]
+  )
 
   // Transform data for mentions with search/filter support
   const usersData: SuggestionDataItem[] =
@@ -322,19 +361,6 @@ export const CommentTask = ({ member, taskId }: { member: IMemberTask[]; taskId:
     setImageUploads(existingUploads)
   }
 
-  // Cancel editing - clear main input
-  const handleCancelEdit = () => {
-    setEditingCommentId(null)
-    reset()
-    // Clean up ObjectURLs
-    imageUploads.forEach((upload) => {
-      if (upload.preview.startsWith('blob:')) {
-        URL.revokeObjectURL(upload.preview)
-      }
-    })
-    setImageUploads([])
-  }
-
   return (
     <>
       <Card className="border-0 shadow-sm">
@@ -362,13 +388,28 @@ export const CommentTask = ({ member, taskId }: { member: IMemberTask[]; taskId:
                         setValue('message', e.target.value)
                       }}
                       onKeyDown={(e) => {
-                        // Prevent default Enter behavior to avoid double submit
-                        // Form will handle submission naturally
+                        // Handle Enter key submission
                         if (e.key === 'Enter' && !e.shiftKey) {
-                          // Prevent the default but let form handle it
-                          // No manual handleSubmit call needed
+                          e.preventDefault() // Prevent default newline
+                          e.stopPropagation() // Prevent event bubbling
+
+                          // Check if already submitting
+                          if (isSubmittingRef.current) {
+                            return
+                          }
+
+                          // Only submit if form is valid (has content or images)
+                          const hasContent = commentInput?.trim() || imageUploads.length > 0
+                          const isUploading =
+                            createCommentMutation.isPending ||
+                            updateCommentMutation.isPending ||
+                            imageUploads.some((upload) => upload.isUploading)
+
+                          if (hasContent && !isUploading) {
+                            handleSubmit(onSubmit)()
+                          }
                         }
-                        // Allow Shift+Enter for new line (default behavior)
+                        // Shift+Enter for new line (default behavior)
                       }}
                       placeholder={isMobile ? '' : 'Viết bình luận... (gõ @ để mention người)'}
                       style={mentionsInputStyle}
