@@ -131,14 +131,90 @@ export async function initOneSignal(): Promise<boolean> {
 }
 
 export async function checkSubscriptionStatus(): Promise<boolean> {
+  // If OneSignal SDK is not loaded, check browser Notification API
+  if (!window.OneSignal && typeof window !== 'undefined' && 'Notification' in window) {
+    return Notification.permission === 'granted'
+  }
+
+  // If OneSignal SDK is loaded, use deferred pattern to check subscription
   return new Promise((resolve) => {
-    ensureDeferred()
-    window.OneSignalDeferred!.push((OneSignal: any) => {
+    // If OneSignal is already available, check immediately
+    if (window.OneSignal) {
       try {
-        const permission: string | undefined = OneSignal?.Notifications?.permission
-        const isGranted = permission === 'granted'
-        resolve(isGranted)
-      } catch {
+        const OneSignal = window.OneSignal
+        // Check browser notification permission first
+        const browserPermission = OneSignal?.Notifications?.permission
+        if (browserPermission !== 'granted') {
+          resolve(false)
+          return
+        }
+
+        // Check OneSignal push subscription status
+        const pushSubscription = OneSignal?.User?.PushSubscription
+        if (!pushSubscription) {
+          resolve(false)
+          return
+        }
+
+        // Check if user has opted in and has a valid subscription ID
+        const isOptedIn = pushSubscription.optedIn === true
+        const hasSubscriptionId = !!pushSubscription.id
+
+        const isSubscribed = isOptedIn && hasSubscriptionId
+        console.log('[OneSignal] Subscription status:', {
+          isOptedIn,
+          hasSubscriptionId,
+          isSubscribed,
+          playerId: pushSubscription.id,
+        })
+
+        resolve(isSubscribed)
+      } catch (error) {
+        console.error('[OneSignal] Error checking subscription status:', error)
+        resolve(false)
+      }
+      return
+    }
+
+    // If OneSignal is not loaded yet, use deferred pattern
+    ensureDeferred()
+    window.OneSignalDeferred!.push(async (OneSignal: any) => {
+      try {
+        // Check if OneSignal is initialized
+        if (!OneSignal) {
+          resolve(false)
+          return
+        }
+
+        // Check browser notification permission first
+        const browserPermission = OneSignal?.Notifications?.permission
+        if (browserPermission !== 'granted') {
+          resolve(false)
+          return
+        }
+
+        // Check OneSignal push subscription status
+        const pushSubscription = OneSignal?.User?.PushSubscription
+        if (!pushSubscription) {
+          resolve(false)
+          return
+        }
+
+        // Check if user has opted in and has a valid subscription ID
+        const isOptedIn = pushSubscription.optedIn === true
+        const hasSubscriptionId = !!pushSubscription.id
+
+        const isSubscribed = isOptedIn && hasSubscriptionId
+        console.log('[OneSignal] Subscription status:', {
+          isOptedIn,
+          hasSubscriptionId,
+          isSubscribed,
+          playerId: pushSubscription.id,
+        })
+
+        resolve(isSubscribed)
+      } catch (error) {
+        console.error('[OneSignal] Error checking subscription status:', error)
         resolve(false)
       }
     })

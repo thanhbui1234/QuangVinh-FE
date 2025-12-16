@@ -69,25 +69,26 @@ export const Profile = () => {
 
     const checkStatus = async () => {
       try {
-        // Only check if OneSignal is already loaded
-        if (window.OneSignal) {
-          const isSubscribed = await checkSubscriptionStatus()
-          setIsNotificationsOn(isSubscribed)
-        } else {
-          // Fallback to browser permission check
-          if ('Notification' in window && Notification.permission === 'granted') {
-            setIsNotificationsOn(true)
-          } else {
+        if ('Notification' in window) {
+          if (Notification.permission === 'denied') {
             setIsNotificationsOn(false)
+            return
           }
         }
+
+        const hasPermission = await checkSubscriptionStatus()
+        setIsNotificationsOn(hasPermission)
       } catch (error) {
         console.error('Error checking notification status:', error)
         setIsNotificationsOn(false)
       }
     }
 
-    checkStatus()
+    const timeoutId = setTimeout(() => {
+      checkStatus()
+    }, 500)
+
+    return () => clearTimeout(timeoutId)
   }, [])
 
   // Sync avatar preview only when user/profile ID or avatar URL changes
