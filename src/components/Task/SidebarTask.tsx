@@ -1,5 +1,5 @@
 import { Card, CardContent } from '@/components/ui/card'
-import { Calendar, Clock4, Link } from 'lucide-react'
+import { Calendar, Clock4 } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
 import { formatTimestamp, getFormattedEstimate } from '@/utils/CommonUtils'
 import { MdOutlineContentCopy } from 'react-icons/md'

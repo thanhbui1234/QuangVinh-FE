@@ -236,7 +236,7 @@ export default function LeavesMobile() {
       <div className="flex-1 overflow-y-auto pb-28">
         <LeaveListMobile
           items={allItems}
-          canApprove={canApprove}
+          canApprove={canApprove as boolean}
           onViewDetails={viewDetails}
           onActionClick={handleActionClick}
           onCreateClick={handleCreateClick}
