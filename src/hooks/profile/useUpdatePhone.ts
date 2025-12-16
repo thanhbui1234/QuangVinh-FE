@@ -10,7 +10,7 @@ interface UpdatePhonePayload {
 export const useUpdatePhone = (userId: any) => {
   const { mutate } = useMutation({
     mutationFn: async (payload: UpdatePhonePayload) => {
-      return await POST(API_ENDPOINT.UPDATE_PHONE, payload)
+      return await POST(API_ENDPOINT.UPDATE_PHONE, { phoneNumber: payload.phone })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [profileKey.detail(userId)] })

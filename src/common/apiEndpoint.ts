@@ -14,7 +14,7 @@ export const API_ENDPOINT = {
   // task
   CREATE_TASK: '/api/task/create',
   GET_TASKS: '/api/task/get-list',
-  UPDATE_TASK: '/api/task/update-status',
+  UPDATE_TASK: '/api/task/update',
   DELETE_TASK: '/api/task/remove',
   ASIGN_TASK: '/api/task/assign-task',
   UPDATE_PRIORITY: '/api/task/update-priority',

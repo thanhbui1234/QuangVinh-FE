@@ -51,6 +51,7 @@
     "dayjs": "^1.11.19",
     "editorjs-html": "^4.0.5",
     "framer-motion": "^12.23.26",
+    "heic2any": "^0.0.4",
     "lucide-react": "^0.545.0",
     "react": "^19.1.1",
     "react-day-picker": "^9.11.3",

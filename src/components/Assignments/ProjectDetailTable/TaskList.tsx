@@ -55,10 +55,13 @@ export default function TaskList(props: {
               </div>
 
               {/* Description */}
+              {/* Description */}
               {t.description ? (
-                <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{t.description}</p>
+                <p
+                  className="text-sm text-muted-foreground line-clamp-2 mb-3"
+                  dangerouslySetInnerHTML={{ __html: t.description }}
+                />
               ) : null}
-
               {/* Metadata - Vertical Stack */}
               <div className="space-y-2">
                 {/* Assignee */}
