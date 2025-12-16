@@ -69,6 +69,7 @@ export const Profile = () => {
 
     const checkStatus = async () => {
       try {
+        // First check browser notification permission
         if ('Notification' in window) {
           if (Notification.permission === 'denied') {
             setIsNotificationsOn(false)
@@ -76,17 +77,22 @@ export const Profile = () => {
           }
         }
 
+        // Check OneSignal subscription status (will handle both OneSignal and browser permission)
         const hasPermission = await checkSubscriptionStatus()
         setIsNotificationsOn(hasPermission)
+
+        console.log('[Profile] Notification status checked:', hasPermission)
       } catch (error) {
         console.error('Error checking notification status:', error)
         setIsNotificationsOn(false)
       }
     }
 
+    // Check immediately and also after a delay to catch OneSignal if it loads later
+    checkStatus()
     const timeoutId = setTimeout(() => {
       checkStatus()
-    }, 500)
+    }, 1000)
 
     return () => clearTimeout(timeoutId)
   }, [])
@@ -337,8 +343,20 @@ export const Profile = () => {
     try {
       const success = await initOneSignal()
       if (success) {
-        // Verify subscription status
-        const isSubscribed = await checkSubscriptionStatus()
+        // Wait a bit more for subscription to be fully established
+        await new Promise((resolve) => setTimeout(resolve, 1500))
+
+        // Verify subscription status with retry
+        let isSubscribed = false
+        let retries = 3
+        while (retries > 0 && !isSubscribed) {
+          isSubscribed = await checkSubscriptionStatus()
+          if (!isSubscribed && retries > 1) {
+            await new Promise((resolve) => setTimeout(resolve, 500))
+          }
+          retries--
+        }
+
         setIsNotificationsOn(isSubscribed)
 
         if (isSubscribed) {
