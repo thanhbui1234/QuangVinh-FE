@@ -44,10 +44,7 @@ const WebLayout = ({ children }: Props) => {
   const location = useLocation()
   const navigate = useNavigate()
   const { user } = useAuthStore()
-  console.log('user', user)
   const { profile: userProfile } = useGetProfile(user?.id)
-  console.log('userProfile', userProfile)
-  console.log('userProfile avatar', userProfile?.avatar)
   const userRoles = user?.roles || []
   const handleLogout = () => {
     navigate('/profile')

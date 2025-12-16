@@ -32,7 +32,6 @@ export const DetailTask = () => {
   const { projectAssignmentDetail, isFetching } = useGetDetailTask(Number(id))
   const groupId = projectAssignmentDetail?.groupId
   const { memberTask } = useGetMemberTask(groupId)
-  console.log('projectAssignmentDetail?.groupId', projectAssignmentDetail?.groupId)
   const { updateTaskMutation, isUpdateTaskLoading } = useUpdateTask()
   const [editOpen, setEditOpen] = useState(false)
   const [infoOpen, setInfoOpen] = useState(false)

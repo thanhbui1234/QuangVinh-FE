@@ -50,7 +50,6 @@ export type Project = {
 
 export const ProjectAssignmentDetail: React.FC = () => {
   const { id } = useParams()
-  console.log('id', id)
   const { projectAssignmentDetail, isFetching } = useGetDetailProject(Number(id))
   const isMobile = useIsMobile()
   const [openConfirm, setOpenConfirm] = useState(false)
@@ -68,7 +67,6 @@ export const ProjectAssignmentDetail: React.FC = () => {
       name: task?.supervisor?.name,
     }))
   }, [projectAssignmentDetail?.tasks])
-  console.log('supervisors', supervisors)
   // Transform API response to Project format
   const project: Project | null = useMemo(() => {
     if (!projectAssignmentDetail) return null

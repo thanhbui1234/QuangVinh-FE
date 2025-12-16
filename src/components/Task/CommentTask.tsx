@@ -228,7 +228,6 @@ export const CommentTask = ({ member, taskId }: { member: IMemberTask[]; taskId:
     async (data: CommentFormData) => {
       // Prevent double submit
       if (isSubmittingRef.current) {
-        console.log('Already submitting, skipping...')
         return
       }
 

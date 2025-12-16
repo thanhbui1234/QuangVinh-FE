@@ -98,8 +98,10 @@ export const Profile = () => {
 
     if (isOwnProfile && profile?.avatar) {
       setAvatarPreview(profile?.avatar)
+    } else {
+      setAvatarPreview(profile?.avatar)
     }
-  }, [isOwnProfile, profile?.id, profile?.avatar])
+  }, [isOwnProfile, profile?.id, profile?.avatar, user?.avatar])
 
   // Populate form when data loads
   useEffect(() => {
@@ -179,7 +181,6 @@ export const Profile = () => {
 
                 // Reset flag after state updates have been flushed
                 queueMicrotask(() => {
-                  console.log('Resetting upload flag')
                   isUploadingRef.current = false
                 })
               }
@@ -334,7 +335,6 @@ export const Profile = () => {
     setIsRequestingNotifications(true)
     try {
       const success = await initOneSignal()
-      console.log('succe123123612736712ss', success)
       if (success) {
         // Verify subscription status
         const isSubscribed = await checkSubscriptionStatus()
