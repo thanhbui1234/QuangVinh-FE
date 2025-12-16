@@ -6,7 +6,6 @@ import path from 'node:path'
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
-
   const VITE_BASE_URL = env.VITE_BASE_URL
 
   return {
@@ -19,6 +18,9 @@ export default defineConfig(({ mode }) => {
         srcDir: 'src',
         filename: 'sw.ts',
         strategies: 'injectManifest',
+        injectManifest: {
+          maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+        },
         manifest: {
           name: 'Quang Vinh Management',
           short_name: 'Quang Vinh Mobile',
@@ -33,6 +35,21 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         '@': path.resolve(__dirname, 'src'),
+      },
+    },
+    build: {
+      sourcemap: false,
+      chunkSizeWarningLimit: 1000,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (!id.includes('node_modules')) return
+
+            if (id.includes('react')) return 'react'
+            if (id.includes('@mui')) return 'mui'
+            if (id.includes('axios') || id.includes('dayjs')) return 'vendor'
+          },
+        },
       },
     },
     server: {
