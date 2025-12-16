@@ -135,9 +135,9 @@ export async function checkSubscriptionStatus(): Promise<boolean> {
     ensureDeferred()
     window.OneSignalDeferred!.push((OneSignal: any) => {
       try {
-        const hasPerm: boolean = !!OneSignal?.Notifications?.permission
-        const playerId: string | null = OneSignal?.User?.PushSubscription?.id ?? null
-        resolve(!!hasPerm && !!playerId)
+        const permission: string | undefined = OneSignal?.Notifications?.permission
+        const isGranted = permission === 'granted'
+        resolve(isGranted)
       } catch {
         resolve(false)
       }
