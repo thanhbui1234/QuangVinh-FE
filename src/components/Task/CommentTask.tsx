@@ -2,7 +2,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import type { IMemberTask } from '@/hooks/assignments/useGetMemberTask'
-import { MessageCircle, Send, X, Pencil, Trash2, ImagePlus, Loader2 } from 'lucide-react'
+import { MessageCircle, Send, X, Pencil, Trash2, ImagePlus, Loader2, Smile } from 'lucide-react'
 import { MentionsInput, Mention } from 'react-mentions'
 import type { SuggestionDataItem } from 'react-mentions'
 import { useForm } from 'react-hook-form'
@@ -21,6 +21,7 @@ import { isMobile } from 'react-device-detect'
 import { PhotoProvider, PhotoView } from 'react-photo-view'
 import 'react-photo-view/dist/react-photo-view.css'
 import dayjs from 'dayjs'
+import EmojiPicker from 'emoji-picker-react'
 
 const mentionsInputStyle = {
   control: {
@@ -101,6 +102,9 @@ export const CommentTask = ({ member, taskId }: { member: IMemberTask[]; taskId:
 
   // Edit state - track which comment is being edited
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null)
+
+  // Emoji picker state
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
 
   const { handleSubmit, watch, setValue, reset } = useForm<CommentFormData>({
     defaultValues: {
@@ -382,6 +386,17 @@ export const CommentTask = ({ member, taskId }: { member: IMemberTask[]; taskId:
               <div className="flex-1 space-y-3">
                 <div className="flex gap-2">
                   <div className="flex-1 relative">
+                    {/* Emoji Picker - Show when button is clicked */}
+                    {showEmojiPicker && (
+                      <div className="absolute bottom-14 right-12 z-50">
+                        <EmojiPicker
+                          onEmojiClick={(emojiData) => {
+                            setValue('message', commentInput + emojiData.emoji)
+                          }}
+                        />
+                      </div>
+                    )}
+
                     <MentionsInput
                       value={commentInput}
                       onChange={(e) => {
@@ -428,6 +443,18 @@ export const CommentTask = ({ member, taskId }: { member: IMemberTask[]; taskId:
                       />
                     </MentionsInput>
 
+                    {/* Emoji Picker Toggle Button */}
+                    <button
+                      type="button"
+                      onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                      className={`absolute right-12 bottom-3 z-50 shrink-0 transition-colors ${
+                        showEmojiPicker ? 'text-blue-600' : 'text-gray-900 hover:text-blue-600'
+                      } cursor-pointer`}
+                    >
+                      <Smile className="w-5 h-5" />
+                    </button>
+
+                    {/* Send Button */}
                     <button
                       type="submit"
                       disabled={
@@ -436,7 +463,7 @@ export const CommentTask = ({ member, taskId }: { member: IMemberTask[]; taskId:
                         updateCommentMutation.isPending ||
                         imageUploads.some((upload) => upload.isUploading) // Disable if any upload pending
                       }
-                      className={`absolute right-3 bottom-3 shrink-0 transition-colors ${
+                      className={`absolute right-3 bottom-3 z-50 shrink-0 transition-colors ${
                         (!commentInput?.trim() && imageUploads.length === 0) ||
                         createCommentMutation.isPending ||
                         updateCommentMutation.isPending ||

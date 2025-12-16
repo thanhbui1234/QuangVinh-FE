@@ -50,6 +50,7 @@
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.19",
     "editorjs-html": "^4.0.5",
+    "emoji-picker-react": "^4.16.1",
     "framer-motion": "^12.23.26",
     "heic2any": "^0.0.4",
     "lucide-react": "^0.545.0",
