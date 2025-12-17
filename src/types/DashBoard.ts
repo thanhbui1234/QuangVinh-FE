@@ -158,6 +158,7 @@ export interface OverdueTask {
   groupId: number
   doneTime: number
   creator: OverdueTaskUser
+  supervisor: any
   assignee: OverdueTaskUser
 }
 
@@ -194,6 +195,7 @@ export interface MyTask {
   groupName: string
   creator: MyTaskUser
   assignee: MyTaskUser
+  supervisor?: MyTaskUser
   estimateTime: number
   startTime: number
   createdTime: number

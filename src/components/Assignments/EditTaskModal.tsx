@@ -129,9 +129,10 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
                 className="mt-2 w-full rounded-lg border-gray-200 bg-white text-base px-4 py-2 focus:outline-none"
               >
                 <option value="todo">{STATUS_LABEL['todo']}</option>
-                <option value="visible">{STATUS_LABEL['visible']}</option>
                 <option value="in_progress">{STATUS_LABEL['in_progress']}</option>
+                <option value="pending">{STATUS_LABEL['pending']}</option>
                 <option value="done">{STATUS_LABEL['done']}</option>
+                <option value="rejected">{STATUS_LABEL['rejected']}</option>
               </select>
             </div>
             <div>

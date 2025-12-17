@@ -20,12 +20,15 @@ import { STATUS_LABEL, STATUS_ICON } from '@/components/Assignments/ProjectDetai
 import type { OverdueTask } from '@/types/DashBoard'
 
 // Map task status to color classes
-const getStatusClassName = (status: 'todo' | 'visible' | 'in_progress' | 'done'): string => {
+const getStatusClassName = (
+  status: 'todo' | 'in_progress' | 'pending' | 'done' | 'rejected'
+): string => {
   const statusClassMap: Record<string, string> = {
     todo: 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200',
-    visible: 'bg-amber-100 text-amber-700 border-amber-300 hover:bg-amber-200',
     in_progress: 'bg-blue-100 text-blue-700 border-blue-300 hover:bg-blue-200',
+    pending: 'bg-amber-100 text-amber-700 border-amber-300 hover:bg-amber-200',
     done: 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200',
+    rejected: 'bg-red-100 text-red-700 border-red-300 hover:bg-red-200',
   }
   return statusClassMap[status] || statusClassMap.todo
 }
@@ -78,7 +81,7 @@ export function OverdueTasksTable({
       </Card>
     )
   }
-
+  console.log('tasks', tasks)
   return (
     <Card className={`${className} flex flex-col h-full`}>
       <CardContent className="p-4 flex flex-col flex-1">
@@ -90,7 +93,7 @@ export function OverdueTasksTable({
               <TableRow>
                 <TableHead>Mã</TableHead>
                 <TableHead>Mô tả</TableHead>
-                <TableHead>Người phụ trách</TableHead>
+                <TableHead>Người chịu trách nhiệm</TableHead>
                 <TableHead>Trạng thái</TableHead>
                 <TableHead>Ưu tiên</TableHead>
               </TableRow>
@@ -102,9 +105,11 @@ export function OverdueTasksTable({
                   className="cursor-pointer hover:bg-muted/50"
                   onClick={() => handleTaskClick(task)}
                 >
-                  <TableCell className="font-medium">T-{task.taskId}</TableCell>
+                  <TableCell className="font-medium">{task.taskId}</TableCell>
                   <TableCell className="max-w-md truncate">{task.description}</TableCell>
-                  <TableCell>{task.assignee?.name || 'Chưa gán'}</TableCell>
+                  <TableCell>
+                    {task?.supervisor?.name || task?.supervisor?.email || 'Chưa gán'}
+                  </TableCell>
                   <TableCell>
                     {(() => {
                       const mappedStatus = mapTaskStatus(task.status)

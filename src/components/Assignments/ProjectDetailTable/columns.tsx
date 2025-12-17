@@ -1,7 +1,7 @@
 import React from 'react'
 import { Badge } from '@/components/ui/badge'
 import { type ColumnType } from '@/components/base/DataTable'
-import { CheckCircle2, CircleDashed, Clock4, Pencil } from 'lucide-react'
+import { CheckCircle2, CircleDashed, Clock4, Pencil, Pause, XCircle } from 'lucide-react'
 import { getTaskPriorityLabel, getTaskTypeLabel } from '@/utils/getLable'
 import { formatEstimateHours } from '@/utils/CommonUtils'
 import { Button } from '@/components/ui/button'
@@ -28,17 +28,19 @@ export type TaskRow = {
 }
 
 export const STATUS_LABEL: Record<TaskRow['status'], React.ReactNode> = {
-  todo: <span>Bắt đầu</span>,
-  visible: <span>Đã nhận việc</span>,
-  in_progress: <span>Đang làm / chờ</span>,
-  done: <span>Đã hoàn thành</span>,
+  todo: <span>Đã tạo công việc</span>,
+  in_progress: <span>Đã nhận việc/Đang làm</span>,
+  pending: <span>Tạm dừng</span>,
+  done: <span>Hoàn thành</span>,
+  rejected: <span>Đã từ chối</span>,
 }
 
 export const STATUS_ICON: Record<TaskRow['status'], React.ReactNode> = {
   todo: <Pencil className="w-4 h-4 text-gray-400" />,
-  visible: <CircleDashed className="w-4 h-4 text-gray-400" />,
   in_progress: <Clock4 className="w-4 h-4 text-gray-400" />,
+  pending: <Pause className="w-4 h-4 text-gray-400" />,
   done: <CheckCircle2 className="w-4 h-4 text-gray-400" />,
+  rejected: <XCircle className="w-4 h-4 text-gray-400" />,
 }
 
 export const taskColumns = (
@@ -79,9 +81,10 @@ export const taskColumns = (
     filterType: 'select',
     filterOptions: [
       { label: STATUS_LABEL.todo, value: 'todo' },
-      { label: STATUS_LABEL.visible, value: 'visible' },
       { label: STATUS_LABEL.in_progress, value: 'in_progress' },
+      { label: STATUS_LABEL.pending, value: 'pending' },
       { label: STATUS_LABEL.done, value: 'done' },
+      { label: STATUS_LABEL.rejected, value: 'rejected' },
     ],
     render: (value) => {
       const map: Record<
@@ -97,25 +100,50 @@ export const taskColumns = (
           icon: STATUS_ICON.todo,
           className: 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200',
         },
-        visible: {
-          label: STATUS_LABEL.visible,
-          icon: STATUS_ICON.visible,
-          className: 'bg-amber-100 text-amber-700 border-amber-300 hover:bg-amber-200',
-        },
-        2: {
-          label: STATUS_LABEL.visible,
-          icon: STATUS_ICON.visible,
-          className: 'bg-amber-100 text-amber-700 border-amber-300 hover:bg-amber-200',
+        1: {
+          label: STATUS_LABEL.todo,
+          icon: STATUS_ICON.todo,
+          className: 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200',
         },
         in_progress: {
           label: STATUS_LABEL.in_progress,
           icon: STATUS_ICON.in_progress,
           className: 'bg-blue-100 text-blue-700 border-blue-300 hover:bg-blue-200',
         },
+        8: {
+          label: STATUS_LABEL.in_progress,
+          icon: STATUS_ICON.in_progress,
+          className: 'bg-blue-100 text-blue-700 border-blue-300 hover:bg-blue-200',
+        },
+        pending: {
+          label: STATUS_LABEL.pending,
+          icon: STATUS_ICON.pending,
+          className: 'bg-amber-100 text-amber-700 border-amber-300 hover:bg-amber-200',
+        },
+        4: {
+          label: STATUS_LABEL.pending,
+          icon: STATUS_ICON.pending,
+          className: 'bg-amber-100 text-amber-700 border-amber-300 hover:bg-amber-200',
+        },
         done: {
           label: STATUS_LABEL.done,
           icon: STATUS_ICON.done,
           className: 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200',
+        },
+        9: {
+          label: STATUS_LABEL.done,
+          icon: STATUS_ICON.done,
+          className: 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200',
+        },
+        rejected: {
+          label: STATUS_LABEL.rejected,
+          icon: STATUS_ICON.rejected,
+          className: 'bg-red-100 text-red-700 border-red-300 hover:bg-red-200',
+        },
+        12: {
+          label: STATUS_LABEL.rejected,
+          icon: STATUS_ICON.rejected,
+          className: 'bg-red-100 text-red-700 border-red-300 hover:bg-red-200',
         },
       }
       const cfg = map[value as string]

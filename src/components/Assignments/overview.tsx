@@ -28,7 +28,7 @@ export const Overview = (props: { tasks: any }) => {
         </div>
 
         <div className="mt-3 flex flex-wrap gap-2">
-          {(['todo', 'visible', 'in_progress', 'done'] as any[]).map((st) => {
+          {(['todo', 'in_progress', 'pending', 'done', 'rejected'] as any[]).map((st) => {
             const count = tasks.filter((t: any) => t.status === st).length
             return (
               <div

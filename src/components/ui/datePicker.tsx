@@ -12,6 +12,8 @@ interface DatePickerProps {
   onChange?: (date: Date | undefined) => void
   placeholder?: string
   fromYear?: number
+  disablePast?: boolean
+  fromDate?: Date
 }
 
 export function DatePicker({
@@ -19,9 +21,16 @@ export function DatePicker({
   onChange,
   placeholder = 'Chọn ngày',
   fromYear,
+  disablePast = false,
+  fromDate,
 }: DatePickerProps) {
   const [open, setOpen] = useState(false)
   const currentYear = new Date().getFullYear()
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  // If disablePast is true, set fromDate to today unless a specific fromDate is provided
+  const minDate = disablePast ? fromDate || today : undefined
 
   return (
     <div className="flex flex-col gap-3">
@@ -39,6 +48,12 @@ export function DatePicker({
             captionLayout="dropdown"
             fromYear={fromYear || currentYear}
             toYear={currentYear + 10}
+            disabled={(date) => {
+              if (minDate && date < minDate) {
+                return true
+              }
+              return false
+            }}
             onSelect={(date) => {
               onChange?.(date)
               setOpen(false)
