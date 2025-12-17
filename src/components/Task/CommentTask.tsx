@@ -386,7 +386,7 @@ export const CommentTask = ({ member, taskId }: { member: IMemberTask[]; taskId:
                 <div className="flex gap-2">
                   <div className="flex-1 relative">
                     {/* Emoji Picker - Show when button is clicked */}
-                    {showEmojiPicker && (
+                    {showEmojiPicker && !isMobile && (
                       <div className="absolute bottom-14 right-12 z-50">
                         <EmojiPicker
                           onEmojiClick={(emojiData) => {
