@@ -1,7 +1,7 @@
 import React from 'react'
 import { Badge } from '@/components/ui/badge'
 import { type ColumnType } from '@/components/base/DataTable'
-import { CheckCircle2, CircleDashed, Clock4, Pencil, Pause, XCircle } from 'lucide-react'
+import { CheckCircle2, Clock4, Pencil, Pause, XCircle } from 'lucide-react'
 import { getTaskPriorityLabel, getTaskTypeLabel } from '@/utils/getLable'
 import { formatEstimateHours } from '@/utils/CommonUtils'
 import { Button } from '@/components/ui/button'
