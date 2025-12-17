@@ -8,7 +8,7 @@ import SonnerToaster from '@/components/ui/toaster'
 export const useDeleteTask = (task: number) => {
   const deleteTaskMutation = useMutation({
     mutationFn: async (payload: any) => {
-      const response = await POST(API_ENDPOINT.UPDATE_TASK, { taskId: payload, newStatus: 10 })
+      const response = await POST(API_ENDPOINT.UPDATE_STATUS, { taskId: payload, newStatus: 10 })
       return response
     },
     onSuccess: (response) => {
