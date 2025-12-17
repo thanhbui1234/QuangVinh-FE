@@ -242,6 +242,7 @@ export default function CreateLeaveDialog({
                               field.onChange(date ? formatToDateString(date) : '')
                             }
                             placeholder="Chọn ngày bắt đầu"
+                            disablePast={true}
                           />
                         </div>
                       )}
@@ -260,6 +261,7 @@ export default function CreateLeaveDialog({
                               field.onChange(date ? formatToDateString(date) : '')
                             }
                             placeholder="Chọn ngày kết thúc"
+                            disablePast={true}
                           />
                         </div>
                       )}
@@ -278,6 +280,7 @@ export default function CreateLeaveDialog({
                           value={parseDate(field.value)}
                           onChange={(date) => field.onChange(date ? formatToDateString(date) : '')}
                           placeholder="Chọn ngày nghỉ"
+                          disablePast={true}
                         />
                       </div>
                     )}

@@ -23,7 +23,7 @@ export const ButtonAction = ({
   memberTask: any
 }) => {
   const { hasPermission } = useCheckRole()
-  type TaskStatusType = 1 | 2 | 8 | 9
+  type TaskStatusType = 1 | 4 | 8 | 9 | 12
   const updateStatusMutation = useUpdateStatus(projectAssignmentDetail)
   const currentStatus = (projectAssignmentDetail?.status || TASK_STATUS.CREATED) as TaskStatusType
 
@@ -41,23 +41,29 @@ export const ButtonAction = ({
         hoverColor: 'hover:bg-slate-600',
         borderColor: 'border-slate-500',
       },
-      [TASK_STATUS.VISIBLE]: {
-        label: TASK_STATUS_LABELS[TASK_STATUS.VISIBLE],
-        bgColor: 'bg-amber-500',
-        hoverColor: 'hover:bg-amber-600',
-        borderColor: 'border-amber-500',
-      },
       [TASK_STATUS.IN_PROGRESS]: {
         label: TASK_STATUS_LABELS[TASK_STATUS.IN_PROGRESS],
         bgColor: 'bg-blue-600',
         hoverColor: 'hover:bg-blue-700',
         borderColor: 'border-blue-600',
       },
+      [TASK_STATUS.PENDING]: {
+        label: TASK_STATUS_LABELS[TASK_STATUS.PENDING],
+        bgColor: 'bg-amber-500',
+        hoverColor: 'hover:bg-amber-600',
+        borderColor: 'border-amber-500',
+      },
       [TASK_STATUS.COMPLETED]: {
         label: TASK_STATUS_LABELS[TASK_STATUS.COMPLETED],
         bgColor: 'bg-green-600',
         hoverColor: 'hover:bg-green-700',
         borderColor: 'border-green-600',
+      },
+      [TASK_STATUS.REJECTED]: {
+        label: TASK_STATUS_LABELS[TASK_STATUS.REJECTED],
+        bgColor: 'bg-red-600',
+        hoverColor: 'hover:bg-red-700',
+        borderColor: 'border-red-600',
       },
     }
 
@@ -102,7 +108,7 @@ export const ButtonAction = ({
         onValueChange={(value: string) => {
           updateStatusMutation.mutate(Number(value))
         }}
-        disabled={currentStatus === TASK_STATUS.COMPLETED}
+        disabled={currentStatus === TASK_STATUS.COMPLETED || currentStatus === TASK_STATUS.REJECTED}
       >
         <SelectTrigger
           className={`${statusInfo.bgColor} ${statusInfo.hoverColor} ${statusInfo.borderColor} text-white min-w-[120px] sm:min-w-[180px] disabled:opacity-100 `}

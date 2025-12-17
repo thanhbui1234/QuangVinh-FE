@@ -296,12 +296,15 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                         <SelectValue placeholder="Chọn trạng thái" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value={String(TASK_STATUS.CREATED)}>Bắt đầu</SelectItem>
-                        <SelectItem value={String(TASK_STATUS.VISIBLE)}>Đã nhận việc</SelectItem>
-                        <SelectItem value={String(TASK_STATUS.IN_PROGRESS)}>
-                          Đang thực hiện
+                        <SelectItem value={String(TASK_STATUS.CREATED)}>
+                          Đã tạo công việc
                         </SelectItem>
+                        <SelectItem value={String(TASK_STATUS.IN_PROGRESS)}>
+                          Đã nhận việc/Đang làm
+                        </SelectItem>
+                        <SelectItem value={String(TASK_STATUS.PENDING)}>Tạm dừng</SelectItem>
                         <SelectItem value={String(TASK_STATUS.COMPLETED)}>Hoàn thành</SelectItem>
+                        <SelectItem value={String(TASK_STATUS.REJECTED)}>Đã từ chối</SelectItem>
                       </SelectContent>
                     </Select>
                   )}
@@ -321,6 +324,7 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                     setValue('startDate', date ? formatToDateTimeLocal(date) : '')
                   }}
                   placeholder="Chọn ngày bắt đầu"
+                  disablePast={true}
                 />
               </div>
             </div>
@@ -339,6 +343,7 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                     setValue('estimateDate', date ? formatToDateTimeLocal(date) : '')
                   }}
                   placeholder="Chọn ngày hoàn thành"
+                  disablePast={true}
                 />
                 {errors.estimateDate && (
                   <p className="text-sm text-red-500">{errors.estimateDate.message}</p>

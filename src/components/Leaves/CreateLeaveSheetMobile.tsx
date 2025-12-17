@@ -241,6 +241,7 @@ export default function CreateLeaveSheetMobile({
                         value={parseDate(field.value)}
                         onChange={(date) => field.onChange(date ? formatToDateString(date) : '')}
                         placeholder="Chọn ngày bắt đầu"
+                        disablePast={true}
                       />
                     </div>
                   )}
@@ -260,6 +261,7 @@ export default function CreateLeaveSheetMobile({
                         value={parseDate(field.value)}
                         onChange={(date) => field.onChange(date ? formatToDateString(date) : '')}
                         placeholder="Chọn ngày kết thúc"
+                        disablePast={true}
                       />
                     </div>
                   )}
@@ -281,6 +283,7 @@ export default function CreateLeaveSheetMobile({
                       value={parseDate(field.value)}
                       onChange={(date) => field.onChange(date ? formatToDateString(date) : '')}
                       placeholder="Chọn ngày nghỉ"
+                      disablePast={true}
                     />
                   </div>
                 )}

@@ -4,18 +4,25 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
-import { ClipboardList } from 'lucide-react'
+import { ClipboardList, Check, X } from 'lucide-react'
 import { useMyTasksInfinite } from '@/hooks/dashboard/useMyTasks'
+import { useUpdateTaskStatus } from '@/hooks/dashboard/useUpdateTaskStatus'
+import useCheckRole from '@/hooks/useCheckRole'
 import { getTaskPriorityLabel, mapTaskStatus } from '@/utils/getLable'
 import { STATUS_LABEL, STATUS_ICON } from '@/components/Assignments/ProjectDetailTable/columns'
+import { TASK_STATUS } from '@/constants/assignments/task'
+import type { MyTask } from '@/types/DashBoard'
 
 // Map task status to color classes
-const getStatusClassName = (status: 'todo' | 'visible' | 'in_progress' | 'done'): string => {
+const getStatusClassName = (
+  status: 'todo' | 'in_progress' | 'pending' | 'done' | 'rejected'
+): string => {
   const statusClassMap: Record<string, string> = {
     todo: 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200',
-    visible: 'bg-amber-100 text-amber-700 border-amber-300 hover:bg-amber-200',
     in_progress: 'bg-blue-100 text-blue-700 border-blue-300 hover:bg-blue-200',
+    pending: 'bg-amber-100 text-amber-700 border-amber-300 hover:bg-amber-200',
     done: 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200',
+    rejected: 'bg-red-100 text-red-700 border-red-300 hover:bg-red-200',
   }
   return statusClassMap[status] || statusClassMap.todo
 }
@@ -32,9 +39,38 @@ export function MyTasksList({ limit = 5, className = '', enabled = true }: MyTas
     limit,
     enabled
   )
+  const updateStatusMutation = useUpdateTaskStatus()
+  const { userId } = useCheckRole()
 
-  const handleTaskClick = () => {
+  const handleTaskClick = (e: React.MouseEvent) => {
+    // Don't navigate if clicking on buttons
+    if ((e.target as HTMLElement).closest('button')) {
+      return
+    }
     navigate(`/assignments`)
+  }
+
+  const canManageTask = (task: MyTask) => {
+    // Chỉ supervisor hoặc creator mới được xác nhận/từ chối
+    const isSupervisor = task.supervisor?.id === userId
+    const isCreator = task.creator?.id === userId
+    return isSupervisor || isCreator
+  }
+
+  const handleConfirmTask = (taskId: number, e: React.MouseEvent) => {
+    e.stopPropagation()
+    updateStatusMutation.mutate({
+      taskId,
+      newStatus: TASK_STATUS.IN_PROGRESS,
+    })
+  }
+
+  const handleRejectTask = (taskId: number, e: React.MouseEvent) => {
+    e.stopPropagation()
+    updateStatusMutation.mutate({
+      taskId,
+      newStatus: TASK_STATUS.REJECTED,
+    })
   }
 
   if (isLoading && tasks.length === 0) {
@@ -78,83 +114,141 @@ export function MyTasksList({ limit = 5, className = '', enabled = true }: MyTas
         <Separator className="my-3" />
         {/* Mobile list (stacked) */}
         <div className="space-y-2 sm:hidden">
-          {tasks.map((task) => (
-            <div
-              key={task.taskId}
-              className="rounded-md border p-3 cursor-pointer hover:bg-muted/50"
-              onClick={() => handleTaskClick()}
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">T-{task.taskId}</span>
-                <div className="flex items-center gap-2">
-                  {(() => {
-                    const mappedStatus = mapTaskStatus(task.status)
-                    return (
-                      <Badge
-                        variant="outline"
-                        className={`${getStatusClassName(mappedStatus)} text-[10px]`}
-                      >
-                        <span className="mr-1">{STATUS_ICON[mappedStatus]}</span>
-                        {STATUS_LABEL[mappedStatus]}
-                      </Badge>
-                    )
-                  })()}
-                  {task.estimateTime && (
-                    <span className="text-[11px] text-muted-foreground">
-                      {new Date(task.estimateTime).toLocaleDateString('vi-VN')}
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div className="mt-1 text-sm font-medium">{task.description}</div>
-              <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-                <span>{task.groupName || 'N/A'}</span>
-                <span>•</span>
-                <Badge variant="outline" className="text-[10px]">
-                  {getTaskPriorityLabel(task.priority)}
-                </Badge>
-              </div>
-            </div>
-          ))}
-        </div>
-        {/* Table for >= sm screens */}
-        <div className="-mx-3 hidden overflow-x-auto px-3 sm:block">
-          <div className="space-y-2">
-            {tasks.map((task) => (
+          {tasks.map((task) => {
+            const isCreatedStatus = task.status === TASK_STATUS.CREATED
+            const hasPermission = canManageTask(task)
+            const showActions = isCreatedStatus && hasPermission
+            return (
               <div
                 key={task.taskId}
                 className="rounded-md border p-3 cursor-pointer hover:bg-muted/50"
-                onClick={() => handleTaskClick()}
+                onClick={(e) => handleTaskClick(e)}
               >
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-medium">T-{task.taskId}</span>
-                    <span className="text-sm">{task.description}</span>
-                  </div>
+                  <span className="text-xs text-muted-foreground">T-{task.taskId}</span>
                   <div className="flex items-center gap-2">
                     {(() => {
                       const mappedStatus = mapTaskStatus(task.status)
                       return (
-                        <Badge variant="outline" className={getStatusClassName(mappedStatus)}>
-                          <span className="mr-1.5">{STATUS_ICON[mappedStatus]}</span>
+                        <Badge
+                          variant="outline"
+                          className={`${getStatusClassName(mappedStatus)} text-[10px]`}
+                        >
+                          <span className="mr-1">{STATUS_ICON[mappedStatus]}</span>
                           {STATUS_LABEL[mappedStatus]}
                         </Badge>
                       )
                     })()}
-                    <Badge variant="outline">{getTaskPriorityLabel(task.priority)}</Badge>
+                    {task.estimateTime && (
+                      <span className="text-[11px] text-muted-foreground">
+                        {new Date(task.estimateTime).toLocaleDateString('vi-VN')}
+                      </span>
+                    )}
                   </div>
                 </div>
+                <div className="mt-1 text-sm font-medium">{task.description}</div>
                 <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
                   <span>{task.groupName || 'N/A'}</span>
-                  {task.estimateTime && (
-                    <>
-                      <span>•</span>
-                      <span>{new Date(task.estimateTime).toLocaleDateString('vi-VN')}</span>
-                    </>
+                  <span>•</span>
+                  <Badge variant="outline" className="text-[10px]">
+                    {getTaskPriorityLabel(task.priority)}
+                  </Badge>
+                </div>
+                {showActions && (
+                  <div className="mt-2 flex items-center gap-1.5">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="flex-1 h-7 gap-1 text-[11px] font-medium text-green-700 hover:text-green-800 hover:bg-green-50"
+                      onClick={(e) => handleConfirmTask(task.taskId, e)}
+                      disabled={updateStatusMutation.isPending}
+                    >
+                      <Check className="h-3 w-3" />
+                      Xác nhận
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="flex-1 h-7 gap-1 text-[11px] font-medium text-red-700 hover:text-red-800 hover:bg-red-50"
+                      onClick={(e) => handleRejectTask(task.taskId, e)}
+                      disabled={updateStatusMutation.isPending}
+                    >
+                      <X className="h-3 w-3" />
+                      Từ chối
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+        {/* Table for >= sm screens */}
+        <div className="-mx-3 hidden overflow-x-auto px-3 sm:block">
+          <div className="space-y-2">
+            {tasks.map((task) => {
+              const isCreatedStatus = task.status === TASK_STATUS.CREATED
+              const hasPermission = canManageTask(task)
+              const showActions = isCreatedStatus && hasPermission
+              return (
+                <div
+                  key={task.taskId}
+                  className="rounded-md border p-3 cursor-pointer hover:bg-muted/50"
+                  onClick={(e) => handleTaskClick(e)}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-medium">T-{task.taskId}</span>
+                      <span className="text-sm">{task.description}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {(() => {
+                        const mappedStatus = mapTaskStatus(task.status)
+                        return (
+                          <Badge variant="outline" className={getStatusClassName(mappedStatus)}>
+                            <span className="mr-1.5">{STATUS_ICON[mappedStatus]}</span>
+                            {STATUS_LABEL[mappedStatus]}
+                          </Badge>
+                        )
+                      })()}
+                      <Badge variant="outline">{getTaskPriorityLabel(task.priority)}</Badge>
+                    </div>
+                  </div>
+                  <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+                    <span>{task.groupName || 'N/A'}</span>
+                    {task.estimateTime && (
+                      <>
+                        <span>•</span>
+                        <span>{new Date(task.estimateTime).toLocaleDateString('vi-VN')}</span>
+                      </>
+                    )}
+                  </div>
+                  {showActions && (
+                    <div className="mt-2 flex items-center gap-1.5">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 px-2 gap-1 text-xs font-medium text-green-700 hover:text-green-800 hover:bg-green-50"
+                        onClick={(e) => handleConfirmTask(task.taskId, e)}
+                        disabled={updateStatusMutation.isPending}
+                      >
+                        <Check className="h-3 w-3" />
+                        Xác nhận
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 px-2 gap-1 text-xs font-medium text-red-700 hover:text-red-800 hover:bg-red-50"
+                        onClick={(e) => handleRejectTask(task.taskId, e)}
+                        disabled={updateStatusMutation.isPending}
+                      >
+                        <X className="h-3 w-3" />
+                        Từ chối
+                      </Button>
+                    </div>
                   )}
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
         {hasMore && (

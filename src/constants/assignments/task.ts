@@ -49,33 +49,43 @@ export const TASK_STATUS = {
   VISIBLE: 2,
   IN_PROGRESS: 8,
   COMPLETED: 9,
+  CONFIRM: 11,
+  PENDING: 4,
+  REJECTED: 12,
 } as const
 
 export const TASK_STATUS_LABELS = {
-  [TASK_STATUS.CREATED]: 'Bắt đầu',
-  [TASK_STATUS.VISIBLE]: 'Đã nhận việc',
-  [TASK_STATUS.IN_PROGRESS]: 'Đang làm / chờ',
-  [TASK_STATUS.COMPLETED]: 'Đã hoàn thành',
+  [TASK_STATUS.CREATED]: 'Đã tạo công việc',
+  [TASK_STATUS.IN_PROGRESS]: 'Đã nhận việc/Đang làm',
+  [TASK_STATUS.PENDING]: 'Tạm dừng',
+  [TASK_STATUS.COMPLETED]: 'Hoàn thành',
+  [TASK_STATUS.REJECTED]: 'Đã từ chối',
 }
 
 export const TASK_STATUS_FLOW = {
+  // Đã tạo công việc -> có thể nhận việc hoặc từ chối
   [TASK_STATUS.CREATED]: [
-    { value: TASK_STATUS.VISIBLE, label: TASK_STATUS_LABELS[TASK_STATUS.VISIBLE] },
-  ],
-
-  [TASK_STATUS.VISIBLE]: [
-    { value: TASK_STATUS.CREATED, label: TASK_STATUS_LABELS[TASK_STATUS.CREATED] },
     { value: TASK_STATUS.IN_PROGRESS, label: TASK_STATUS_LABELS[TASK_STATUS.IN_PROGRESS] },
-    { value: TASK_STATUS.COMPLETED, label: TASK_STATUS_LABELS[TASK_STATUS.COMPLETED] },
+    { value: TASK_STATUS.REJECTED, label: TASK_STATUS_LABELS[TASK_STATUS.REJECTED] },
   ],
 
+  // Đã nhận việc/Đang làm -> có thể tạm dừng hoặc hoàn thành
   [TASK_STATUS.IN_PROGRESS]: [
-    { value: TASK_STATUS.CREATED, label: TASK_STATUS_LABELS[TASK_STATUS.CREATED] },
-    { value: TASK_STATUS.VISIBLE, label: TASK_STATUS_LABELS[TASK_STATUS.VISIBLE] },
+    { value: TASK_STATUS.PENDING, label: TASK_STATUS_LABELS[TASK_STATUS.PENDING] },
     { value: TASK_STATUS.COMPLETED, label: TASK_STATUS_LABELS[TASK_STATUS.COMPLETED] },
   ],
 
-  [TASK_STATUS.COMPLETED]: [], // hết flow
+  // Tạm dừng -> có thể tiếp tục làm hoặc từ chối
+  [TASK_STATUS.PENDING]: [
+    { value: TASK_STATUS.IN_PROGRESS, label: TASK_STATUS_LABELS[TASK_STATUS.IN_PROGRESS] },
+    { value: TASK_STATUS.REJECTED, label: TASK_STATUS_LABELS[TASK_STATUS.REJECTED] },
+  ],
+
+  // Hoàn thành -> hết flow
+  [TASK_STATUS.COMPLETED]: [],
+
+  // Đã từ chối -> hết flow
+  [TASK_STATUS.REJECTED]: [],
 }
 
 export type TASK_STATUS_TYPE = keyof typeof TASK_STATUS
