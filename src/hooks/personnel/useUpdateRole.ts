@@ -12,8 +12,10 @@ export const useUpdateRole = () => {
       return response
     },
     onSuccess: (response) => {
+      // Invalidate và refetch tất cả queries với key này (cả active và inactive)
       queryClient.invalidateQueries({
-        queryKey: personnelKey.getAll,
+        queryKey: ['personnel'],
+        refetchType: 'all', // Force refetch cả các queries không active
       })
       SonnerToaster({
         type: 'success',

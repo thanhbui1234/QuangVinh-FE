@@ -2,10 +2,10 @@ import { API_ENDPOINT } from '@/common/apiEndpoint'
 import { POST } from '@/core/api'
 import { useQuery } from '@tanstack/react-query'
 import { notiBellKey } from '@/constants'
-import { fromNotiId, gtNotiId, size } from '@/constants/defaultQuery'
+import { gtNotiId, size } from '@/constants/defaultQuery'
 
 const QUERY = {
-  fromNotiId,
+  fromNotiId: 67,
   size,
   gtNotiId,
 }

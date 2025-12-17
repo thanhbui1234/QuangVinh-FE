@@ -4,7 +4,6 @@ import { API_ENDPOINT } from '@/common'
 import type { CreateMemberFormData } from '@/types'
 import SonnerToaster from '@/components/ui/toaster'
 import { queryClient } from '@/lib/queryClient'
-import { personnelKey } from '@/constants/personnel/personnel'
 
 export const useCreateMember = () => {
   const { data, mutate, isPending } = useMutation({
@@ -17,7 +16,10 @@ export const useCreateMember = () => {
         message: 'Tạo tài khoản thành công',
         description: 'Nhân viên đã có thể sử dụng tài khoản',
       })
-      queryClient.invalidateQueries({ queryKey: personnelKey.getAll })
+      queryClient.invalidateQueries({
+        queryKey: ['personnel'],
+        refetchType: 'all', // Force refetch cả các queries không active
+      })
     },
   })
 
