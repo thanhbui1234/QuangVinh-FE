@@ -26,11 +26,11 @@ export function LeaveUsersList({ date, leaves, variant = 'mobile' }: LeaveUsersL
   }
 
   return (
-    <div className="space-y-3">
-      <div className="text-sm text-muted-foreground">
+    <div className="space-y-2 sm:space-y-3">
+      <div className="text-xs sm:text-sm text-muted-foreground">
         Ngày {formatDate(date)} có {usersOnLeave.length} người nghỉ:
       </div>
-      <div className="space-y-2 max-h-[400px] overflow-y-auto">
+      <div className="space-y-1.5 sm:space-y-2 max-h-[300px] sm:max-h-[400px] overflow-y-auto">
         {usersOnLeave.map((leave) => {
           const creator = leave.creator
           if (!creator) return null
@@ -38,17 +38,21 @@ export function LeaveUsersList({ date, leaves, variant = 'mobile' }: LeaveUsersL
           return (
             <div
               key={leave.id}
-              className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent/50 transition-colors"
+              className="flex items-center gap-2 sm:gap-3 p-1.5 sm:p-2 rounded-lg hover:bg-accent/50 transition-colors"
             >
-              <Avatar className={variant === 'web' ? 'h-12 w-12' : 'h-10 w-10'}>
+              <Avatar className={variant === 'web' ? 'h-12 w-12' : 'h-8 w-8 sm:h-10 sm:w-10'}>
                 {creator.avatar ? <AvatarImage src={creator.avatar} alt={creator.name} /> : null}
-                <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                <AvatarFallback className="bg-primary/10 text-primary font-semibold text-xs sm:text-sm">
                   {getInitials(creator.name)}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <div className="font-medium text-foreground truncate">{creator.name}</div>
-                <div className="text-sm text-muted-foreground truncate">{creator.email}</div>
+                <div className="font-medium text-foreground truncate text-sm sm:text-base">
+                  {creator.name}
+                </div>
+                <div className="text-xs sm:text-sm text-muted-foreground truncate">
+                  {creator.email}
+                </div>
               </div>
             </div>
           )

@@ -39,22 +39,45 @@ const BottomSheet = ({
       <SheetContent
         side="bottom"
         className={cn(
-          'rounded-t-3xl z-[70]',
+          'rounded-t-3xl z-[70] overflow-hidden',
           maxHeightClassName,
-          padded ? 'p-4 pb-6' : 'p-0',
+          padded ? 'p-0' : 'p-0',
           contentClassName
         )}
       >
-        {(title || description) && (
-          <SheetHeader className={cn('text-left', padded ? 'px-4 pb-4' : 'p-4 border-b')}>
-            {title && <SheetTitle className="text-xl font-bold">{title}</SheetTitle>}
-            {description && (
-              <SheetDescription className="text-sm text-gray-500">{description}</SheetDescription>
+        <div className="flex flex-col h-full overflow-hidden">
+          {(title || description) && (
+            <SheetHeader
+              className={cn(
+                'text-left flex-shrink-0',
+                padded ? 'px-3 pt-3 pb-2 sm:px-4 sm:pt-4 sm:pb-3' : 'p-3 sm:p-4 border-b'
+              )}
+            >
+              {title && <SheetTitle className="text-lg font-bold sm:text-xl">{title}</SheetTitle>}
+              {description && (
+                <SheetDescription className="text-xs text-gray-500 sm:text-sm">
+                  {description}
+                </SheetDescription>
+              )}
+            </SheetHeader>
+          )}
+          <div
+            className={cn(
+              'flex-1 min-h-0 overflow-y-auto',
+              padded ? 'px-3 sm:px-4' : '',
+              className
             )}
-          </SheetHeader>
-        )}
-        <div className={cn('contents', className)}>{children}</div>
-        {footer ? <SheetFooter>{footer}</SheetFooter> : null}
+          >
+            {children}
+          </div>
+          {footer ? (
+            <SheetFooter
+              className={cn('flex-shrink-0', padded ? 'px-3 pb-3 sm:px-4 sm:pb-4' : 'p-3 sm:p-4')}
+            >
+              {footer}
+            </SheetFooter>
+          ) : null}
+        </div>
       </SheetContent>
     </Sheet>
   )
