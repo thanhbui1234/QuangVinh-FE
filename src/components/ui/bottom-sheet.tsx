@@ -31,7 +31,7 @@ const BottomSheet = ({
   children,
   className,
   contentClassName,
-  maxHeightClassName = 'max-h-[85vh]',
+  maxHeightClassName = 'max-h-[85dvh]',
   padded = true,
 }: BottomSheetProps) => {
   return (
@@ -40,12 +40,11 @@ const BottomSheet = ({
         side="bottom"
         className={cn(
           'rounded-t-3xl z-[70] overflow-hidden',
-          maxHeightClassName,
           padded ? 'p-0' : 'p-0',
           contentClassName
         )}
       >
-        <div className="flex flex-col h-full overflow-hidden">
+        <div className={cn('flex flex-col overflow-hidden', maxHeightClassName)}>
           {(title || description) && (
             <SheetHeader
               className={cn(
