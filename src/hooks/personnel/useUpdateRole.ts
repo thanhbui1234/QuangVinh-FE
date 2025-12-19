@@ -3,7 +3,6 @@ import { useMutation } from '@tanstack/react-query'
 import { POST } from '@/core/api'
 import SonnerToaster from '@/components/ui/toaster'
 import { API_ENDPOINT } from '@/common'
-import { personnelKey } from '@/constants'
 
 export const useUpdateRole = () => {
   const updateRoleMutation = useMutation({
