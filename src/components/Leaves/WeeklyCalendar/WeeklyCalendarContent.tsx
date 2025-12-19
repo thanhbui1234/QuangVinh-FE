@@ -90,21 +90,22 @@ export function WeeklyCalendarContent({
   return (
     <div className={cn('flex flex-col', className)}>
       {/* Header */}
-      <div className={cn('flex items-center justify-between', isWeb ? 'mb-6' : 'mb-4')}>
-        {!isWeb && <h3 className="text-base font-semibold">Lịch nghỉ phép tuần</h3>}
-        <div className={cn('flex items-center', isWeb ? 'gap-3' : 'gap-2')}>
+      <div className={cn('flex items-center justify-between', isWeb ? 'mb-6' : 'mb-3 sm:mb-4')}>
+        {!isWeb && <h3 className="text-sm font-semibold sm:text-base">Lịch nghỉ phép tuần</h3>}
+        <div className={cn('flex items-center', isWeb ? 'gap-3' : 'gap-1.5 sm:gap-2')}>
           <Button
             variant={isWeb ? 'outline' : 'ghost'}
             size={isWeb ? 'icon' : 'icon-sm'}
             onClick={handlePreviousWeek}
             disabled={isFetching}
+            className={cn(!isWeb && 'h-7 w-7 sm:h-8 sm:w-8')}
           >
-            <ChevronLeft className="size-4" />
+            <ChevronLeft className="size-3 sm:size-4" />
           </Button>
           <span
             className={cn(
               'font-medium text-center',
-              isWeb ? 'text-sm min-w-[200px]' : 'text-sm min-w-[120px]'
+              isWeb ? 'text-sm min-w-[200px]' : 'text-xs min-w-[100px] sm:text-sm sm:min-w-[120px]'
             )}
           >
             {formatWeekLabel()}
@@ -114,14 +115,15 @@ export function WeeklyCalendarContent({
             size={isWeb ? 'icon' : 'icon-sm'}
             onClick={handleNextWeek}
             disabled={isFetching}
+            className={cn(!isWeb && 'h-7 w-7 sm:h-8 sm:w-8')}
           >
-            <ChevronRight className="size-4" />
+            <ChevronRight className="size-3 sm:size-4" />
           </Button>
         </div>
       </div>
 
       {/* Calendar Grid */}
-      <div className={cn('grid grid-cols-7', isWeb ? 'gap-3' : 'gap-2')}>
+      <div className={cn('grid grid-cols-7', isWeb ? 'gap-3' : 'gap-1 sm:gap-2')}>
         {weekDays.map((day, index) => {
           const dateStr = dayjs(day.date).format('YYYY-MM-DD')
           const hasLeave = leaveDates.has(dateStr)
@@ -133,7 +135,7 @@ export function WeeklyCalendarContent({
               onClick={() => hasLeave && handleDateClick(day.date)}
               className={cn(
                 'flex flex-col items-center justify-center rounded-lg border transition-colors',
-                isWeb ? 'p-4' : 'p-2',
+                isWeb ? 'p-4' : 'p-1.5 sm:p-2',
                 hasLeave && 'bg-primary/10 border-primary',
                 isToday && 'ring-2 ring-primary/50',
                 hasLeave && 'cursor-pointer hover:bg-primary/20 active:scale-95',
@@ -141,13 +143,18 @@ export function WeeklyCalendarContent({
               )}
               title={hasLeave ? 'Bấm để xem danh sách người nghỉ' : undefined}
             >
-              <div className={cn('text-muted-foreground mb-1', isWeb ? 'text-sm mb-2' : 'text-xs')}>
+              <div
+                className={cn(
+                  'text-muted-foreground mb-0.5 sm:mb-1',
+                  isWeb ? 'text-sm mb-2' : 'text-[10px] sm:text-xs'
+                )}
+              >
                 {day.dayOfWeek}
               </div>
               <div
                 className={cn(
                   'font-medium',
-                  isWeb ? 'text-base' : 'text-sm',
+                  isWeb ? 'text-base' : 'text-xs sm:text-sm',
                   hasLeave && 'text-primary font-semibold',
                   isToday && 'text-primary'
                 )}
@@ -157,8 +164,8 @@ export function WeeklyCalendarContent({
               {hasLeave && (
                 <div
                   className={cn(
-                    'mt-1 rounded-full bg-primary',
-                    isWeb ? 'mt-2 size-2' : 'mt-1 size-1.5'
+                    'mt-0.5 sm:mt-1 rounded-full bg-primary',
+                    isWeb ? 'mt-2 size-2' : 'mt-0.5 sm:mt-1 size-1 sm:size-1.5'
                   )}
                 />
               )}
@@ -170,16 +177,18 @@ export function WeeklyCalendarContent({
       {/* Legend */}
       <div
         className={cn(
-          'flex items-center justify-center gap-4 mt-4 text-muted-foreground',
-          isWeb ? 'text-sm gap-6 mt-6' : 'text-xs'
+          'flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 mt-3 sm:mt-4 text-muted-foreground',
+          isWeb ? 'text-sm gap-6 mt-6' : 'text-[10px] sm:text-xs'
         )}
       >
-        <div className={cn('flex items-center', isWeb ? 'gap-2' : 'gap-1.5')}>
-          <div className={cn('rounded-full bg-primary', isWeb ? 'size-2' : 'size-1.5')} />
+        <div className={cn('flex items-center', isWeb ? 'gap-2' : 'gap-1 sm:gap-1.5')}>
+          <div className={cn('rounded-full bg-primary', isWeb ? 'size-2' : 'size-1 sm:size-1.5')} />
           <span>Có người nghỉ</span>
         </div>
         {leaveDates.size > 0 && (
-          <span className="text-xs text-muted-foreground/70">(Bấm vào ngày để xem chi tiết)</span>
+          <span className="text-[10px] sm:text-xs text-muted-foreground/70 text-center">
+            (Bấm vào ngày để xem chi tiết)
+          </span>
         )}
       </div>
 
@@ -189,7 +198,7 @@ export function WeeklyCalendarContent({
           open={isUsersListOpen}
           onOpenChange={setIsUsersListOpen}
           title="Danh sách người nghỉ"
-          maxHeightClassName="max-h-[70vh]"
+          maxHeightClassName="max-h-[65vh] sm:max-h-[70vh]"
         >
           {selectedDate && (
             <LeaveUsersList

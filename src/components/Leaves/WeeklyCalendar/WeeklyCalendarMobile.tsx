@@ -28,7 +28,7 @@ export default function WeeklyCalendarMobile({ className }: WeeklyCalendarMobile
         open={open}
         onOpenChange={setOpen}
         title="Lịch nghỉ phép tuần"
-        maxHeightClassName="max-h-[90vh]"
+        maxHeightClassName="max-h-[85vh] sm:max-h-[90vh]"
       >
         <WeeklyCalendarContent weekOffset={weekOffset} onWeekOffsetChange={setWeekOffset} />
       </BottomSheet>

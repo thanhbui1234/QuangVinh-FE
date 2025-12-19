@@ -84,14 +84,19 @@ export default function CreateLeaveSheetMobile({
 
   const onSubmit = (value: LeaveFormValues) => {
     if (value) {
-      const offFromDate = new Date(value.offFrom)
-      const offToDate = new Date(value.offTo || value.offFrom)
-      const diffTime = offToDate.getTime() - offFromDate.getTime()
-      const dayOff = diffTime / (1000 * 60 * 60 * 24) || 0.5
+      let dayOff: number
+      if (value.dayOffType === DaysOffType.ALLDAY) {
+        dayOff = 1
+      } else {
+        const offFromDate = new Date(value.offFrom)
+        const offToDate = new Date(value.offTo || value.offFrom)
+        const diffTime = offToDate.getTime() - offFromDate.getTime()
+        dayOff = value.offTo ? diffTime / (1000 * 60 * 60 * 24) || 0.5 : 0.5
+      }
 
       const payload: LeaveFormValues = {
         ...value,
-        dayOff: value.offTo ? dayOff : 0.5,
+        dayOff,
         offFrom: convertToISO(value.offFrom),
         offTo: value.offTo ? convertToISO(value.offTo) : convertToISO(value.offFrom),
       }
