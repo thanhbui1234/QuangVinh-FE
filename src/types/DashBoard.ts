@@ -169,7 +169,7 @@ export interface OverdueTaskUser {
 }
 
 export interface MyTasksRequest {
-  assigneeIds: number[]
+  assigneeIds?: number[]
   taskGroupId?: number
   statuses?: number[]
   offset?: number

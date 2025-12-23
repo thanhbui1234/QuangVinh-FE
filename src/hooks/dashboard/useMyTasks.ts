@@ -9,25 +9,37 @@ import useCheckRole from '@/hooks/useCheckRole'
 
 const DEFAULT_LIMIT = 5
 
+export type TaskRole = 'assignee' | 'supervisor'
+
 // Hook for web with pagination
-export const useMyTasks = (initialPage = 1, limit = DEFAULT_LIMIT, enabled = true) => {
+export const useMyTasks = (
+  role: TaskRole = 'assignee',
+  initialPage = 1,
+  limit = DEFAULT_LIMIT,
+  enabled = true
+) => {
   const { userId } = useCheckRole()
   const [currentPage, setCurrentPage] = useState(initialPage)
 
   const offset = (currentPage - 1) * limit
 
   const { data, isLoading, isFetching, error, refetch } = useQuery<MyTasksResponse>({
-    queryKey: dashboardMyTasksKey.list({ limit, offset, page: currentPage, userId }),
+    queryKey: dashboardMyTasksKey.list({ role, limit, offset, page: currentPage, userId }),
     queryFn: async () => {
       if (!userId) {
         throw new Error('User ID is required')
       }
       const payload: MyTasksRequest = {
-        assigneeIds: [userId],
         limit,
         offset,
-        supervisorIds: [userId],
       }
+
+      if (role === 'assignee') {
+        payload.assigneeIds = [userId]
+      } else {
+        payload.supervisorIds = [userId]
+      }
+
       const response = (await POST(API_ENDPOINT.GET_TASKS, payload)) as MyTasksResponse
       return response
     },
@@ -35,8 +47,6 @@ export const useMyTasks = (initialPage = 1, limit = DEFAULT_LIMIT, enabled = tru
   })
 
   const tasks = data?.tasks ?? []
-  // For pagination, we need to estimate total pages
-  // If we got a full page, there might be more
   const hasMore = tasks.length === limit
   const totalPages = hasMore ? currentPage + 1 : currentPage
 
@@ -59,21 +69,31 @@ export const useMyTasks = (initialPage = 1, limit = DEFAULT_LIMIT, enabled = tru
 }
 
 // Hook for mobile with load more (infinite scroll)
-export const useMyTasksInfinite = (limit = DEFAULT_LIMIT, enabled = true) => {
+export const useMyTasksInfinite = (
+  role: TaskRole = 'assignee',
+  limit = DEFAULT_LIMIT,
+  enabled = true
+) => {
   const { userId } = useCheckRole()
 
   const { data, isLoading, isFetching, error, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useInfiniteQuery<MyTasksResponse>({
-      queryKey: dashboardMyTasksKey.list({ limit, userId, mode: 'infinite' }),
+      queryKey: dashboardMyTasksKey.list({ role, limit, userId, mode: 'infinite' }),
       queryFn: async ({ pageParam = 0 }) => {
         if (!userId) {
           throw new Error('User ID is required')
         }
         const payload: MyTasksRequest = {
-          assigneeIds: [userId],
           limit,
           offset: pageParam ? Number(pageParam) : 0,
         }
+
+        if (role === 'assignee') {
+          payload.assigneeIds = [userId]
+        } else {
+          payload.supervisorIds = [userId]
+        }
+
         const response = (await POST(API_ENDPOINT.GET_TASKS, payload)) as MyTasksResponse
         return response
       },
