@@ -144,16 +144,54 @@
     --sidebar-border: oklch(1 0 0 / 10%);
     --sidebar-ring: oklch(0.439 0 0);
   }
+
+  /* Aggressively hide all scrollbars on mobile */
+  @media (max-width: 768px) {
+    * {
+      -ms-overflow-style: none !important;
+      scrollbar-width: none !important;
+    }
+
+    *::-webkit-scrollbar {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+    }
+
+    /* Hide Radix UI custom scrollbars */
+    [data-slot="scroll-area-scrollbar"] {
+      display: none !important;
+    }
+
+    /* Target the actual thumb just in case */
+    [data-slot="scroll-area-thumb"] {
+      display: none !important;
+    }
+  }
 }
 
 @layer utilities {
   .no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
   }
 
   .no-scrollbar::-webkit-scrollbar {
-    display: none;
+    display: none !important;
+  }
+
+  /* Specifically target Radix ScrollArea viewport if the class is on the parent */
+  .no-scrollbar [data-slot="scroll-area-viewport"] {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+  }
+
+  .no-scrollbar [data-slot="scroll-area-viewport"]::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .no-scrollbar [data-slot="scroll-area-scrollbar"] {
+    display: none !important;
   }
 }
 
