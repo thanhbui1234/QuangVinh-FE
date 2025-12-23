@@ -24,7 +24,7 @@ const MobileLayout = () => {
   return (
     <div className="relative flex flex-col min-h-screen bg-background">
       <MobileHeader title={title} />
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 no-scrollbar">
         <main className="px-4 min-h-screen pb-[calc(env(safe-area-inset-bottom)+72px)] pt-[calc(env(safe-area-inset-top)+56px)]">
           <Outlet key={location.pathname} />
         </main>
