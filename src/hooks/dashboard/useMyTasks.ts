@@ -26,6 +26,7 @@ export const useMyTasks = (initialPage = 1, limit = DEFAULT_LIMIT, enabled = tru
         assigneeIds: [userId],
         limit,
         offset,
+        supervisorIds: [userId],
       }
       const response = (await POST(API_ENDPOINT.GET_TASKS, payload)) as MyTasksResponse
       return response

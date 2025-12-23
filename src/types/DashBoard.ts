@@ -174,6 +174,7 @@ export interface MyTasksRequest {
   statuses?: number[]
   offset?: number
   limit?: number
+  supervisorIds?: number[]
 }
 
 export interface MyTasksResponse {
