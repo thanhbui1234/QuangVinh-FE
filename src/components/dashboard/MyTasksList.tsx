@@ -46,12 +46,12 @@ export function MyTasksList({ limit = 5, className = '', enabled = true }: MyTas
   const updateStatusMutation = useUpdateTaskStatus()
   const { userId } = useCheckRole()
 
-  const handleTaskClick = (e: React.MouseEvent) => {
+  const handleTaskClick = (taskId: number, e: React.MouseEvent) => {
     // Don't navigate if clicking on buttons
     if ((e.target as HTMLElement).closest('button')) {
       return
     }
-    navigate(`/assignments`)
+    navigate(`/tasks/${taskId}`)
   }
 
   const canManageTask = (task: MyTask) => {
@@ -127,7 +127,7 @@ export function MyTasksList({ limit = 5, className = '', enabled = true }: MyTas
                   <div
                     key={task.taskId}
                     className="rounded-lg border bg-card p-3 shadow-sm active:scale-[0.98] transition-all cursor-pointer"
-                    onClick={(e) => handleTaskClick(e)}
+                    onClick={(e) => handleTaskClick(task.taskId, e)}
                   >
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-[10px] font-mono font-bold text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
@@ -201,7 +201,7 @@ export function MyTasksList({ limit = 5, className = '', enabled = true }: MyTas
                     <div
                       key={task.taskId}
                       className="rounded-lg border bg-card p-4 hover:shadow-md transition-shadow cursor-pointer"
-                      onClick={(e) => handleTaskClick(e)}
+                      onClick={(e) => handleTaskClick(task.taskId, e)}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">

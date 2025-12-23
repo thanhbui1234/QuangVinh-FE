@@ -28,4 +28,5 @@ export const projectResponseSchema = z.object({
   memberIds: z.array(z.number()),
   tasks: z.array(z.any()), // Can be typed more specifically if needed
   taskIds: z.array(z.number()),
+  taskCount: z.number(),
 })
