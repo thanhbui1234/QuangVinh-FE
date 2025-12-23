@@ -551,85 +551,106 @@ export const CommentTask = ({ member, taskId }: { member: IMemberTask[]; taskId:
           </form>
 
           {/* Comments List */}
-          <div className="space-y-5 max-h-[400px] overflow-y-auto pr-2">
+          <div className="pt-2">
             {isFetching && comments.length === 0 ? (
-              <p className="text-sm text-gray-500 text-center py-4">Đang tải bình luận...</p>
+              <div className="flex flex-col items-center justify-center py-16 space-y-4">
+                <Loader2 className="w-8 h-8 animate-spin text-primary/20" />
+                <p className="text-sm text-gray-400 font-medium">Đang tải bình luận...</p>
+              </div>
             ) : comments.length === 0 ? (
-              <p className="text-sm text-gray-500 text-center py-4">
-                Chưa có bình luận nào. Hãy là người đầu tiên bình luận!
-              </p>
+              <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
+                <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                  <MessageCircle className="w-8 h-8 text-gray-200" />
+                </div>
+                <h4 className="text-sm font-semibold text-gray-900 mb-1">Chưa có bình luận</h4>
+                <p className="text-xs text-gray-400 max-w-[200px]">
+                  Hãy là người đầu tiên chia sẻ ý kiến về công việc này.
+                </p>
+              </div>
             ) : (
-              comments.map((c) => (
-                <div key={c.commentId} className="flex gap-3 group">
-                  <Avatar
-                    onClick={() => handleUserClick(c.creator.id)}
-                    className="w-9 h-9 shrink-0 cursor-pointer"
+              <div className="divide-y divide-gray-100">
+                {comments.map((c) => (
+                  <div
+                    key={c.commentId}
+                    className="group relative flex gap-3 md:gap-4 py-6 px-1 transition-all duration-200"
                   >
-                    <AvatarImage src={c.creator?.avatar} alt={c.creator?.name} />
-                    <AvatarFallback>
-                      {c.creator?.name?.charAt(0).toUpperCase() || 'U'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0 relative">
-                    {/* Edit/Delete buttons - Only show on hover for own comments */}
-                    {isOwnComment(c.creator.id) && editingCommentId !== c.commentId && (
-                      <div className="absolute top-0 right-0 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 text-gray-500 hover:text-blue-600"
-                          onClick={() => handleStartEdit(c.commentId, c.message, c.imageUrls)}
-                        >
-                          <Pencil className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 text-gray-500 hover:text-red-600"
-                          onClick={() => handleRemoveComment(c.commentId)}
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
-                    )}
-
-                    <div className="flex items-baseline gap-2 mb-1">
-                      <span
+                    <div className="shrink-0 pt-1">
+                      <Avatar
                         onClick={() => handleUserClick(c.creator.id)}
-                        className="font-medium text-sm text-gray-900 cursor-pointer hover:text-blue-600"
+                        className="w-9 h-9 md:w-10 md:h-10 cursor-pointer shadow-sm border border-gray-50 hover:opacity-90 transition-opacity"
                       >
-                        {c.creator?.name}
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        {dayjs(c.createdTime).fromNow()}
-                      </span>
+                        <AvatarImage src={c.creator?.avatar} alt={c.creator?.name} />
+                        <AvatarFallback className="bg-primary/5 text-primary text-[10px] md:text-xs font-bold">
+                          {c.creator?.name?.charAt(0).toUpperCase() || 'U'}
+                        </AvatarFallback>
+                      </Avatar>
                     </div>
 
-                    <p className="text-sm text-gray-700 leading-relaxed">
-                      {parseMentionsToHTML(c.message, c.mentionUsers, handleUserClick)}
-                    </p>
-                    {c.imageUrls && c.imageUrls.length > 0 && (
-                      <div className="mt-2 flex gap-2 flex-wrap">
-                        <PhotoProvider>
-                          {c.imageUrls.map((url: string, idx: number) => (
-                            <PhotoView key={url || idx} src={url}>
-                              <img
-                                src={url}
-                                alt={`Comment attachment ${idx + 1}`}
-                                className="w-50 rounded border border-gray-200 cursor-pointer hover:opacity-90"
-                                onError={(e) => {
-                                  e.currentTarget.src = '/placeholder-image.png'
-                                  e.currentTarget.alt = 'Failed to load image'
-                                }}
-                              />
-                            </PhotoView>
-                          ))}
-                        </PhotoProvider>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-x-2 gap-y-0.5 min-w-0">
+                          <span
+                            onClick={() => handleUserClick(c.creator.id)}
+                            className="font-bold text-[14px] text-gray-900 cursor-pointer hover:text-primary transition-colors truncate"
+                          >
+                            {c.creator?.name}
+                          </span>
+                          <span className="text-[10px] md:text-[11px] text-gray-400 font-medium whitespace-nowrap">
+                            <span className="hidden sm:inline-block mr-2 text-gray-300">•</span>
+                            {dayjs(c.createdTime).fromNow()}
+                          </span>
+                        </div>
+
+                        {isOwnComment(c.creator.id) && editingCommentId !== c.commentId && (
+                          <div
+                            className={`flex items-center gap-1 shrink-0 ${isMobile ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap'}`}
+                          >
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 md:h-8 md:w-8 text-gray-300 hover:text-primary hover:bg-white rounded-md transition-all px-1.5"
+                              onClick={() => handleStartEdit(c.commentId, c.message, c.imageUrls)}
+                            >
+                              <Pencil className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 md:h-8 md:w-8 text-gray-300 hover:text-red-500 hover:bg-white rounded-md transition-all px-1.5"
+                              onClick={() => handleRemoveComment(c.commentId)}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        )}
                       </div>
-                    )}
+
+                      <div className="text-[14px] md:text-[15px] text-gray-600 leading-relaxed break-words whitespace-pre-wrap">
+                        {parseMentionsToHTML(c.message, c.mentionUsers, handleUserClick)}
+                      </div>
+
+                      {c.imageUrls && c.imageUrls.length > 0 && (
+                        <div className="mt-4 flex gap-2 flex-wrap">
+                          <PhotoProvider maskOpacity={0.9} speed={() => 300}>
+                            {c.imageUrls.map((url: string, idx: number) => (
+                              <PhotoView key={url || idx} src={url}>
+                                <div className="relative group/photo cursor-zoom-in">
+                                  <img
+                                    src={url}
+                                    alt="attachment"
+                                    className="w-24 h-24 sm:w-28 sm:h-28 md:w-36 md:h-36 object-cover rounded-xl border border-gray-100/10 shadow-sm transition-transform group-hover/photo:scale-[1.02]"
+                                  />
+                                  <div className="absolute inset-0 bg-black/0 group-hover/photo:bg-black/5 transition-colors rounded-xl" />
+                                </div>
+                              </PhotoView>
+                            ))}
+                          </PhotoProvider>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))
+                ))}
+              </div>
             )}
           </div>
         </CardContent>

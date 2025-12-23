@@ -108,7 +108,7 @@ export const ProjectCard = ({ project, onEdit, onDelete }: ProjectCardProps) => 
           <div className="flex items-center gap-2 text-sm">
             <CheckCircle2 className="w-4 h-4 text-muted-foreground" />
             <span className="text-muted-foreground">Số task:</span>
-            <span className="font-medium">{project.taskIds?.length || 0}</span>
+            <span className="font-medium">{project.taskCount || 0}</span>
           </div>
         </div>
       </CardContent>

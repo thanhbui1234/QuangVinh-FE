@@ -49,8 +49,28 @@ const MobileBottomNav = () => {
   const location = useLocation()
   const navigate = useNavigate()
 
-  const isActive = (path: string) => {
-    return location.pathname === path
+  const isActive = (item: NavItem) => {
+    const currentPath = location.pathname
+
+    switch (item.id) {
+      case 'home':
+        return currentPath.startsWith('/mobile/dashboard')
+      case 'assignments':
+        // Highlight assignments tab for projects, tasks, and work boards detail pages
+        return (
+          currentPath.startsWith('/assignments') ||
+          currentPath.startsWith('/tasks') ||
+          currentPath.startsWith('/work-boards')
+        )
+      case 'profile':
+        return currentPath.startsWith('/profile')
+      case 'leaves':
+        return currentPath.startsWith('/mobile/leaves')
+      case 'notifications':
+        return currentPath.startsWith('/mobile/notifications')
+      default:
+        return currentPath === item.path
+    }
   }
 
   const handleNavigate = (path: string) => {
@@ -63,7 +83,7 @@ const MobileBottomNav = () => {
       <div className="flex items-center justify-around py-2 px-4">
         {navItems.map((item) => {
           const Icon = item.icon
-          const active = isActive(item.path)
+          const active = isActive(item)
 
           return (
             <Button
