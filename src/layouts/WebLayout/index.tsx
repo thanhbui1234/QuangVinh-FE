@@ -367,7 +367,7 @@ const WebLayout = ({ children }: Props) => {
           </div>
         </header>
 
-        <main className="flex-1 bg-gray-50 relative p-1">
+        <main className="flex-1 bg-gray-50 relative overflow-auto p-1 h-[calc(100vh-64px)]">
           {children}
 
           <div className="fixed bottom-6 right-6">

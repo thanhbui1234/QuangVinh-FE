@@ -119,31 +119,44 @@
     @apply border-border outline-ring/50;
   }
 
-  html,
-  body {
-    height: 100%;
-    overflow: hidden;
-    /* Lock body scroll */
-    overscroll-behavior: none;
-    -webkit-overflow-scrolling: touch;
-    @apply bg-background text-foreground;
-  }
-
-  #root {
-    height: 100dvh;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  /* Only hide scrollbar on mobile devices */
+  /* Lock body scroll and use root scroll only on mobile */
   @media (max-width: 768px) {
+
+    html,
+    body {
+      height: 100%;
+      overflow: hidden;
+      overscroll-behavior: none;
+      -webkit-overflow-scrolling: touch;
+      @apply bg-background text-foreground;
+    }
+
     #root {
+      height: 100dvh;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
       scrollbar-width: none;
       -ms-overflow-style: none;
     }
 
     #root::-webkit-scrollbar {
       display: none;
+    }
+  }
+
+  /* Standard sidebar behavior for PC */
+  @media (min-width: 769px) {
+
+    html,
+    body {
+      height: 100%;
+      overflow: hidden;
+      @apply bg-background text-foreground;
+    }
+
+    #root {
+      height: 100%;
+      overflow: hidden;
     }
   }
 
