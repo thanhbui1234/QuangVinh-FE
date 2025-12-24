@@ -125,5 +125,3 @@ export const PageBreadcrumb = () => {
     </Breadcrumb>
   )
 }
-
-export default PageBreadcrumb
