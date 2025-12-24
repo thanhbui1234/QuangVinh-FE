@@ -1,25 +1,38 @@
 import React, { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Plus, Edit, Trash2 } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { useGetWorkBoards } from '@/hooks/workBoards/useGetWorkBoards'
-import { useDeleteWorkBoard } from '@/hooks/workBoards/useDeleteWorkBoard'
 import { CreateWorkBoardModal } from '@/components/WorkBoards/CreateWorkBoardModal'
-import { DialogConfirm } from '@/components/ui/alertComponent'
 import { useCreateWorkBoard } from '@/hooks/workBoards/useCreateWorkBoard'
-import { Link } from 'react-router'
-import type { IWorkBoard, ICreateWorkBoard } from '@/types/WorkBoard'
+import type { CreateSheetPayload } from '@/types/Sheet'
 import { Card } from '@/components/ui/card'
 import { PageBreadcrumb } from '@/components/common/PageBreadcrumb'
+import useCheckRole from '@/hooks/useCheckRole'
+import { Input } from '@/components/ui/input'
+import { useNavigate } from 'react-router'
+
+const formatDate = (value?: number) => {
+  if (!value) return '-'
+  const d = new Date(value)
+  if (Number.isNaN(d.getTime())) return '-'
+  return d.toLocaleDateString('vi-VN')
+}
 
 export const WorkBoardsList: React.FC = () => {
-  const { workBoards, isFetching } = useGetWorkBoards()
+  const [searchText, setSearchText] = useState('')
+  const { workBoards, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage } =
+    useGetWorkBoards({
+      textSearch: searchText,
+      size: 10,
+    })
   const { createWorkBoardMutation } = useCreateWorkBoard()
-  const { deleteWorkBoardMutation } = useDeleteWorkBoard()
+  const { isManagerPermission } = useCheckRole()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
-  const [boardToDelete, setBoardToDelete] = useState<IWorkBoard | null>(null)
-  const [isDeleteOpen, setIsDeleteOpen] = useState(false)
+  const navigate = useNavigate()
 
-  const handleCreate = (data: ICreateWorkBoard) => {
+  const isInitialLoading = isFetching && workBoards.length === 0
+
+  const handleCreate = (data: CreateSheetPayload) => {
     createWorkBoardMutation.mutate(data, {
       onSuccess: () => {
         setIsCreateOpen(false)
@@ -27,20 +40,7 @@ export const WorkBoardsList: React.FC = () => {
     })
   }
 
-  const handleDelete = (board: IWorkBoard) => {
-    setBoardToDelete(board)
-    setIsDeleteOpen(true)
-  }
-
-  const handleConfirmDelete = () => {
-    if (boardToDelete) {
-      deleteWorkBoardMutation.mutate(boardToDelete.id)
-      setBoardToDelete(null)
-    }
-    setIsDeleteOpen(false)
-  }
-
-  if (isFetching) {
+  if (isInitialLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-4">
@@ -55,51 +55,71 @@ export const WorkBoardsList: React.FC = () => {
     <div className="space-y-6 p-4">
       <PageBreadcrumb />
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-semibold">Bảng công việc</h1>
-        <Button onClick={() => setIsCreateOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Tạo bảng mới
-        </Button>
+        <div className="flex flex-col gap-2 w-full sm:w-auto">
+          <h1 className="text-2xl font-semibold">Bảng công việc</h1>
+          <div className="w-full sm:w-80">
+            <Input
+              placeholder="Tìm kiếm theo tên bảng..."
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+            />
+          </div>
+        </div>
+        {isManagerPermission && (
+          <Button onClick={() => setIsCreateOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Tạo bảng mới
+          </Button>
+        )}
       </div>
 
       {workBoards.length === 0 ? (
         <Card className="p-12 text-center">
           <p className="text-gray-500 mb-4">Chưa có bảng công việc nào</p>
-          <Button onClick={() => setIsCreateOpen(true)} variant="outline">
-            <Plus className="h-4 w-4 mr-2" />
-            Tạo bảng đầu tiên
-          </Button>
+          {isManagerPermission && (
+            <Button onClick={() => setIsCreateOpen(true)} variant="outline">
+              <Plus className="h-4 w-4 mr-2" />
+              Tạo bảng đầu tiên
+            </Button>
+          )}
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {workBoards.map((board) => (
-            <Card key={board.id} className="p-4 hover:shadow-lg transition-shadow">
-              <div className="flex flex-col h-full">
-                <div className="flex-1">
-                  <h3 className="font-semibold text-lg mb-2">{board.name}</h3>
-                  {board.description && (
-                    <p className="text-sm text-gray-600 mb-4 line-clamp-2">{board.description}</p>
-                  )}
-                  <div className="flex gap-4 text-sm text-gray-500 mb-4">
-                    <span>{board.rows} hàng</span>
-                    <span>{board.columns} cột</span>
-                  </div>
+            <Card
+              key={board.id}
+              className="group flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white/80 p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md cursor-pointer"
+              onClick={() => navigate(`/work-boards/${board.id}`)}
+            >
+              <div className="flex items-start justify-between gap-3 mb-3">
+                <div className="space-y-1">
+                  <p className="text-[11px] uppercase tracking-[0.14em] text-slate-400">
+                    Bảng dữ liệu
+                  </p>
+                  <h3 className="font-semibold text-base text-slate-900 line-clamp-1">
+                    {board.sheetName}
+                  </h3>
                 </div>
-                <div className="flex gap-2 pt-4 border-t">
-                  <Link to={`/work-boards/${board.id}`} className="flex-1">
-                    <Button variant="outline" className="w-full" size="sm">
-                      <Edit className="h-4 w-4 mr-2" />
-                      Chỉnh sửa
-                    </Button>
-                  </Link>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDelete(board)}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                <span className="inline-flex items-center rounded-full bg-slate-900/5 px-2 py-0.5 text-[11px] font-medium text-slate-600">
+                  ID #{board.id}
+                </span>
+              </div>
+
+              <div className=" flex flex-col gap-2 border-t border-slate-100 pt-3 text-xs text-slate-500">
+                <div className="flex flex-wrap gap-2">
+                  <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5">
+                    <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                    {board.columns?.length || 0} cột
+                  </span>
+                  <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5">
+                    {board.viewableUserIds?.length || 0} người xem
+                  </span>
+                  <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5">
+                    {board.editableUserIds?.length || 0} người sửa
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Cập nhật: {formatDate(board.updatedTime || board.createdTime)}</span>
                 </div>
               </div>
             </Card>
@@ -114,13 +134,13 @@ export const WorkBoardsList: React.FC = () => {
         isSubmitting={createWorkBoardMutation.isPending}
       />
 
-      <DialogConfirm
-        open={isDeleteOpen}
-        onOpenChange={setIsDeleteOpen}
-        onConfirm={handleConfirmDelete}
-        title="Bạn có chắc chắn muốn xóa bảng công việc này?"
-        description="Hành động này không thể hoàn tác."
-      />
+      {hasNextPage && (
+        <div className="flex justify-center pt-4">
+          <Button variant="outline" onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>
+            {isFetchingNextPage ? 'Đang tải thêm...' : 'Xem thêm'}
+          </Button>
+        </div>
+      )}
     </div>
   )
 }

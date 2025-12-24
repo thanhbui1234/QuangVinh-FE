@@ -71,4 +71,7 @@ export const API_ENDPOINT = {
   //NOTIFICATION BELL
   GET_NOTIFICATION: '/api/noti/get-list-by-user',
   UPDATE_SEEN_NOTIFICATION: '/api/noti/update-seen',
+  // sheet / work boards
+  CREATE_SHEET_INFO: '/api/sheet-info/create',
+  GET_SNAPSHOT_SHEET_LIST: '/api/sheet-info/get-snapshot-list',
 }
