@@ -152,7 +152,18 @@ export function MyTasksList({ limit = 5, className = '', enabled = true }: MyTas
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-                        <span className="truncate max-w-[100px]">{task.groupName || 'N/A'}</span>
+                        <div
+                          className="flex items-center gap-1 cursor-pointer group/project"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            if (task.groupId) navigate(`/assignments/${task.groupId}`)
+                          }}
+                        >
+                          <Briefcase className="h-3 w-3 text-primary/70 group-hover/project:text-primary" />
+                          <span className="truncate max-w-[120px] font-medium text-primary/80 group-hover/project:text-primary group-hover/project:underline">
+                            Dự án: {task.groupName || 'N/A'}
+                          </span>
+                        </div>
                         <span>•</span>
                         <span className="font-medium text-primary/70">
                           {getTaskPriorityLabel(task.priority)}
@@ -225,7 +236,18 @@ export function MyTasksList({ limit = 5, className = '', enabled = true }: MyTas
                       </div>
                       <div className="mt-2 flex items-center justify-between">
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <span className="font-medium">{task.groupName || 'N/A'}</span>
+                          <div
+                            className="flex items-center gap-1.5 cursor-pointer group/project"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              if (task.groupId) navigate(`/assignments/${task.groupId}`)
+                            }}
+                          >
+                            <Briefcase className="h-3.5 w-3.5 text-muted-foreground/70 group-hover/project:text-primary transition-colors" />
+                            <span className="font-medium text-muted-foreground group-hover/project:text-primary group-hover/project:underline transition-colors">
+                              Dự án: {task.groupName || 'N/A'}
+                            </span>
+                          </div>
                           {task.estimateTime && (
                             <>
                               <span className="text-muted-foreground/30">|</span>

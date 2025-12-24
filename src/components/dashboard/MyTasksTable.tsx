@@ -137,9 +137,18 @@ export function MyTasksTable({ limit = 5, className = '', enabled = true }: MyTa
                     </p>
                   </TableCell>
                   <TableCell>
-                    <span className="text-sm text-muted-foreground whitespace-nowrap">
-                      {task.groupName || '--'}
-                    </span>
+                    <div
+                      className="flex items-center gap-1.5 cursor-pointer group/project min-w-[120px]"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        if (task.groupId) navigate(`/assignments/${task.groupId}`)
+                      }}
+                    >
+                      <Briefcase className="h-3.5 w-3.5 text-muted-foreground/70 group-hover/project:text-primary transition-colors" />
+                      <span className="text-sm text-muted-foreground group-hover/project:text-primary group-hover/project:underline transition-colors truncate max-w-[150px]">
+                        {task.groupName || '--'}
+                      </span>
+                    </div>
                   </TableCell>
                   <TableCell>
                     <span className="text-sm whitespace-nowrap">
