@@ -96,7 +96,7 @@ export const ProjectAssignmentDetail: React.FC = () => {
           supervisorId: task.supervisor?.id ? String(task.supervisor.id) : undefined,
           supervisor: task.supervisor || undefined,
           estimateHours: task.estimateTime
-            ? Math.round((task.estimateTime - Date.now()) / (1000 * 60 * 60))
+            ? Math.round((task.estimateTime - Date.now()) / (1000 * 60 * 60) / 3)
             : undefined,
         })) || [],
     }

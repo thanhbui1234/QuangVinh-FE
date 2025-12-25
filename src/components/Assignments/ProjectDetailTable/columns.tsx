@@ -196,7 +196,15 @@ export const taskColumns = (
     key: 'estimateHours',
     sorter: true,
     align: 'right',
-    render: (value) => {
+    render: (value, record) => {
+      // Check for completed status
+      if (record.status === 'done' || record.status === 9) {
+        if (!value || value <= 0) {
+          return <span className="text-green-600 font-medium">0 giờ</span>
+        }
+        return <span className="text-green-600 font-medium">{formatEstimateHours(value)}</span>
+      }
+
       if (typeof value !== 'number') return '-'
       const isOverdue = value <= 0
       return (

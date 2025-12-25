@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router'
 import { getTaskPriorityLabel, getTaskTypeLabel } from '@/utils/getLable'
 import { User, Clock, AlertCircle, FileText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { formatEstimateHours } from '@/utils/CommonUtils'
 type Assignee = { id: string; name: string }
 type Supervisor = { id: string; name: string }
 
@@ -98,7 +99,15 @@ export default function TaskList(props: {
                 <div className="flex items-center gap-2 text-sm">
                   <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
                   <span className="text-muted-foreground">Ước lượng:</span>
-                  <span className="font-medium">{t.estimateHours ?? '—'} h</span>
+                  <span className="font-medium">
+                    {t.status === 'done' || t.status === 9
+                      ? t.estimateHours && t.estimateHours > 0
+                        ? formatEstimateHours(t.estimateHours)
+                        : '0 giờ'
+                      : t.estimateHours
+                        ? formatEstimateHours(t.estimateHours)
+                        : '—'}
+                  </span>
                 </div>
 
                 {/* Priority */}

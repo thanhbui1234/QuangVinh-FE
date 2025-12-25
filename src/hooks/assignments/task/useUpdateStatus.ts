@@ -31,7 +31,7 @@ export const useUpdateStatus = (task: any) => {
         }
       })
 
-      queryClient.invalidateQueries({
+      queryClient.refetchQueries({
         queryKey: [projectAssignmentDetailKey.detail(task.groupId.toString())],
       })
 

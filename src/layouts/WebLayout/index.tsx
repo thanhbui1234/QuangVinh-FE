@@ -262,7 +262,9 @@ const WebLayout = ({ children }: Props) => {
               alt="Quang Vinh Mobile"
               className="h-8 w-8 rounded-md object-contain"
             />
-            {!isCollapsed && <span className="text-xl font-bold text-gray-900">Quang vinh</span>}
+            {!isCollapsed && (
+              <span className="text-xl font-bold text-gray-900">Quang Vinh mobile</span>
+            )}
             {isCollapsed && <Home className="w-6 h-6 text-gray-900" />}
           </div>
         </div>
