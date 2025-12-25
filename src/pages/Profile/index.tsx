@@ -18,6 +18,7 @@ import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
 import { initOneSignal, checkSubscriptionStatus } from '@/service/onesignalService/initOnesignal'
 import { PageBreadcrumb } from '@/components/common/PageBreadcrumb'
+import { PhotoProvider, PhotoView } from 'react-photo-view'
 
 export const Profile = () => {
   const { id } = useParams()
@@ -395,13 +396,16 @@ export const Profile = () => {
       <div className="mx-auto -mt-24 flex w-full max-w-3xl flex-col items-center px-4 pb-12">
         {/* Avatar Section */}
         <div className="relative mb-6">
-          <Avatar className="size-32 ring-4 ring-white shadow-xl">
-            <AvatarImage src={avatarPreview} alt="Avatar" />
-            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white text-3xl">
-              {currentValues.name?.charAt(0).toUpperCase() || 'U'}
-            </AvatarFallback>
-          </Avatar>
-
+          <PhotoProvider maskOpacity={0.9} speed={() => 300}>
+            <PhotoView src={avatarPreview}>
+              <Avatar className="size-32 ring-4 ring-white shadow-xl cursor-pointer">
+                <AvatarImage src={avatarPreview} alt="Avatar" />
+                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white text-3xl">
+                  {currentValues.name?.charAt(0).toUpperCase() || 'U'}
+                </AvatarFallback>
+              </Avatar>
+            </PhotoView>
+          </PhotoProvider>
           {isOwnProfile && (
             <Button
               size="icon"
