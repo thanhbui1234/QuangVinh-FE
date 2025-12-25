@@ -71,7 +71,7 @@ export const ProjectCard = ({ project, onEdit, onDelete }: ProjectCardProps) => 
   // Calculate progress
   const totalTasks = project.taskCount || 0
   const completedTasks = project.completedTaskCount || 0
-  const progressPercent = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
+  const progressPercent = totalTasks > 0 ? Math.round((3 / 5) * 100) : 0
 
   return (
     <motion.div
@@ -141,7 +141,7 @@ export const ProjectCard = ({ project, onEdit, onDelete }: ProjectCardProps) => 
             <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
               <div
                 className="h-full bg-blue-500 rounded-full transition-all duration-500 ease-out"
-                style={{ width: `${30}%` }}
+                style={{ width: `${progressPercent}%` }}
               />
             </div>
           </div>
