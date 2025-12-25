@@ -1,5 +1,5 @@
 import React from 'react'
-import { useLocation, useNavigate } from 'react-router'
+import { useLocation, useNavigate, matchPath } from 'react-router'
 import { ChevronLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -39,17 +39,28 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
   const bottomNavPaths = [
     '/mobile/dashboard',
     '/assignments',
+    '/assignments/:id',
+    '/tasks/:id',
+    '/work-boards/:id',
     '/mobile/leaves',
     '/mobile/documents',
-    '/mobile/profile',
+    '/profile',
+    '/profile/:id',
   ]
 
-  const inBottomNav = bottomNavPaths.includes(location.pathname)
+  const inBottomNav = bottomNavPaths.some((path) =>
+    matchPath({ path, end: true }, location.pathname)
+  )
+
+  // Hide back button if there is no history to go back to, unless an explicit onBack handler is provided.
+  const canGoBack = location.key !== 'default' || !!onBack
 
   const computedShowBack =
-    typeof showBack === 'boolean'
+    (typeof showBack === 'boolean'
       ? showBack
-      : inBottomNav && location.pathname !== '/mobile' && location.pathname !== '/mobile/dashboard'
+      : inBottomNav &&
+        location.pathname !== '/mobile' &&
+        location.pathname !== '/mobile/dashboard') && canGoBack
 
   const handleBack = () => {
     if (onBack) return onBack()

@@ -7,7 +7,7 @@ const defaultMap: Record<string, string> = {
   '/assignments': 'Công việc',
   '/mobile/leaves': 'Lịch nghỉ',
   '/mobile/documents': 'Tài liệu',
-  '/mobile/profile': 'Cá nhân',
+  '/profile': 'Cá nhân',
   '/mobile/notifications': 'Thông báo',
 }
 
