@@ -20,10 +20,12 @@ interface AssignmentsSheetProps {
 }
 
 // Convert constants to select options
-const statusOptions = Object.entries(STATUS_PROJECT).map(([key, value]) => ({
-  value,
-  label: key.replace(/_/g, ' '),
-}))
+const statusOptions = [
+  { value: STATUS_PROJECT.CREATED, label: 'Mới tạo' },
+  { value: STATUS_PROJECT.PENDING, label: 'Chờ xử lý' },
+  { value: STATUS_PROJECT.IN_PROGRESS, label: 'Đang thực hiện' },
+  { value: STATUS_PROJECT.COMPLETED, label: 'Đã hoàn thành' },
+]
 
 const privacyOptions = Object.entries(PRIVACY).map(([key, value]) => ({
   value: value,

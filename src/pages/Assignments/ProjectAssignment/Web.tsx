@@ -12,6 +12,7 @@ import { useSearchProject } from '@/hooks/assignments/useSearchProject'
 import { Link } from 'react-router'
 import { DialogConfirm } from '@/components/ui/alertComponent'
 import { useDeleteProject } from '@/hooks/assignments/useDeleteProject'
+import { useUpdateStatus } from '@/hooks/assignments/useUpdateStatus'
 import useCheckRole from '@/hooks/useCheckRole'
 import { PageBreadcrumb } from '@/components/common/PageBreadcrumb'
 
@@ -27,6 +28,7 @@ const ProjectAssignment = () => {
 
   const { createProjectMutation } = useCreateProject()
   const { updateProjectMutation } = useUpdateProject()
+  const { updateStatusMutation } = useUpdateStatus()
   const [open, setOpen] = useState(false)
   const [openConfirm, setOpenConfirm] = useState(false)
   const [editingProject, setEditingProject] = useState<IProjectAssignment | null>(null)
@@ -56,15 +58,38 @@ const ProjectAssignment = () => {
 
   const handleSubmit = (data: IProject) => {
     if (editingProject) {
-      updateProjectMutation.mutate(
-        { ...data, taskGroupId: editingProject.taskGroupId },
-        {
-          onSuccess: () => {
-            setOpen(false)
-            setEditingProject(null)
+      const isStatusChanged = data.status !== editingProject.status
+      const isOtherChanged =
+        data.name !== editingProject.name || data.privacy !== editingProject.privacy
+
+      if (isStatusChanged) {
+        updateStatusMutation.mutate(
+          {
+            taskGroupId: editingProject.taskGroupId,
+            newStatus: data.status,
           },
-        }
-      )
+          {
+            onSuccess: () => {
+              if (!isOtherChanged) {
+                setOpen(false)
+                setEditingProject(null)
+              }
+            },
+          }
+        )
+      }
+
+      if (isOtherChanged) {
+        updateProjectMutation.mutate(
+          { ...data, taskGroupId: editingProject.taskGroupId },
+          {
+            onSuccess: () => {
+              setOpen(false)
+              setEditingProject(null)
+            },
+          }
+        )
+      }
     } else {
       createProjectMutation.mutate(data, {
         onSuccess: () => {
@@ -155,7 +180,10 @@ const ProjectAssignment = () => {
             setOpen={setOpen}
             onSubmit={handleSubmit}
             isSubmitting={
-              isFetching || createProjectMutation.isPending || updateProjectMutation.isPending
+              isFetching ||
+              createProjectMutation.isPending ||
+              updateProjectMutation.isPending ||
+              updateStatusMutation.isPending
             }
             mode={editingProject ? 'edit' : 'create'}
             initialData={editingProject}

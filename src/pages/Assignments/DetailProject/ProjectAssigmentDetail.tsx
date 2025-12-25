@@ -16,6 +16,10 @@ import { useDeleteTask } from '@/hooks/assignments/task/useDeleteTask'
 import useCheckRole from '@/hooks/useCheckRole'
 import SonnerToaster from '@/components/ui/toaster'
 import { PageBreadcrumb } from '@/components/common/PageBreadcrumb'
+import AssignmentsModal from '@/components/Assignments/AssignmentsModal'
+import { useUpdateProject } from '@/hooks/assignments/useUpdateProject'
+import { useUpdateStatus } from '@/hooks/assignments/useUpdateStatus'
+import type { IProject } from '@/types/project'
 
 export type User = {
   id: string
@@ -59,7 +63,11 @@ export const ProjectAssignmentDetail: React.FC = () => {
   const createTaskMutation = useCreateTask()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isInviteOpen, setIsInviteOpen] = useState(false)
+  const [isEditOpen, setIsEditOpen] = useState(false)
   const { hasPermission } = useCheckRole()
+
+  const { updateProjectMutation } = useUpdateProject()
+  const { updateStatusMutation } = useUpdateStatus()
 
   const supervisors = useMemo(() => {
     return projectAssignmentDetail?.tasks?.map((task: any) => ({
@@ -125,6 +133,42 @@ export const ProjectAssignmentDetail: React.FC = () => {
       }
     )
   }
+
+  const handleUpdateProject = (data: IProject) => {
+    if (!projectAssignmentDetail) return
+
+    const isStatusChanged = data.status !== projectAssignmentDetail.status
+    const isOtherChanged =
+      data.name !== projectAssignmentDetail.name || data.privacy !== projectAssignmentDetail.privacy
+
+    if (isStatusChanged) {
+      updateStatusMutation.mutate(
+        {
+          taskGroupId: projectAssignmentDetail.taskGroupId,
+          newStatus: data.status,
+        },
+        {
+          onSuccess: () => {
+            if (!isOtherChanged) {
+              setIsEditOpen(false)
+            }
+          },
+        }
+      )
+    }
+
+    if (isOtherChanged) {
+      updateProjectMutation.mutate(
+        { ...data, taskGroupId: projectAssignmentDetail.taskGroupId },
+        {
+          onSuccess: () => {
+            setIsEditOpen(false)
+          },
+        }
+      )
+    }
+  }
+
   const handleConfirmDelete = () => {
     if (taskToDelete) {
       if (!hasPermission) {
@@ -174,6 +218,7 @@ export const ProjectAssignmentDetail: React.FC = () => {
         projectAssignmentDetail={projectAssignmentDetail}
         setIsInviteOpen={setIsInviteOpen}
         setIsCreateOpen={setIsCreateOpen}
+        onEdit={() => setIsEditOpen(true)}
       />
 
       {/* Stats Section */}
@@ -210,6 +255,15 @@ export const ProjectAssignmentDetail: React.FC = () => {
             ?.map((m: IMemberTask) => m.email)
             .filter((email): email is string => !!email) || []
         }
+      />
+
+      <AssignmentsModal
+        open={isEditOpen}
+        setOpen={setIsEditOpen}
+        onSubmit={handleUpdateProject}
+        isSubmitting={updateProjectMutation.isPending || updateStatusMutation.isPending}
+        mode="edit"
+        initialData={projectAssignmentDetail}
       />
 
       <DialogConfirm
