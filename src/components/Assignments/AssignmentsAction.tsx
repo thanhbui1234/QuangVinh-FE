@@ -2,94 +2,136 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip'
 import { useNavigate } from 'react-router'
 import useCheckRole from '@/hooks/useCheckRole'
+import { Settings, Plus, UserPlus } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { STATUS_PROJECT } from '@/constants/assignments/privacy'
+import { cn } from '@/lib/utils'
+
 export default function AssignmentsAction({
   project,
   projectAssignmentDetail,
   setIsInviteOpen,
   setIsCreateOpen,
+  onEdit,
 }: {
   project: any
   projectAssignmentDetail: any
   setIsInviteOpen: (open: boolean) => void
   setIsCreateOpen: (open: boolean) => void
+  onEdit?: () => void
 }) {
   const navigate = useNavigate()
   const { hasPermission } = useCheckRole()
   const members = projectAssignmentDetail?.members || []
   const displayMembers = members.slice(0, 10) // Max 10 items
+  const status = projectAssignmentDetail?.status
+
+  const getStatusConfig = (status: number) => {
+    switch (status) {
+      case STATUS_PROJECT.CREATED:
+        return {
+          label: 'Mới tạo',
+          className: 'bg-blue-100 text-blue-700 hover:bg-blue-200 border-blue-200',
+        }
+      case STATUS_PROJECT.PENDING:
+        return {
+          label: 'Chờ xử lý',
+          className: 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200 border-yellow-200',
+        }
+      case STATUS_PROJECT.IN_PROGRESS:
+        return {
+          label: 'Đang thực hiện',
+          className: 'bg-orange-100 text-orange-700 hover:bg-orange-200 border-orange-200',
+        }
+      case STATUS_PROJECT.COMPLETED:
+        return {
+          label: 'Đã hoàn thành',
+          className: 'bg-green-100 text-green-700 hover:bg-green-200 border-green-200',
+        }
+      default:
+        return {
+          label: 'Không xác định',
+          className: 'bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-200',
+        }
+    }
+  }
+
+  const statusConfig = getStatusConfig(status)
+
   return (
-    <div className="flex flex-col gap-4 sm:gap-0 sm:flex-row sm:justify-between sm:items-start">
+    <div className="flex flex-col gap-6 md:flex-row md:justify-between md:items-start bg-white/50 p-4 rounded-xl border border-gray-100/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-300">
       {/* Project Info */}
-      <div className="flex flex-col gap-2 flex-1 min-w-0">
-        <h2 className="m-0 text-xl sm:text-2xl break-words">{project.name}</h2>
-        <div className="flex items-start sm:items-center gap-2">
-          <span className="text-xs text-gray-500 shrink-0">Thành viên:</span>
-          <div className="relative flex-1 min-w-0 max-w-[220px] sm:max-w-[500px]">
-            <div className="no-scrollbar flex items-center min-w-0 overflow-x-auto flex-nowrap pr-6">
-              {projectAssignmentDetail?.memberIds && members.length > 0 ? (
-                <TooltipProvider delayDuration={200}>
-                  <div className="flex -space-x-2">
-                    {displayMembers.map((m: any, index: number) => (
-                      <Tooltip key={m.id}>
-                        <TooltipTrigger asChild>
-                          <div
-                            onClick={() => navigate(`/profile/${m.id}`)}
-                            className="relative cursor-pointer transition-transform hover:scale-110 hover:z-10"
-                            style={{ zIndex: displayMembers.length - index }}
-                          >
-                            <Avatar className="h-8 w-8 border-2 border-white ring-2 ring-gray-100 hover:ring-blue-400">
-                              <AvatarImage src={m.avatar} alt={m.name || m.email} />
-                              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white text-xs">
-                                {m.name?.charAt(0)?.toUpperCase() ||
-                                  m.email?.charAt(0)?.toUpperCase() ||
-                                  '?'}
-                              </AvatarFallback>
-                            </Avatar>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p className="text-sm font-medium">{m.name || m.email}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    ))}
-                    {members.length > 10 && (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div
-                            className="relative flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-gray-100 ring-2 ring-gray-100 cursor-default"
-                            style={{ zIndex: 0 }}
-                          >
-                            <span className="text-xs font-medium text-gray-600">
-                              +{members.length - 10}
-                            </span>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p className="text-sm">Còn {members.length - 10} thành viên khác</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    )}
-                  </div>
-                </TooltipProvider>
-              ) : (
-                <span className="text-xs text-gray-400">Chưa có thành viên</span>
+      <div className="flex flex-col gap-3 flex-1 min-w-0">
+        <div className="flex flex-wrap items-center gap-3">
+          <h2 className="m-0 text-xl md:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 break-words tracking-tight">
+            {project.name}
+          </h2>
+          {status && (
+            <Badge
+              variant="outline"
+              className={cn(
+                'px-2.5 py-0.5 text-xs font-semibold transition-colors duration-200 cursor-default',
+                statusConfig.className
               )}
-            </div>
-            {members.length > 0 && displayMembers.length > 5 && (
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center bg-gradient-to-l from-white via-white/80 to-transparent pl-4 w-8">
-                <svg
-                  className="h-3 w-3 text-gray-400"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M7.293 4.293a1 1 0 011.414 0L13.414 9l-4.707 4.707a1 1 0 01-1.414-1.414L10.586 9 7.293 5.707a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
+            >
+              <div
+                className={cn(
+                  'w-1.5 h-1.5 rounded-full mr-1.5 opacity-60',
+                  statusConfig.className.split(' ')[1]
+                )}
+                style={{ backgroundColor: 'currentColor' }}
+              ></div>
+              {statusConfig.label}
+            </Badge>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2 text-sm text-gray-500">
+          <span className="text-xs font-medium uppercase tracking-wider text-gray-400">Team</span>
+          <div className="h-4 w-[1px] bg-gray-200 mx-1"></div>
+          <div className="flex items-center flex-1 min-w-0">
+            {projectAssignmentDetail?.memberIds && members.length > 0 ? (
+              <TooltipProvider delayDuration={200}>
+                <div className="flex -space-x-2.5 hover:space-x-1 transition-all duration-300 px-2 overflow-visible py-1">
+                  {displayMembers.map((m: any, index: number) => (
+                    <Tooltip key={m.id}>
+                      <TooltipTrigger asChild>
+                        <div
+                          onClick={() => navigate(`/profile/${m.id}`)}
+                          className="relative cursor-pointer transition-transform hover:scale-110 hover:z-20 hover:-translate-y-1"
+                          style={{ zIndex: displayMembers.length - index }}
+                        >
+                          <Avatar className="h-8 w-8 border-2 border-white ring-1 ring-gray-100 shadow-sm">
+                            <AvatarImage
+                              src={m.avatar}
+                              alt={m.name || m.email}
+                              className="object-cover"
+                            />
+                            <AvatarFallback className="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white text-[10px] font-bold">
+                              {m.name?.charAt(0)?.toUpperCase() ||
+                                m.email?.charAt(0)?.toUpperCase() ||
+                                '?'}
+                            </AvatarFallback>
+                          </Avatar>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        side="bottom"
+                        className="text-xs font-medium px-2 py-1 bg-gray-900 text-white border-0 shadow-xl"
+                      >
+                        {m.name || m.email}
+                      </TooltipContent>
+                    </Tooltip>
+                  ))}
+                  {members.length > 10 && (
+                    <div className="relative flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-gray-50 text-gray-500 font-semibold text-xs shadow-sm z-0 hover:bg-gray-100 transition-colors">
+                      +{members.length - 10}
+                    </div>
+                  )}
+                </div>
+              </TooltipProvider>
+            ) : (
+              <span className="text-xs italic text-gray-400">Chưa có thành viên nào</span>
             )}
           </div>
         </div>
@@ -97,25 +139,34 @@ export default function AssignmentsAction({
 
       {/* Action Buttons */}
       {hasPermission && (
-        <div className="flex flex-col sm:flex-row gap-2 sm:gap-2 w-full sm:w-auto sm:shrink-0">
+        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto mt-2 md:mt-0">
           <button
             onClick={() => setIsInviteOpen(true)}
-            className="px-3 py-2 rounded-md border border-gray-300 bg-white text-slate-900 hover:bg-gray-50 transition-colors whitespace-nowrap"
+            className="group flex items-center justify-center h-9 px-3.5 gap-2 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:border-gray-300 transition-all duration-200 shadow-sm text-sm font-medium focus:ring-2 focus:ring-offset-2 focus:ring-gray-100 active:scale-95"
           >
-            Mời thành viên
+            <UserPlus className="w-4 h-4 text-gray-500 group-hover:text-gray-700" />
+            <span className="whitespace-nowrap">Mời</span>
           </button>
+
           <button
             onClick={() => setIsCreateOpen(true)}
-            className="px-3 py-2 rounded-md border border-gray-300 bg-slate-900 text-white hover:bg-slate-800 transition-colors whitespace-nowrap"
+            className="group flex-1 md:flex-none flex items-center justify-center h-9 px-4 gap-2 rounded-lg bg-slate-900 text-white hover:bg-slate-800 transition-all duration-200 shadow-md hover:shadow-lg hover:shadow-slate-900/20 text-sm font-medium focus:ring-2 focus:ring-offset-2 focus:ring-slate-900 active:scale-95"
           >
-            Tạo công việc mới
+            <Plus className="w-4 h-4" />
+            <span className="whitespace-nowrap">Tạo việc</span>
           </button>
+
+          {onEdit && (
+            <button
+              onClick={onEdit}
+              className="flex items-center justify-center h-9 w-9 rounded-lg border border-gray-200 bg-white text-gray-500 hover:bg-gray-50 hover:text-gray-900 hover:border-gray-300 transition-all duration-200 shadow-sm focus:ring-2 focus:ring-offset-2 focus:ring-gray-100 active:scale-95"
+              title="Cài đặt dự án"
+            >
+              <Settings className="w-4 h-4" />
+            </button>
+          )}
         </div>
       )}
-
-      {/* <CustomDialog open={showListMember} onOpenChange={setShowListMember} title="Thành viên" description="">
-        <div>hi</div>
-      </CustomDialog> */}
     </div>
   )
 }
