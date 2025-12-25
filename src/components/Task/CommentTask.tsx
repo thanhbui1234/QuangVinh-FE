@@ -280,11 +280,6 @@ export const CommentTask = ({ member, taskId }: { member: IMemberTask[]; taskId:
             commentType: getCommentType(plainMessage, hasImages, hasMentions),
             mentionIds: hasMentions ? mentionIds : undefined,
           })
-
-          SonnerToaster({
-            type: 'success',
-            message: 'Đã thêm bình luận thành công',
-          })
         }
 
         // Reset form and images
@@ -294,10 +289,6 @@ export const CommentTask = ({ member, taskId }: { member: IMemberTask[]; taskId:
         setImageUploads([])
       } catch (error) {
         console.error(error)
-        SonnerToaster({
-          type: 'error',
-          message: editingCommentId ? 'Có lỗi khi cập nhật bình luận' : 'Có lỗi khi thêm bình luận',
-        })
       } finally {
         // Reset flag after a short delay to prevent rapid re-submissions
         setTimeout(() => {

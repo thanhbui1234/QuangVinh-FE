@@ -139,7 +139,7 @@ const LeavesTable: React.FC<LeavesTableProps> = (props) => {
     },
     {
       title: 'Số ngày',
-      dataIndex: 'dayOff',
+      dataIndex: 'dayO    ff',
       key: 'days',
       sorter: true,
       render: (value: any) => {
