@@ -91,7 +91,7 @@ export default function CreateLeaveSheetMobile({
         const offFromDate = new Date(value.offFrom)
         const offToDate = new Date(value.offTo || value.offFrom)
         const diffTime = offToDate.getTime() - offFromDate.getTime()
-        dayOff = value.offTo ? diffTime / (1000 * 60 * 60 * 24) || 0.5 : 0.5
+        dayOff = value.offTo ? diffTime / (1000 * 60 * 60 * 24) + 1 || 0.5 : 0.5
       }
 
       const payload: LeaveFormValues = {
