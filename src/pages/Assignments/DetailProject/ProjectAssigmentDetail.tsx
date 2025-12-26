@@ -9,6 +9,7 @@ import { Overview } from '@/components/Assignments/overview'
 import { useGetDetailProject } from '@/hooks/assignments/useGetDetailProject'
 import { useGetMemberTask, type IMemberTask } from '@/hooks/assignments/useGetMemberTask'
 import { useCreateTask } from '@/hooks/assignments/task/useCreateTask'
+import { useCreateTaskTemplate } from '@/hooks/assignments/task/useCreateDailyTask'
 import AssignmentsAction from '@/components/Assignments/AssignmentsAction'
 import { mapTaskStatus, type TaskStatus } from '@/utils/getLable'
 import { DialogConfirm } from '@/components/ui/alertComponent'
@@ -61,6 +62,7 @@ export const ProjectAssignmentDetail: React.FC = () => {
   const deleteTaskMutation = useDeleteTask(Number(id))
   const { memberTask } = useGetMemberTask(Number(id))
   const createTaskMutation = useCreateTask()
+  const createTaskTemplateMutation = useCreateTaskTemplate()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isInviteOpen, setIsInviteOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
@@ -112,26 +114,47 @@ export const ProjectAssignmentDetail: React.FC = () => {
   }, [projectAssignmentDetail]) */
 
   function handleCreateTask(data: CreateTaskFormData) {
-    createTaskMutation.mutate(
-      {
-        description: data.description,
-        priority: data.priority,
-        taskType: data.taskType,
-        groupId: Number(id),
-        estimateTime: data.estimateTime,
-        imageUrls: data.imageUrls,
-        checkList: data.checkList,
-        assigneeIds: data.assigneeIds,
-        supervisorId: data.supervisorId,
-        status: data.status,
-        startTime: data.startTime,
-      },
-      {
+    // Base payload
+    const basePayload = {
+      description: data.description,
+      priority: data.priority,
+      taskType: data.taskType,
+      groupId: Number(id),
+      estimateTime: data.estimateTime,
+      imageUrls: data.imageUrls,
+      checkList: data.checkList,
+      assigneeIds: data.assigneeIds,
+      supervisorId: data.supervisorId,
+      status: data.status,
+      startTime: data.startTime,
+    }
+
+    // If recurrence is enabled, create task template
+    if (data.isRecurrenceEnabled) {
+      createTaskTemplateMutation.mutate(
+        {
+          ...basePayload,
+          isRecurrenceEnabled: true,
+          recurrenceType: data.recurrenceType,
+          recurrenceInterval: data.recurrenceInterval,
+          hourOfDay: data.hourOfDay,
+          dayOfWeek: data.dayOfWeek,
+          dayOfMonth: data.dayOfMonth,
+        },
+        {
+          onSuccess: () => {
+            setIsCreateOpen(false)
+          },
+        }
+      )
+    } else {
+      // Create regular task
+      createTaskMutation.mutate(basePayload, {
         onSuccess: () => {
           setIsCreateOpen(false)
         },
-      }
-    )
+      })
+    }
   }
 
   const handleUpdateProject = (data: IProject) => {

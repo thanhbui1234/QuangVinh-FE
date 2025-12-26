@@ -14,6 +14,7 @@ export const API_ENDPOINT = {
   SEARCH_PROJECT: '/api/task-group/name-search',
   // task
   CREATE_TASK: '/api/task/create',
+  CREATE_TASK_TEMPLATE: '/api/task/create-task-template',
   GET_TASKS: '/api/task/get-list',
   UPDATE_TASK: '/api/task/update',
   DELETE_TASK: '/api/task/remove',

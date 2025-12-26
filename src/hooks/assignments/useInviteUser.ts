@@ -17,11 +17,9 @@ export const useInviteUser = () => {
       return response
     },
     onSuccess: (respones, variables) => {
-      // Cập nhật lại danh sách member của group
       queryClient.invalidateQueries({
         queryKey: [memberTaskKey.detail(variables.taskGroupId.toString())],
       })
-      // Cập nhật lại detail project (task-group/get-detail)
       queryClient.invalidateQueries({
         queryKey: [
           projectAssignmentDetailKey.detail(variables.taskGroupId.toString()),

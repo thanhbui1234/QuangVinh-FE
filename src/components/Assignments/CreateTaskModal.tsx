@@ -22,6 +22,7 @@ import { FileUploadValidationDemo } from '../ui/uploadFile'
 import { DatePicker } from '../ui/datePicker'
 import { CreateTaskFormSchema, type CreateTaskFormData as FormValues } from '@/schemas/taskSchema'
 import { parseDate, formatToDateTimeLocal, timestampToDateTimeLocal } from '@/utils/CommonUtils'
+import { RecurrenceSettings } from './RecurrenceSettings'
 
 export type CreateTaskFormData = {
   description: string
@@ -36,6 +37,13 @@ export type CreateTaskFormData = {
   startTime?: number
   imageUrls?: string[]
   checkList?: string
+  // Recurrence fields
+  isRecurrenceEnabled?: boolean
+  recurrenceType?: number
+  recurrenceInterval?: number
+  hourOfDay?: number
+  dayOfWeek?: number
+  dayOfMonth?: number
 }
 
 export type CreateTaskModalProps = {
@@ -75,6 +83,14 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
         imageUrls: initialData.imageUrls || [],
         checkList: initialData.checkList || '',
         supervisor: initialData.supervisorId ? String(initialData.supervisorId) : '',
+        isRecurrenceEnabled: initialData.isRecurrenceEnabled || false,
+        recurrenceType: initialData.recurrenceType ? String(initialData.recurrenceType) : '',
+        recurrenceInterval: initialData.recurrenceInterval
+          ? String(initialData.recurrenceInterval)
+          : '',
+        hourOfDay: initialData.hourOfDay !== undefined ? String(initialData.hourOfDay) : '',
+        dayOfWeek: initialData.dayOfWeek ? String(initialData.dayOfWeek) : '',
+        dayOfMonth: initialData.dayOfMonth ? String(initialData.dayOfMonth) : '',
       }
     }
     return {
@@ -88,6 +104,12 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
       imageUrls: [],
       checkList: '',
       supervisor: '',
+      isRecurrenceEnabled: false,
+      recurrenceType: '',
+      recurrenceInterval: '',
+      hourOfDay: '',
+      dayOfWeek: '',
+      dayOfMonth: '',
     }
   }, [mode, initialData, formatDate])
 
@@ -100,7 +122,7 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
     control,
     formState: { errors },
   } = useForm<FormValues>({
-    resolver: zodResolver(CreateTaskFormSchema),
+    resolver: zodResolver(CreateTaskFormSchema) as any,
     defaultValues,
   })
 
@@ -156,9 +178,22 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
       checkList: data.checkList?.trim() || undefined,
     }
 
+    // Recurrence payload (only if enabled)
+    const recurrencePayload = data.isRecurrenceEnabled
+      ? {
+          isRecurrenceEnabled: true,
+          recurrenceType: data.recurrenceType ? Number(data.recurrenceType) : undefined,
+          recurrenceInterval: data.recurrenceInterval ? Number(data.recurrenceInterval) : undefined,
+          hourOfDay: data.hourOfDay ? Number(data.hourOfDay) : undefined,
+          dayOfWeek: data.dayOfWeek ? Number(data.dayOfWeek) : undefined,
+          dayOfMonth: data.dayOfMonth ? Number(data.dayOfMonth) : undefined,
+        }
+      : { isRecurrenceEnabled: false }
+
     // Unified payload for both CREATE and EDIT modes
     onCreate({
       ...basePayload,
+      ...recurrencePayload,
       assigneeIds: assigneeIds && assigneeIds.length > 0 ? assigneeIds : undefined,
       supervisorId,
     })
@@ -435,6 +470,9 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                 }}
               />
             </div>
+
+            {/* Recurrence Settings */}
+            <RecurrenceSettings control={control} watch={watch} errors={errors} />
           </form>
         </div>
 

@@ -13,6 +13,13 @@ export const CreateTaskFormSchema = z
     supervisor: z.string().optional(),
     imageUrls: z.array(z.string().url()),
     checkList: z.string().optional(),
+    // Recurrence fields
+    isRecurrenceEnabled: z.preprocess((val) => val ?? false, z.boolean()),
+    recurrenceType: z.string().optional(), // 1=HOURLY, 2=DAILY, 3=WEEKLY, 4=MONTHLY
+    recurrenceInterval: z.string().optional(),
+    hourOfDay: z.string().optional(), // 0-23
+    dayOfWeek: z.string().optional(), // 1=Monday, 7=Sunday
+    dayOfMonth: z.string().optional(), // 1-31
   })
   .refine(
     (data) => {
@@ -27,6 +34,18 @@ export const CreateTaskFormSchema = z
     {
       message: 'Thời gian hoàn thành phải sau hoặc bằng thời gian bắt đầu',
       path: ['estimateDate'],
+    }
+  )
+  .refine(
+    (data) => {
+      // If recurrence is disabled, no validation needed
+      if (!data.isRecurrenceEnabled) return true
+      // If recurrence is enabled, recurrenceType is required
+      return !!data.recurrenceType
+    },
+    {
+      message: 'Vui lòng chọn loại lặp lại',
+      path: ['recurrenceType'],
     }
   )
 
