@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useGetAllUser, type IUser } from '@/hooks/assignments/useGetAllUser'
 import { useInviteUser } from '@/hooks/assignments/useInviteUser'
 
@@ -17,11 +18,15 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
   existingMemberEmails,
 }) => {
   const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [searchQuery, setSearchQuery] = useState('')
   const { allUser, isLoading } = useGetAllUser()
   const { createProjectMutation } = useInviteUser()
 
   useEffect(() => {
-    if (!open) setSelectedIds([])
+    if (!open) {
+      setSelectedIds([])
+      setSearchQuery('')
+    }
   }, [open])
 
   function toggle(id: string) {
@@ -42,6 +47,7 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
       {
         onSuccess: () => {
           setSelectedIds([])
+          setSearchQuery('')
           onOpenChange(false)
         },
       }
@@ -56,6 +62,15 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
     const email = u.email || ''
     if (!email) return false
     return !existingMemberEmails.includes(email)
+  })
+
+  // Lọc theo search query
+  const filteredCandidates = candidates.filter((u: IUser) => {
+    if (!searchQuery.trim()) return true
+    const query = searchQuery.toLowerCase()
+    const name = (u.name || '').toLowerCase()
+    const email = (u.email || '').toLowerCase()
+    return name.includes(query) || email.includes(query)
   })
 
   return (
@@ -83,26 +98,120 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
         </div>
 
         <div className="flex flex-col gap-3 mt-4">
-          <div className="max-h-[300px] overflow-auto border border-gray-200 rounded-lg">
-            {isLoading ? (
-              <div className="p-3 text-gray-500">Đang tải danh sách user...</div>
-            ) : candidates.length > 0 ? (
-              candidates.map((u: IUser) => (
-                <label
-                  key={u.id}
-                  className="flex items-center gap-2 py-2.5 px-3 border-b border-gray-100 cursor-pointer hover:bg-gray-50"
+          {/* Search Input */}
+          <div className="relative">
+            <svg
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Tìm kiếm theo tên hoặc email..."
+              className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all duration-200"
+            />
+            <AnimatePresence>
+              {searchQuery && (
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  transition={{ duration: 0.15 }}
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  aria-label="Clear search"
                 >
-                  <input
-                    type="checkbox"
-                    checked={selectedIds.includes(String(u.id))}
-                    onChange={() => toggle(String(u.id))}
-                    className="cursor-pointer"
-                  />
-                  <span>{u.name || u.email}</span>
-                </label>
-              ))
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </motion.button>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* User List */}
+          {/* User List */}
+          <div className="h-[300px] overflow-auto border border-gray-200 rounded-lg relative bg-gray-50/50">
+            {isLoading ? (
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
+                <div className="w-8 h-8 border-2 border-gray-200 border-t-gray-900 rounded-full animate-spin mb-3" />
+                <span className="text-sm font-medium">Đang tải danh sách...</span>
+              </div>
+            ) : filteredCandidates.length > 0 ? (
+              <div className="absolute inset-0">
+                {filteredCandidates.map((u: IUser) => (
+                  <label
+                    key={u.id}
+                    className="flex items-center gap-3 py-3 px-4 border-b border-gray-100 last:border-b-0 cursor-pointer bg-white hover:bg-gray-50 transition-colors duration-150"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.includes(String(u.id))}
+                      onChange={() => toggle(String(u.id))}
+                      className="cursor-pointer w-4 h-4 accent-gray-900 rounded border-gray-300"
+                    />
+                    <div className="flex flex-col">
+                      <span className="font-medium text-gray-900 text-sm">{u.name || u.email}</span>
+                      {u.name && u.email && (
+                        <span className="text-xs text-gray-500">{u.email}</span>
+                      )}
+                    </div>
+                  </label>
+                ))}
+              </div>
             ) : (
-              <div className="p-3 text-gray-500">Tất cả user đã là thành viên.</div>
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-400 p-4">
+                {searchQuery ? (
+                  <>
+                    <svg
+                      className="w-12 h-12 mb-3 text-gray-300"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zm-7-3a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                    </svg>
+                    <p className="text-sm">Không tìm thấy user phù hợp</p>
+                  </>
+                ) : (
+                  <>
+                    <svg
+                      className="w-12 h-12 mb-3 text-gray-300"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                      />
+                    </svg>
+                    <p className="text-sm">Tất cả user đã là thành viên</p>
+                  </>
+                )}
+              </div>
             )}
           </div>
 
