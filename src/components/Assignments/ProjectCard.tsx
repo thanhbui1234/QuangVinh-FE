@@ -36,8 +36,7 @@ const getStatus = (status: number) => {
   switch (status) {
     case STATUS_PROJECT.CREATED:
       return { label: 'Mới tạo', color: 'text-gray-600', bg: 'bg-gray-50' }
-    case STATUS_PROJECT.PENDING:
-      return { label: 'Chờ xử lý', color: 'text-orange-600', bg: 'bg-orange-50' }
+
     case STATUS_PROJECT.IN_PROGRESS:
       return { label: 'Đang thực hiện', color: 'text-blue-600', bg: 'bg-blue-50' }
     case STATUS_PROJECT.COMPLETED:
@@ -71,7 +70,7 @@ export const ProjectCard = ({ project, onEdit, onDelete }: ProjectCardProps) => 
   // Calculate progress
   const totalTasks = project.taskCount || 0
   const completedTasks = project.completedTaskCount || 0
-  const progressPercent = totalTasks > 0 ? Math.round((3 / 5) * 100) : 0
+  const progressPercent = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
 
   return (
     <motion.div

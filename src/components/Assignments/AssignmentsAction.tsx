@@ -33,11 +33,7 @@ export default function AssignmentsAction({
           label: 'Mới tạo',
           className: 'bg-blue-100 text-blue-700 hover:bg-blue-200 border-blue-200',
         }
-      case STATUS_PROJECT.PENDING:
-        return {
-          label: 'Chờ xử lý',
-          className: 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200 border-yellow-200',
-        }
+
       case STATUS_PROJECT.IN_PROGRESS:
         return {
           label: 'Đang thực hiện',

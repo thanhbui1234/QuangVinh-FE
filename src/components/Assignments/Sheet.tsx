@@ -22,7 +22,7 @@ interface AssignmentsSheetProps {
 // Convert constants to select options
 const statusOptions = [
   { value: STATUS_PROJECT.CREATED, label: 'Mới tạo' },
-  { value: STATUS_PROJECT.PENDING, label: 'Chờ xử lý' },
+
   { value: STATUS_PROJECT.IN_PROGRESS, label: 'Đang thực hiện' },
   { value: STATUS_PROJECT.COMPLETED, label: 'Đã hoàn thành' },
 ]

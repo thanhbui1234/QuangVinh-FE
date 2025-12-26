@@ -34,11 +34,11 @@ export function FormSelect<T extends FieldValues>({
       name={name}
       render={({ field }) => (
         <Select
-          value={field.value?.toString()}
+          value={field?.value?.toString()}
           onValueChange={(value) => {
             // Convert back to number if the option value is a number
-            const option = options.find((opt) => opt.value.toString() === value)
-            field.onChange(option ? option.value : value)
+            const option = options?.find((opt) => opt?.value?.toString() === value)
+            field.onChange(option ? option?.value : value)
           }}
         >
           <SelectTrigger className={className}>
