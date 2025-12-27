@@ -1,10 +1,18 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
-import { Plus, Trash2, Save, X } from 'lucide-react'
+import { Plus, Trash2, Save, X, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { ColumnSettingsModal } from './ColumnSettingsModal'
 import { type IWorkBoard, type IWorkBoardCell, type IWorkBoardColumn } from '@/types/WorkBoard'
 
 interface EditableTableProps {
@@ -14,14 +22,21 @@ interface EditableTableProps {
     columns: number
     columnHeaders: IWorkBoardColumn[]
     cells: IWorkBoardCell[]
+    columnChanges?: {
+      added: IWorkBoardColumn[]
+      modified: Array<{ original: IWorkBoardColumn; updated: IWorkBoardColumn }>
+      deleted: IWorkBoardColumn[]
+    }
   }) => void
   isSaving?: boolean
+  onUnsavedChangesChange?: (hasUnsavedChanges: boolean) => void
 }
 
 export const EditableTable: React.FC<EditableTableProps> = ({
   workBoard,
   onSave,
   isSaving = false,
+  onUnsavedChangesChange,
 }) => {
   const [rows, setRows] = useState(workBoard?.rows || 5)
   const [columns, setColumns] = useState(workBoard?.columns || 5)
@@ -33,13 +48,19 @@ export const EditableTable: React.FC<EditableTableProps> = ({
   const [editingValue, setEditingValue] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
   const tableRef = useRef<HTMLDivElement>(null)
+  const [originalColumns, setOriginalColumns] = useState<IWorkBoardColumn[]>([])
+  const [settingsColumn, setSettingsColumn] = useState<IWorkBoardColumn | null>(null)
+  const [showSettingsModal, setShowSettingsModal] = useState(false)
 
   // Initialize cells from workBoard
   useEffect(() => {
     if (workBoard) {
       setRows(workBoard.rows)
       setColumns(workBoard.columns)
-      setColumnHeaders(workBoard.columnHeaders || [])
+      const headers = workBoard.columnHeaders || []
+      setColumnHeaders(headers)
+      // Store original columns for comparison
+      setOriginalColumns(headers.map((col) => ({ ...col })))
 
       const cellsMap = new Map<string, string>()
       workBoard.cells?.forEach((cell) => {
@@ -55,6 +76,7 @@ export const EditableTable: React.FC<EditableTableProps> = ({
         width: 150,
       }))
       setColumnHeaders(defaultColumns)
+      setOriginalColumns([])
     }
   }, [workBoard])
 
@@ -166,10 +188,17 @@ export const EditableTable: React.FC<EditableTableProps> = ({
 
   const handleAddColumn = () => {
     setColumns((prev: any) => prev + 1)
+    const newIndex = columnHeaders.length
     const newColumn: IWorkBoardColumn = {
-      id: `col-${columns}`,
-      label: `Cột ${columns + 1}`,
+      id: `col-new-${Date.now()}`,
+      label: `Cột ${newIndex + 1}`,
       width: 150,
+      name: `Cột ${newIndex + 1}`,
+      type: 'text',
+      index: newIndex,
+      color: '#FFFFFF',
+      required: false,
+      options: [],
     }
     setColumnHeaders((prev) => [...prev, newColumn])
   }
@@ -198,10 +227,92 @@ export const EditableTable: React.FC<EditableTableProps> = ({
   const handleColumnHeaderChange = (colIndex: number, label: string) => {
     setColumnHeaders((prev) => {
       const newHeaders = [...prev]
-      newHeaders[colIndex] = { ...newHeaders[colIndex], label }
+      newHeaders[colIndex] = {
+        ...newHeaders[colIndex],
+        label,
+        name: label, // Also update name when label changes
+      }
       return newHeaders
     })
   }
+
+  const handleOpenSettings = (colIndex: number) => {
+    setSettingsColumn(columnHeaders[colIndex])
+    setShowSettingsModal(true)
+  }
+
+  const handleSaveColumnSettings = (updatedColumn: IWorkBoardColumn) => {
+    setColumnHeaders((prev) => {
+      const newHeaders = [...prev]
+      const colIndex = newHeaders.findIndex((col) => col.id === updatedColumn.id)
+      if (colIndex !== -1) {
+        newHeaders[colIndex] = updatedColumn
+      }
+      return newHeaders
+    })
+    setSettingsColumn(null)
+  }
+
+  // Check for unsaved changes
+  const checkUnsavedChanges = useCallback(() => {
+    if (!workBoard || originalColumns.length === 0) {
+      // Check if cells have changed
+      const hasCellChanges = cells.size > 0
+      return hasCellChanges
+    }
+
+    // Check column changes
+    const hasColumnChanges = columnHeaders.some((col) => {
+      const colName = col.name || col.label
+      const isNew =
+        col.id?.startsWith('col-new-') ||
+        !originalColumns.find((oc) => (oc.name || oc.label) === colName)
+      if (isNew) return true
+
+      const originalCol = originalColumns.find((oc) => (oc.name || oc.label) === colName)
+      if (!originalCol) return false
+
+      return (
+        (col.label || '') !== (originalCol.label || '') ||
+        (col.name || '') !== (originalCol.name || '') ||
+        col.index !== originalCol.index ||
+        (col.color || '') !== (originalCol.color || '') ||
+        col.required !== originalCol.required ||
+        JSON.stringify(col.options || []) !== JSON.stringify(originalCol.options || [])
+      )
+    })
+
+    // Check for deleted columns
+    const hasDeletedColumns = originalColumns.some((originalCol) => {
+      const originalName = originalCol.name || originalCol.label
+      return !columnHeaders.find((col) => (col.name || col.label) === originalName)
+    })
+
+    // Check cell changes
+    const originalCellsMap = new Map<string, string>()
+    workBoard.cells?.forEach((cell) => {
+      const key = `${cell.rowIndex}-${cell.columnIndex}`
+      originalCellsMap.set(key, cell.value)
+    })
+
+    const hasCellChanges =
+      Array.from(cells.entries()).some(([key, value]) => {
+        return originalCellsMap.get(key) !== value
+      }) ||
+      Array.from(originalCellsMap.entries()).some(([key, value]) => {
+        return !cells.has(key) && value !== ''
+      })
+
+    return hasColumnChanges || hasDeletedColumns || hasCellChanges
+  }, [workBoard, originalColumns, columnHeaders, cells])
+
+  // Notify parent about unsaved changes
+  useEffect(() => {
+    if (onUnsavedChangesChange) {
+      const hasChanges = checkUnsavedChanges()
+      onUnsavedChangesChange(hasChanges)
+    }
+  }, [checkUnsavedChanges, onUnsavedChangesChange])
 
   const handleSave = () => {
     const cellsArray: IWorkBoardCell[] = []
@@ -210,11 +321,59 @@ export const EditableTable: React.FC<EditableTableProps> = ({
       cellsArray.push({ rowIndex, columnIndex, value })
     })
 
+    // Calculate column changes
+    const columnChanges = {
+      added: [] as IWorkBoardColumn[],
+      modified: [] as Array<{ original: IWorkBoardColumn; updated: IWorkBoardColumn }>,
+      deleted: [] as IWorkBoardColumn[],
+    }
+
+    if (workBoard && originalColumns.length > 0) {
+      // Find added columns (new columns without original name)
+      columnHeaders.forEach((col) => {
+        const colName = col.name || col.label
+        const isNew =
+          col.id?.startsWith('col-new-') ||
+          !originalColumns.find((oc) => (oc.name || oc.label) === colName)
+        if (isNew) {
+          columnChanges.added.push(col)
+        }
+      })
+
+      // Find modified and deleted columns
+      originalColumns.forEach((originalCol) => {
+        const originalName = originalCol.name || originalCol.label
+        const currentCol = columnHeaders.find((col) => (col.name || col.label) === originalName)
+        if (currentCol) {
+          // Check if any property changed
+          const hasChanges =
+            (currentCol.label || '') !== (originalCol.label || '') ||
+            (currentCol.name || '') !== (originalCol.name || '') ||
+            currentCol.index !== originalCol.index ||
+            (currentCol.color || '') !== (originalCol.color || '') ||
+            currentCol.required !== originalCol.required ||
+            JSON.stringify(currentCol.options || []) !== JSON.stringify(originalCol.options || [])
+          if (hasChanges) {
+            columnChanges.modified.push({ original: originalCol, updated: currentCol })
+          }
+        } else {
+          // Column was deleted
+          columnChanges.deleted.push(originalCol)
+        }
+      })
+    }
+
     onSave({
       rows,
       columns,
       columnHeaders,
       cells: cellsArray,
+      columnChanges:
+        columnChanges.added.length > 0 ||
+        columnChanges.modified.length > 0 ||
+        columnChanges.deleted.length > 0
+          ? columnChanges
+          : undefined,
     })
   }
 
@@ -243,8 +402,12 @@ export const EditableTable: React.FC<EditableTableProps> = ({
         <div
           ref={tableRef}
           className="relative w-full overflow-x-auto overflow-y-auto max-h-[calc(100vh-300px)]"
+          style={{ width: '100%' }}
         >
-          <table className="w-full caption-bottom text-sm" style={{ minWidth: 'max-content' }}>
+          <table
+            className="caption-bottom text-sm"
+            style={{ minWidth: 'max-content', width: '100%' }}
+          >
             <TableHeader className="sticky top-0 z-10 bg-muted/50">
               <TableRow>
                 <TableHead className="w-12 bg-muted/50 sticky left-0 z-20 border-r">
@@ -252,59 +415,130 @@ export const EditableTable: React.FC<EditableTableProps> = ({
                     <span className="text-muted-foreground">#</span>
                   </div>
                 </TableHead>
-                {columnHeaders.map((col, colIndex) => (
-                  <TableHead key={col.id} className="min-w-[150px] whitespace-nowrap">
-                    {editingCell?.row === -1 && editingCell?.col === colIndex ? (
-                      <Input
-                        ref={colIndex === 0 ? inputRef : undefined}
-                        value={editingValue}
-                        onChange={(e) => setEditingValue(e.target.value)}
-                        onBlur={() => {
-                          handleColumnHeaderChange(colIndex, editingValue || col.label)
-                          setEditingCell(null)
+                {columnHeaders.map((col, colIndex) => {
+                  const columnColor = col.color || '#FFFFFF'
+                  return (
+                    <React.Fragment key={col.id}>
+                      <TableHead
+                        className="min-w-[150px] whitespace-nowrap relative group/col"
+                        style={{
+                          borderTop: `3px solid ${columnColor}`,
+                          backgroundColor: columnColor,
                         }}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            handleColumnHeaderChange(colIndex, editingValue || col.label)
-                            setEditingCell(null)
-                          } else if (e.key === 'Escape') {
-                            setEditingCell(null)
-                          }
-                        }}
-                        className="h-8"
-                      />
-                    ) : (
-                      <div className="flex items-center justify-between group">
-                        <span
-                          className="flex-1 cursor-pointer hover:text-primary"
-                          onClick={() => {
-                            setEditingCell({ row: -1, col: colIndex })
-                            setEditingValue(col.label)
-                          }}
-                        >
-                          {col.label}
-                        </span>
-                        {columns > 1 && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
-                            onClick={() => handleDeleteColumn(colIndex)}
-                          >
-                            <X className="h-3 w-3" />
-                          </Button>
+                      >
+                        {editingCell?.row === -1 && editingCell?.col === colIndex ? (
+                          <Input
+                            ref={colIndex === 0 ? inputRef : undefined}
+                            value={editingValue}
+                            onChange={(e) => setEditingValue(e.target.value)}
+                            onBlur={() => {
+                              handleColumnHeaderChange(colIndex, editingValue || col.label)
+                              setEditingCell(null)
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                handleColumnHeaderChange(colIndex, editingValue || col.label)
+                                setEditingCell(null)
+                              } else if (e.key === 'Escape') {
+                                setEditingCell(null)
+                              }
+                            }}
+                            className="h-8"
+                          />
+                        ) : (
+                          <div className="flex items-center justify-between group">
+                            <div className="flex items-center gap-2 flex-1">
+                              <div
+                                className="w-3 h-3 rounded-sm border border-gray-300"
+                                style={{ backgroundColor: columnColor }}
+                                title={`Màu: ${columnColor}`}
+                              />
+                              <span
+                                className="flex-1 cursor-pointer hover:text-primary"
+                                onClick={() => {
+                                  setEditingCell({ row: -1, col: colIndex })
+                                  setEditingValue(col.label)
+                                }}
+                              >
+                                {col.label}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0"
+                                onClick={() => handleOpenSettings(colIndex)}
+                                title="Cài đặt cột"
+                              >
+                                <Settings className="h-3 w-3" />
+                              </Button>
+                              {columns > 1 && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 w-6 p-0"
+                                  onClick={() => handleDeleteColumn(colIndex)}
+                                  title="Xóa cột"
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              )}
+                            </div>
+                          </div>
                         )}
-                      </div>
-                    )}
-                  </TableHead>
-                ))}
+                        {/* Add column button after each column */}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="absolute -right-3 top-0 h-full w-6 p-0 opacity-0 group-hover/col:opacity-100 hover:opacity-100 z-30 bg-background border border-l-0 rounded-r-md"
+                          onClick={() => {
+                            handleAddColumn()
+                            // Set the new column index
+                            setTimeout(() => {
+                              const newColIndex = colIndex + 1
+                              setColumnHeaders((prev) => {
+                                const newHeaders = [...prev]
+                                // Update indices
+                                newHeaders.forEach((h, idx) => {
+                                  if (idx > colIndex) {
+                                    h.index = (h.index || idx) + 1
+                                  }
+                                })
+                                if (newHeaders[newColIndex]) {
+                                  newHeaders[newColIndex].index = colIndex + 1
+                                }
+                                return newHeaders
+                              })
+                            }, 0)
+                          }}
+                          title="Thêm cột sau"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </TableHead>
+                    </React.Fragment>
+                  )
+                })}
+                {/* Add column button at the end */}
+                <TableHead className="w-12 min-w-[48px] relative">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full h-full p-0 hover:bg-muted/50"
+                    onClick={handleAddColumn}
+                    title="Thêm cột"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {Array.from({ length: rows }).map((_, rowIndex) => (
                 <TableRow key={rowIndex} className={cn(rowIndex % 2 === 1 && 'bg-muted/50')}>
-                  <TableCell className="bg-muted/50 sticky left-0 z-10 border-r">
-                    <div className="flex items-center justify-between group">
+                  <TableCell className="bg-muted/50 sticky left-0 z-10 border-r relative group/row">
+                    <div className="flex items-center justify-between">
                       <span className="text-muted-foreground font-medium">{rowIndex + 1}</span>
                       {rows > 1 && (
                         <Button
@@ -317,10 +551,41 @@ export const EditableTable: React.FC<EditableTableProps> = ({
                         </Button>
                       )}
                     </div>
+                    {/* Add row button after each row */}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="absolute -bottom-3 left-0 right-0 h-6 w-full p-0 opacity-0 group-hover/row:opacity-100 hover:opacity-100 z-30 bg-background border border-t-0 rounded-b-md"
+                      onClick={() => {
+                        handleAddRow()
+                        // Shift cells down
+                        setTimeout(() => {
+                          setCells((prev) => {
+                            const newMap = new Map()
+                            prev.forEach((value, key) => {
+                              const [r, c] = key.split('-').map(Number)
+                              if (r > rowIndex) {
+                                newMap.set(`${r + 1}-${c}`, value)
+                              } else {
+                                newMap.set(key, value)
+                              }
+                            })
+                            return newMap
+                          })
+                        }, 0)
+                      }}
+                      title="Thêm hàng sau"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
                   </TableCell>
                   {Array.from({ length: columns }).map((_, colIndex) => {
                     const isEditing = editingCell?.row === rowIndex && editingCell?.col === colIndex
                     const cellValue = getCellValue(rowIndex, colIndex)
+                    const column = columnHeaders[colIndex]
+                    const hasOptions = column?.options && column.options.length > 0
+                    const columnType = column?.type || 'text'
+                    const columnColor = column?.color || '#FFFFFF'
 
                     return (
                       <TableCell
@@ -329,10 +594,30 @@ export const EditableTable: React.FC<EditableTableProps> = ({
                           'min-w-[150px] p-0 whitespace-nowrap',
                           isEditing && 'bg-primary/10'
                         )}
+                        style={{ backgroundColor: columnColor }}
                       >
-                        {isEditing ? (
+                        {columnType === 'select' && hasOptions ? (
+                          <Select
+                            value={cellValue || undefined}
+                            onValueChange={(value) => {
+                              setCellValue(rowIndex, colIndex, value)
+                            }}
+                          >
+                            <SelectTrigger className="border-0 focus:ring-0 h-full rounded-none shadow-none min-h-[40px]">
+                              <SelectValue placeholder="Chọn giá trị..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {column.options?.map((option, idx) => (
+                                <SelectItem key={idx} value={option}>
+                                  {option}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : isEditing ? (
                           <Input
                             ref={inputRef}
+                            type={columnType === 'number' ? 'number' : 'text'}
                             value={editingValue}
                             onChange={(e) => setEditingValue(e.target.value)}
                             onBlur={handleCellBlur}
@@ -354,12 +639,49 @@ export const EditableTable: React.FC<EditableTableProps> = ({
                       </TableCell>
                     )
                   })}
+                  {/* Add column button at the end of each row */}
+                  <TableCell className="w-12 min-w-[48px]">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full h-full p-0 hover:bg-muted/50"
+                      onClick={handleAddColumn}
+                      title="Thêm cột"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))}
+              {/* Add row button at the end */}
+              <TableRow>
+                <TableCell className="bg-muted/50 sticky left-0 z-10 border-r">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full h-full p-0 hover:bg-muted/50"
+                    onClick={handleAddRow}
+                    title="Thêm hàng"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </TableCell>
+                {Array.from({ length: columns }).map((_, colIndex) => (
+                  <TableCell key={colIndex} className="min-w-[150px] p-0" />
+                ))}
+                <TableCell className="w-12 min-w-[48px]" />
+              </TableRow>
             </TableBody>
           </table>
         </div>
       </Card>
+
+      <ColumnSettingsModal
+        open={showSettingsModal}
+        onOpenChange={setShowSettingsModal}
+        column={settingsColumn}
+        onSave={handleSaveColumnSettings}
+      />
     </div>
   )
 }
