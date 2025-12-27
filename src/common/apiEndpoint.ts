@@ -76,4 +76,8 @@ export const API_ENDPOINT = {
   // sheet / work boards
   CREATE_SHEET_INFO: '/api/sheet-info/create',
   GET_SNAPSHOT_SHEET_LIST: '/api/sheet-info/get-snapshot-list',
+  GET_SHEET_DETAIL: '/api/sheet-info/get-detail',
+  ADD_COLUMN: '/api/sheet-info/add-column',
+  UPDATE_COLUMN: '/api/sheet-info/update-column',
+  REMOVE_COLUMN: '/api/sheet-info/remove-column',
 }
