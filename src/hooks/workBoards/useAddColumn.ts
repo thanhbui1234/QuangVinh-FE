@@ -18,7 +18,7 @@ export const useAddColumn = () => {
         throw error
       }
     },
-    onSuccess: (response, variables) => {
+    onSuccess: (_, variables) => {
       // Invalidate work board detail to refetch
       queryClient.invalidateQueries({ queryKey: [workBoardsKey.detail(variables.sheetId)] })
       queryClient.invalidateQueries({ queryKey: [workBoardsKey.getAll] })
