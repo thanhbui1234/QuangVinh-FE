@@ -14,7 +14,7 @@ import type {
 /**
  * Map API response to IWorkBoard structure
  */
-const mapSheetInfoToWorkBoard = (sheetInfo: ISheetInfo, rowSize: number): IWorkBoard => {
+const mapSheetInfoToWorkBoard = (sheetInfo: ISheetInfo): IWorkBoard => {
   // Ensure columns and rows are arrays
   const columns = Array.isArray(sheetInfo.columns) ? sheetInfo.columns : []
   const rows = Array.isArray(sheetInfo.rows) ? sheetInfo.rows : []
@@ -101,16 +101,13 @@ export const useGetWorkBoardDetail = (id: number | undefined, rowSize: number = 
 
         // Handle different possible response structures
         let sheetInfo: ISheetInfo
-        let responseRowSize: number
 
         if (response?.sheetInfo) {
           // Standard response structure
           sheetInfo = response.sheetInfo
-          responseRowSize = response.rowSize || rowSize
         } else if (response && 'id' in response && 'sheetName' in response) {
           // Direct sheetInfo structure
           sheetInfo = response as unknown as ISheetInfo
-          responseRowSize = rowSize
         } else {
           console.error('Unexpected response structure:', response)
           throw new Error('Invalid API response: unexpected structure')
@@ -130,7 +127,7 @@ export const useGetWorkBoardDetail = (id: number | undefined, rowSize: number = 
           sheetInfo.rows = []
         }
 
-        const workBoard: IWorkBoard = mapSheetInfoToWorkBoard(sheetInfo, responseRowSize)
+        const workBoard: IWorkBoard = mapSheetInfoToWorkBoard(sheetInfo)
 
         return { workBoard }
       } catch (err: any) {
