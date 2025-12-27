@@ -3,7 +3,7 @@ import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
 import type { IProjectAssignment } from '@/types/project'
 import { useNavigate } from 'react-router'
-import { MoreVertical, Pencil, Trash, Clock, CheckCircle2, Circle, Users } from 'lucide-react'
+import { MoreVertical, Pencil, Trash, CheckCircle2, Circle, Users } from 'lucide-react'
 import { PRIVACY_LABEL, STATUS_PROJECT } from '@/constants/assignments/privacy'
 import {
   DropdownMenu,
