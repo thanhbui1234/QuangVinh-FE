@@ -1,5 +1,5 @@
 import SonnerToaster from '@/components/ui/toaster'
-import { POST } from '@/core/api'
+import { POST, publicPOST } from '@/core/api'
 import type { LoginFormData, LoginResponse } from '@/types/Auth'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router'
@@ -14,7 +14,7 @@ export const useLogin = () => {
 
   const loginMutation = useMutation({
     mutationFn: async (data: LoginFormData) => {
-      return POST(API_ENDPOINT.LOGIN, data)
+      return publicPOST(API_ENDPOINT.LOGIN, data)
     },
 
     onSuccess: async (response: LoginResponse) => {

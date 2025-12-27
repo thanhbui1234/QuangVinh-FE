@@ -1,10 +1,25 @@
 // services/api.ts
-import { getAuthorization, logout } from '@/utils/auth'
+import { getAuthorization, logout, isAuthenticated } from '@/utils/auth'
 import { refreshAccessToken } from '@/utils/auth/refreshToken'
 import axios, { type AxiosRequestConfig } from 'axios'
 
-// Flag để tránh check lỗi 401 khi login
-let isLoginRequest = false
+// ============================================
+// PUBLIC API (không cần authentication)
+// ============================================
+export const publicApi = axios.create({
+  baseURL: import.meta.env.VITE_BASE_URL,
+  timeout: 30000 * 40,
+})
+
+publicApi.interceptors.response.use(
+  (response) => response.data,
+  (error) => Promise.reject(error)
+)
+
+// ============================================
+// PRIVATE API (cần authentication + auto refresh token)
+// ============================================
+
 // Flag để check quá trình refresh token
 let isRefreshing = false
 // Queue lưu các request failed khi đang refresh token
@@ -24,17 +39,16 @@ const processQueue = (error: any, token: string | null = null) => {
   failedQueue = []
 }
 
-export const api = axios.create({
+export const privateApi = axios.create({
   baseURL: import.meta.env.VITE_BASE_URL,
   timeout: 30000 * 40,
 })
 
-// Attach JWT to every request if exists
-api.interceptors.request.use(
+// Attach JWT to every request
+privateApi.interceptors.request.use(
   (config) => {
     const token = getAuthorization()
 
-    // Thêm token nếu có
     if (token) {
       config.headers.Authorization = token
     }
@@ -44,16 +58,14 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 )
 
-api.interceptors.response.use(
-  (response) => {
-    isLoginRequest = false
-    return response.data
-  },
+privateApi.interceptors.response.use(
+  (response) => response.data,
   async (error) => {
     const originalRequest = error.config
     const status = error.response?.status
 
-    if (status === 401 && !isLoginRequest) {
+    // Chỉ xử lý 401 nếu user đã login
+    if (status === 401 && isAuthenticated()) {
       if (originalRequest._retry) {
         return Promise.reject(error)
       }
@@ -64,7 +76,7 @@ api.interceptors.response.use(
         })
           .then((token) => {
             originalRequest.headers.Authorization = `Bearer ${token}`
-            return api(originalRequest)
+            return privateApi(originalRequest)
           })
           .catch((err) => {
             return Promise.reject(err)
@@ -77,12 +89,12 @@ api.interceptors.response.use(
       try {
         const newToken = await refreshAccessToken()
 
-        api.defaults.headers.common.Authorization = `Bearer ${newToken}`
+        privateApi.defaults.headers.common.Authorization = `Bearer ${newToken}`
         originalRequest.headers.Authorization = `Bearer ${newToken}`
 
         processQueue(null, newToken)
 
-        return api(originalRequest)
+        return privateApi(originalRequest)
       } catch (refreshError: any) {
         processQueue(refreshError, null)
 
@@ -105,64 +117,33 @@ api.interceptors.response.use(
       }
     }
 
-    isLoginRequest = false
     return Promise.reject(error)
   }
 )
 
+// ============================================
+// LEGACY API (deprecated - để backward compatibility)
+// ============================================
+/**
+ * @deprecated Sử dụng publicApi hoặc privateApi thay thế
+ */
+export const api = privateApi
+
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
 interface RequestConfig extends AxiosRequestConfig {
   rawResponse?: boolean
 }
 
-export const GET = async (
-  url: string,
-  params?: Record<string, unknown>,
-  config: RequestConfig = {}
-) => {
-  const queryString = params
-    ? `?${new URLSearchParams(params as Record<string, string>).toString()}`
-    : ''
-  const urlWithQuery = `${url}${queryString}`
-  try {
-    const res = await api.get(urlWithQuery, config)
-    return config.rawResponse ? res : res.data
-  } catch (e) {
-    console.error(e)
-    throw e
-  }
+// Public API helpers
+export const publicPOST = async (url: string, params: any, config: RequestConfig = {}) => {
+  const res = await publicApi.post(url, params, config)
+  return config.rawResponse ? res : res.data
 }
 
+// Private API helpers
 export const POST = async (url: string, params: any, config: RequestConfig = {}) => {
-  try {
-    const res = await api.post(url, params, config)
-    return config.rawResponse ? res : res.data
-  } catch (e) {
-    console.error(e)
-    throw e
-  }
+  const res = await privateApi.post(url, params, config)
+  return config.rawResponse ? res : res.data
 }
-
-export const PUT = async (url: string, params: any, config: RequestConfig = {}) => {
-  try {
-    const res = await api.put(url, params, config)
-    return config.rawResponse ? res : res.data
-  } catch (e) {
-    console.error(e)
-    throw e
-  }
-}
-
-export const DELETE = async (url: string, config: RequestConfig = {}) => {
-  try {
-    const res = await api.delete(url, config)
-    return config.rawResponse ? res : res.data
-  } catch (e) {
-    console.error(e)
-    throw e
-  }
-}
-
-// 67:3  error  Unnecessary try/catch wrapper  no-useless-catch
-// 76:3  error  Unnecessary try/catch wrapper  no-useless-catch
-// 85:3  error  Unnecessary try/catch wrapper  no-useless-catch
-// 94:3  error  Unnecessary try/catch wrapper  no-useless-catch

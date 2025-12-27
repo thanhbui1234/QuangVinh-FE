@@ -1,6 +1,6 @@
 import { API_ENDPOINT } from '@/common'
 import SonnerToaster from '@/components/ui/toaster'
-import { POST } from '@/core/api'
+import { publicPOST } from '@/core/api'
 import { handleCommonError } from '@/utils/handleErrors'
 import { useMutation } from '@tanstack/react-query'
 import { useNavigate } from 'react-router'
@@ -12,7 +12,7 @@ export const useRegister = () => {
   const setAuth = useAuthStore((state) => state.setAuth)
   const registerMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await POST(API_ENDPOINT.REGISTER, data)
+      const response = await publicPOST(API_ENDPOINT.REGISTER, data)
       return response
     },
     onSuccess: (response: RegisterResponse) => {

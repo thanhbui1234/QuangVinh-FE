@@ -13,7 +13,9 @@ export const useUpdateProject = () => {
       return response
     },
     onSuccess: (respones) => {
-      queryClient.invalidateQueries({ queryKey: [projectsAssignmentsKey.getAll] })
+      queryClient.refetchQueries({
+        queryKey: [projectsAssignmentsKey.getAll],
+      })
       SonnerToaster({
         type: 'success',
         message: 'Cập nhật dự án thành công',

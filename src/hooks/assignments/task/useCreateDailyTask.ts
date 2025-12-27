@@ -3,7 +3,7 @@ import { useMutation } from '@tanstack/react-query'
 import SonnerToaster from '@/components/ui/toaster'
 import { API_ENDPOINT } from '@/common'
 import { queryClient } from '@/lib/queryClient'
-import { projectAssignmentDetailKey } from '@/constants'
+import { projectAssignmentDetailKey, projectsAssignmentsKey } from '@/constants'
 
 export interface CreateTaskTemplatePayload {
   description: string
@@ -38,6 +38,7 @@ export const useCreateTaskTemplate = () => {
       queryClient.invalidateQueries({
         queryKey: [projectAssignmentDetailKey.detail(groupId.toString()), { taskGroupId: groupId }],
       })
+      queryClient.refetchQueries({ queryKey: [projectsAssignmentsKey.getAll] })
       SonnerToaster({
         type: 'success',
         message: 'Tạo task template thành công',

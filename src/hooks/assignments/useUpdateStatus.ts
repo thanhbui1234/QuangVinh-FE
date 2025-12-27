@@ -20,7 +20,7 @@ export const useUpdateStatus = () => {
       return response
     },
     onSuccess: (respones, variables) => {
-      queryClient.invalidateQueries({ queryKey: [projectsAssignmentsKey.getAll] })
+      queryClient.refetchQueries({ queryKey: [projectsAssignmentsKey.getAll] })
       queryClient.invalidateQueries({
         queryKey: [projectAssignmentDetailKey.detail(variables.taskGroupId.toString())],
       })

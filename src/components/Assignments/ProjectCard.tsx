@@ -148,18 +148,6 @@ export const ProjectCard = ({ project, onEdit, onDelete }: ProjectCardProps) => 
           {/* Bottom Stats Grid */}
           <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-50">
             <div className="flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-indigo-50">
-                <Clock className="w-4 h-4 text-indigo-600" />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-[10px] text-gray-400 uppercase font-semibold">Giờ làm</span>
-                <span className="text-xs font-bold text-gray-700">
-                  {project.workingHours || 0}h
-                </span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
               <div className={cn('p-2 rounded-lg', status.bg)}>
                 <CheckCircle2 className={cn('w-4 h-4', status.color)} />
               </div>
