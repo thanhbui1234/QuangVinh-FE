@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
-import { Plus, Trash2, Save, X, Settings } from 'lucide-react'
+import { Plus, Trash2, Save, Settings2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ColumnSettingsModal } from './ColumnSettingsModal'
+import { ColumnManager } from './ColumnManager'
 import { type IWorkBoard, type IWorkBoardCell, type IWorkBoardColumn } from '@/types/WorkBoard'
 
 interface EditableTableProps {
@@ -49,8 +49,7 @@ export const EditableTable: React.FC<EditableTableProps> = ({
   const inputRef = useRef<HTMLInputElement>(null)
   const tableRef = useRef<HTMLDivElement>(null)
   const [originalColumns, setOriginalColumns] = useState<IWorkBoardColumn[]>([])
-  const [settingsColumn, setSettingsColumn] = useState<IWorkBoardColumn | null>(null)
-  const [showSettingsModal, setShowSettingsModal] = useState(false)
+  const [showColumnManager, setShowColumnManager] = useState(false)
 
   // Initialize cells from workBoard
   useEffect(() => {
@@ -163,6 +162,15 @@ export const EditableTable: React.FC<EditableTableProps> = ({
 
   const handleAddRow = () => {
     setRows((prev: any) => prev + 1)
+
+    // Initialize empty cells for all columns in the new row
+    // This makes it clear to users that they can edit all cells
+    setCells((prev) => {
+      const newMap = new Map(prev)
+      // We don't actually set empty values, just increment the row count
+      // The cells will show "Nhấp để chỉnh sửa" placeholder automatically
+      return newMap
+    })
   }
 
   const handleDeleteRow = (rowIndex: number) => {
@@ -186,44 +194,6 @@ export const EditableTable: React.FC<EditableTableProps> = ({
     }
   }
 
-  const handleAddColumn = () => {
-    setColumns((prev: any) => prev + 1)
-    const newIndex = columnHeaders.length
-    const newColumn: IWorkBoardColumn = {
-      id: `col-new-${Date.now()}`,
-      label: `Cột ${newIndex + 1}`,
-      width: 150,
-      name: `Cột ${newIndex + 1}`,
-      type: 'text',
-      index: newIndex,
-      color: '#FFFFFF',
-      required: false,
-      options: [],
-    }
-    setColumnHeaders((prev) => [...prev, newColumn])
-  }
-
-  const handleDeleteColumn = (colIndex: number) => {
-    if (columns > 1) {
-      setColumns((prev: any) => prev - 1)
-      setColumnHeaders((prev) => prev.filter((_, i) => i !== colIndex))
-      // Remove cells in deleted column
-      setCells((prev) => {
-        const newMap = new Map()
-        prev.forEach((value, key) => {
-          const [r, c] = key.split('-').map(Number)
-          if (c < colIndex) {
-            newMap.set(key, value)
-          } else if (c > colIndex) {
-            // Shift column indices left
-            newMap.set(`${r}-${c - 1}`, value)
-          }
-        })
-        return newMap
-      })
-    }
-  }
-
   const handleColumnHeaderChange = (colIndex: number, label: string) => {
     setColumnHeaders((prev) => {
       const newHeaders = [...prev]
@@ -236,21 +206,9 @@ export const EditableTable: React.FC<EditableTableProps> = ({
     })
   }
 
-  const handleOpenSettings = (colIndex: number) => {
-    setSettingsColumn(columnHeaders[colIndex])
-    setShowSettingsModal(true)
-  }
-
-  const handleSaveColumnSettings = (updatedColumn: IWorkBoardColumn) => {
-    setColumnHeaders((prev) => {
-      const newHeaders = [...prev]
-      const colIndex = newHeaders.findIndex((col) => col.id === updatedColumn.id)
-      if (colIndex !== -1) {
-        newHeaders[colIndex] = updatedColumn
-      }
-      return newHeaders
-    })
-    setSettingsColumn(null)
+  const handleColumnsChange = (newColumns: IWorkBoardColumn[]) => {
+    setColumnHeaders(newColumns)
+    setColumns(newColumns.length)
   }
 
   // Check for unsaved changes
@@ -315,6 +273,13 @@ export const EditableTable: React.FC<EditableTableProps> = ({
   }, [checkUnsavedChanges, onUnsavedChangesChange])
 
   const handleSave = () => {
+    // First, check if there are any changes at all
+    const hasAnyChanges = checkUnsavedChanges()
+
+    if (!hasAnyChanges) {
+      return
+    }
+
     const cellsArray: IWorkBoardCell[] = []
     cells.forEach((value, key) => {
       const [rowIndex, columnIndex] = key.split('-').map(Number)
@@ -363,6 +328,15 @@ export const EditableTable: React.FC<EditableTableProps> = ({
       })
     }
 
+    // Check for cell changes
+    const originalCellsMap = new Map<string, string>()
+    if (workBoard) {
+      workBoard.cells?.forEach((cell) => {
+        const key = `${cell.rowIndex}-${cell.columnIndex}`
+        originalCellsMap.set(key, cell.value)
+      })
+    }
+
     onSave({
       rows,
       columns,
@@ -386,9 +360,9 @@ export const EditableTable: React.FC<EditableTableProps> = ({
             <Plus className="h-4 w-4 mr-1" />
             Thêm hàng
           </Button>
-          <Button onClick={handleAddColumn} variant="outline" size="sm">
-            <Plus className="h-4 w-4 mr-1" />
-            Thêm cột
+          <Button onClick={() => setShowColumnManager(true)} variant="outline" size="sm">
+            <Settings2 className="h-4 w-4 mr-1" />
+            Quản lý cột
           </Button>
         </div>
         <Button onClick={handleSave} disabled={isSaving} size="sm">
@@ -463,75 +437,12 @@ export const EditableTable: React.FC<EditableTableProps> = ({
                                 {col.label}
                               </span>
                             </div>
-                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 w-6 p-0"
-                                onClick={() => handleOpenSettings(colIndex)}
-                                title="Cài đặt cột"
-                              >
-                                <Settings className="h-3 w-3" />
-                              </Button>
-                              {columns > 1 && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-6 w-6 p-0"
-                                  onClick={() => handleDeleteColumn(colIndex)}
-                                  title="Xóa cột"
-                                >
-                                  <X className="h-3 w-3" />
-                                </Button>
-                              )}
-                            </div>
                           </div>
                         )}
-                        {/* Add column button after each column */}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="absolute -right-3 top-0 h-full w-6 p-0 opacity-0 group-hover/col:opacity-100 hover:opacity-100 z-30 bg-background border border-l-0 rounded-r-md"
-                          onClick={() => {
-                            handleAddColumn()
-                            // Set the new column index
-                            setTimeout(() => {
-                              const newColIndex = colIndex + 1
-                              setColumnHeaders((prev) => {
-                                const newHeaders = [...prev]
-                                // Update indices
-                                newHeaders.forEach((h, idx) => {
-                                  if (idx > colIndex) {
-                                    h.index = (h.index || idx) + 1
-                                  }
-                                })
-                                if (newHeaders[newColIndex]) {
-                                  newHeaders[newColIndex].index = colIndex + 1
-                                }
-                                return newHeaders
-                              })
-                            }, 0)
-                          }}
-                          title="Thêm cột sau"
-                        >
-                          <Plus className="h-4 w-4" />
-                        </Button>
                       </TableHead>
                     </React.Fragment>
                   )
                 })}
-                {/* Add column button at the end */}
-                <TableHead className="w-12 min-w-[48px] relative">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-full h-full p-0 hover:bg-muted/50"
-                    onClick={handleAddColumn}
-                    title="Thêm cột"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -639,18 +550,6 @@ export const EditableTable: React.FC<EditableTableProps> = ({
                       </TableCell>
                     )
                   })}
-                  {/* Add column button at the end of each row */}
-                  <TableCell className="w-12 min-w-[48px]">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="w-full h-full p-0 hover:bg-muted/50"
-                      onClick={handleAddColumn}
-                      title="Thêm cột"
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
                 </TableRow>
               ))}
               {/* Add row button at the end */}
@@ -669,18 +568,17 @@ export const EditableTable: React.FC<EditableTableProps> = ({
                 {Array.from({ length: columns }).map((_, colIndex) => (
                   <TableCell key={colIndex} className="min-w-[150px] p-0" />
                 ))}
-                <TableCell className="w-12 min-w-[48px]" />
               </TableRow>
             </TableBody>
           </table>
         </div>
       </Card>
 
-      <ColumnSettingsModal
-        open={showSettingsModal}
-        onOpenChange={setShowSettingsModal}
-        column={settingsColumn}
-        onSave={handleSaveColumnSettings}
+      <ColumnManager
+        open={showColumnManager}
+        onOpenChange={setShowColumnManager}
+        columns={columnHeaders}
+        onColumnsChange={handleColumnsChange}
       />
     </div>
   )

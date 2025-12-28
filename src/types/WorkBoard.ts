@@ -25,6 +25,7 @@ export interface IWorkBoard {
   columns: number
   columnHeaders: IWorkBoardColumn[]
   cells: IWorkBoardCell[]
+  rowIdMap?: Record<number, number> // Map rowIndex to rowId from backend
   createdAt?: string
   updatedAt?: string
 }
@@ -73,7 +74,8 @@ export interface ISheetInfo {
   sheetName: string
   sheetType: number
   columns: ISheetColumn[]
-  rows: ISheetRow[]
+  rows: ISheetRow[] // Deprecated, use latestRows instead
+  latestRows?: ISheetRow[] // New field from API
   creatorId: number
   viewableUserIds: number[]
   editableUserIds: number[]
@@ -144,4 +146,50 @@ export interface IRemoveColumnResponse {
   sheetId: number
   columnName: string
   result: boolean
+}
+
+// Sheet Row API Types
+export interface ICreateSheetRowRequest {
+  sheetId: number
+  rowData: Record<string, any>
+  color?: string
+}
+
+export interface ICreateSheetRowResponse {
+  sheetId: number
+  result: boolean
+}
+
+export interface IUpdateSheetRowCellRequest {
+  rowId: number
+  columnName: string
+  value: any
+}
+
+export interface IUpdateSheetRowCellResponse {
+  rowId: number
+  columnName: string
+  value: any
+  result: boolean
+}
+
+export interface IRemoveSheetRowRequest {
+  rowId: number
+}
+
+export interface IRemoveSheetRowResponse {
+  rowId: number
+  result: boolean
+}
+
+export interface IGetSheetRowListRequest {
+  sheetId: number
+  fromId?: number
+  size?: number
+}
+
+export interface IGetSheetRowListResponse {
+  sheetId: number
+  rows: ISheetRow[]
+  hasMore: boolean
 }

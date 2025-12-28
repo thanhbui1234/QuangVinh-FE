@@ -9,6 +9,7 @@ import type {
   IGetSheetDetailRequest,
   IGetSheetDetailResponse,
   ISheetInfo,
+  ISheetRow,
 } from '@/types/WorkBoard'
 
 /**
@@ -17,7 +18,16 @@ import type {
 const mapSheetInfoToWorkBoard = (sheetInfo: ISheetInfo): IWorkBoard => {
   // Ensure columns and rows are arrays
   const columns = Array.isArray(sheetInfo.columns) ? sheetInfo.columns : []
-  const rows = Array.isArray(sheetInfo.rows) ? sheetInfo.rows : []
+  // API returns latestRows, not rows
+  let rows = Array.isArray(sheetInfo.latestRows)
+    ? sheetInfo.latestRows
+    : Array.isArray(sheetInfo.rows)
+      ? sheetInfo.rows
+      : []
+
+  // IMPORTANT: Sort rows by createdTime (oldest first) to ensure consistent rowIndex mapping
+  // This ensures rowIndex 0 = oldest row, rowIndex 1 = second oldest, etc.
+  rows = [...rows].sort((a, b) => a.createdTime - b.createdTime)
 
   // Map columns to columnHeaders
   const columnHeaders = columns
@@ -35,7 +45,7 @@ const mapSheetInfoToWorkBoard = (sheetInfo: ISheetInfo): IWorkBoard => {
     }))
 
   // Filter rows that have at least one value
-  const rowsWithData = rows.filter((row) => {
+  const rowsWithData = rows.filter((row: ISheetRow) => {
     const rowData = row.rowData || {}
     // Check if row has at least one non-empty value
     return columns.some((col) => {
@@ -47,7 +57,7 @@ const mapSheetInfoToWorkBoard = (sheetInfo: ISheetInfo): IWorkBoard => {
   // Map rows to cells (only rows with data)
   const cells: Array<{ rowIndex: number; columnIndex: number; value: string }> = []
 
-  rowsWithData.forEach((row, newRowIndex) => {
+  rowsWithData.forEach((row: ISheetRow, newRowIndex: number) => {
     const rowData = row.rowData || {}
     columns.forEach((col) => {
       const value = rowData[col.name]
@@ -66,6 +76,12 @@ const mapSheetInfoToWorkBoard = (sheetInfo: ISheetInfo): IWorkBoard => {
   const totalRows = Math.max(1, rowsWithData.length)
   const totalColumns = columns.length
 
+  // Create rowIdMap: map rowIndex to actual row ID from backend
+  const rowIdMap: Record<number, number> = {}
+  rowsWithData.forEach((row: ISheetRow, newRowIndex: number) => {
+    rowIdMap[newRowIndex] = row.id
+  })
+
   return {
     id: sheetInfo.id,
     name: sheetInfo.sheetName || '',
@@ -74,6 +90,7 @@ const mapSheetInfoToWorkBoard = (sheetInfo: ISheetInfo): IWorkBoard => {
     columns: totalColumns,
     columnHeaders,
     cells,
+    rowIdMap,
     createdAt: sheetInfo.createdTime ? new Date(sheetInfo.createdTime).toISOString() : undefined,
     updatedAt: sheetInfo.updatedTime ? new Date(sheetInfo.updatedTime).toISOString() : undefined,
   }
@@ -96,8 +113,6 @@ export const useGetWorkBoardDetail = (id: number | undefined, rowSize: number = 
           API_ENDPOINT.GET_SHEET_DETAIL,
           payload
         )) as IGetSheetDetailResponse
-
-        console.log('API Response:', response)
 
         // Handle different possible response structures
         let sheetInfo: ISheetInfo
