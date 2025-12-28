@@ -208,6 +208,10 @@ export const WorkBoardDetail: React.FC = () => {
       }
 
       // Find changed cells
+      // Determine effective column headers - prioritizing pendingSaveData if available (from confirm dialog flow)
+      // This solves the issue where column names might be outdated during cell updates
+      const effectiveColumnHeaders = pendingSaveData?.columnHeaders || data.columnHeaders
+
       const changedCells = data.cells.filter((cell) => {
         const key = `${cell.rowIndex}-${cell.columnIndex}`
         const originalValue = originalCellsMap.get(key) || ''
@@ -238,8 +242,8 @@ export const WorkBoardDetail: React.FC = () => {
           const rowData: Record<string, any> = {}
           cells.forEach((cell) => {
             const columnName =
-              data.columnHeaders[cell.columnIndex]?.name ||
-              data.columnHeaders[cell.columnIndex]?.label
+              effectiveColumnHeaders[cell.columnIndex]?.name ||
+              effectiveColumnHeaders[cell.columnIndex]?.label
             if (columnName) {
               rowData[columnName] = cell.value
             }
@@ -264,8 +268,8 @@ export const WorkBoardDetail: React.FC = () => {
         // Row exists, update each cell
         for (const cell of cells) {
           const columnName =
-            data.columnHeaders[cell.columnIndex]?.name ||
-            data.columnHeaders[cell.columnIndex]?.label
+            effectiveColumnHeaders[cell.columnIndex]?.name ||
+            effectiveColumnHeaders[cell.columnIndex]?.label
 
           if (!columnName) {
             console.warn(`No column name for columnIndex ${cell.columnIndex}, skipping`)

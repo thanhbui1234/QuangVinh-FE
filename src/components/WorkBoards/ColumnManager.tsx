@@ -235,8 +235,9 @@ const ColumnCard: React.FC<ColumnCardProps> = ({
                 <Select
                   value={column.type || 'text'}
                   onValueChange={(value) => onUpdate({ type: value })}
+                  disabled={!String(column.id).startsWith('col-new-')}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger disabled={!String(column.id).startsWith('col-new-')}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
