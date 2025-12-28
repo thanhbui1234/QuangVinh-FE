@@ -198,9 +198,6 @@ export const WorkBoardDetail: React.FC = () => {
     if (!sheetId || !workBoard) return
 
     try {
-      console.log('=== PROCESSING CELL-ONLY CHANGES ===')
-      console.log('WorkBoard rowIdMap:', workBoard.rowIdMap)
-
       // Get original cells for comparison
       const originalCellsMap = new Map<string, string>()
       if (workBoard.cells) {
@@ -217,10 +214,7 @@ export const WorkBoardDetail: React.FC = () => {
         return cell.value !== originalValue
       })
 
-      console.log('Changed cells:', changedCells)
-
       if (changedCells.length === 0) {
-        console.log('No cells changed')
         setHasUnsavedChanges(false)
         return
       }
@@ -234,16 +228,12 @@ export const WorkBoardDetail: React.FC = () => {
         cellsByRow.get(cell.rowIndex)!.push(cell)
       })
 
-      console.log('Cells grouped by row:', Object.fromEntries(cellsByRow))
-
       // Process each row
       for (const [rowIndex, cells] of cellsByRow.entries()) {
         const rowId = workBoard.rowIdMap?.[rowIndex]
 
         // If row doesn't exist in backend, create it first
         if (!rowId) {
-          console.log(`Row ${rowIndex} doesn't exist, creating new row...`)
-
           // Build rowData from all cells in this row
           const rowData: Record<string, any> = {}
           cells.forEach((cell) => {
@@ -255,16 +245,13 @@ export const WorkBoardDetail: React.FC = () => {
             }
           })
 
-          console.log('Creating row with data:', rowData)
-
           try {
-            const response = await createSheetRowMutation.mutateAsync({
+            await createSheetRowMutation.mutateAsync({
               sheetId,
               rowData,
               color: '#FFFFFF',
             })
 
-            console.log('Row created successfully:', response)
             // Note: We don't have the rowId from response, so we can't update cells
             // The row is created with all data already
             continue
@@ -275,7 +262,6 @@ export const WorkBoardDetail: React.FC = () => {
         }
 
         // Row exists, update each cell
-        console.log(`Updating cells in existing row ${rowIndex} (rowId=${rowId})`)
         for (const cell of cells) {
           const columnName =
             data.columnHeaders[cell.columnIndex]?.name ||
@@ -285,8 +271,6 @@ export const WorkBoardDetail: React.FC = () => {
             console.warn(`No column name for columnIndex ${cell.columnIndex}, skipping`)
             continue
           }
-
-          console.log(`Updating cell: rowId=${rowId}, column=${columnName}, value=${cell.value}`)
 
           try {
             await updateSheetRowCellMutation.mutateAsync({
@@ -301,7 +285,6 @@ export const WorkBoardDetail: React.FC = () => {
       }
 
       setHasUnsavedChanges(false)
-      console.log('✅ All changes saved successfully')
     } catch (error) {
       console.error('❌ Error saving cell changes:', error)
     }
@@ -363,19 +346,10 @@ export const WorkBoardDetail: React.FC = () => {
             updatePayload.newOptions = updated.options || []
           }
 
-          // Debug logging
-          console.log('Update payload:', updatePayload)
-          console.log('Payload keys count:', Object.keys(updatePayload).length)
-          console.log('Original column:', original)
-          console.log('Updated column:', updated)
-
           // Call API if there are actual changes (sheetId and columnName are always present)
           // So we need more than 2 keys to have actual changes
           if (Object.keys(updatePayload).length > 2) {
-            console.log('Calling updateColumnMutation with:', updatePayload)
             await updateColumnMutation.mutateAsync(updatePayload)
-          } else {
-            console.log('No changes detected, skipping API call')
           }
         }
 
@@ -389,10 +363,6 @@ export const WorkBoardDetail: React.FC = () => {
       }
 
       // Process cell changes using row APIs
-      console.log('=== PROCESSING CELL CHANGES ===')
-      console.log('Pending save data cells:', pendingSaveData.cells)
-      console.log('WorkBoard rowIdMap:', workBoard?.rowIdMap)
-
       // Get original cells for comparison
       const originalCellsMap = new Map<string, string>()
       if (workBoard?.cells) {
@@ -408,8 +378,6 @@ export const WorkBoardDetail: React.FC = () => {
         const originalValue = originalCellsMap.get(key) || ''
         return cell.value !== originalValue
       })
-
-      console.log('Changed cells:', changedCells)
 
       // Update each changed cell using upsert_cell_row API
       for (const cell of changedCells) {
@@ -429,8 +397,6 @@ export const WorkBoardDetail: React.FC = () => {
           )
           continue
         }
-
-        console.log(`Updating cell: rowId=${rowId}, columnName=${columnName}, value=${cell.value}`)
 
         try {
           await updateSheetRowCellMutation.mutateAsync({

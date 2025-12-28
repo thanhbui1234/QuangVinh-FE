@@ -25,18 +25,9 @@ const mapSheetInfoToWorkBoard = (sheetInfo: ISheetInfo): IWorkBoard => {
       ? sheetInfo.rows
       : []
 
-  console.log('=== Mapping SheetInfo to WorkBoard ===')
-  console.log('Columns:', columns)
-  console.log('Rows from API (before sort):', rows)
-
   // IMPORTANT: Sort rows by createdTime (oldest first) to ensure consistent rowIndex mapping
   // This ensures rowIndex 0 = oldest row, rowIndex 1 = second oldest, etc.
   rows = [...rows].sort((a, b) => a.createdTime - b.createdTime)
-
-  console.log(
-    'Rows after sorting by createdTime:',
-    rows.map((r) => ({ id: r.id, createdTime: r.createdTime }))
-  )
 
   // Map columns to columnHeaders
   const columnHeaders = columns
@@ -91,9 +82,6 @@ const mapSheetInfoToWorkBoard = (sheetInfo: ISheetInfo): IWorkBoard => {
     rowIdMap[newRowIndex] = row.id
   })
 
-  console.log('Mapped cells:', cells)
-  console.log('Row ID map:', rowIdMap)
-
   return {
     id: sheetInfo.id,
     name: sheetInfo.sheetName || '',
@@ -125,8 +113,6 @@ export const useGetWorkBoardDetail = (id: number | undefined, rowSize: number = 
           API_ENDPOINT.GET_SHEET_DETAIL,
           payload
         )) as IGetSheetDetailResponse
-
-        console.log('API Response:', response)
 
         // Handle different possible response structures
         let sheetInfo: ISheetInfo
