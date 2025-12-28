@@ -30,6 +30,7 @@ interface EditableTableProps {
   }) => void
   isSaving?: boolean
   onUnsavedChangesChange?: (hasUnsavedChanges: boolean) => void
+  onDeleteRow?: (rowIndex: number) => void
 }
 
 export const EditableTable: React.FC<EditableTableProps> = ({
@@ -37,6 +38,7 @@ export const EditableTable: React.FC<EditableTableProps> = ({
   onSave,
   isSaving = false,
   onUnsavedChangesChange,
+  onDeleteRow,
 }) => {
   const [rows, setRows] = useState(workBoard?.rows || 5)
   const [columns, setColumns] = useState(workBoard?.columns || 5)
@@ -174,7 +176,11 @@ export const EditableTable: React.FC<EditableTableProps> = ({
   }
 
   const handleDeleteRow = (rowIndex: number) => {
-    if (rows > 1) {
+    if (onDeleteRow) {
+      onDeleteRow(rowIndex)
+    }
+
+    if (rows > 0) {
       setRows((prev: any) => prev - 1)
       // Remove cells in deleted row
       setCells((prev) => {
@@ -451,16 +457,15 @@ export const EditableTable: React.FC<EditableTableProps> = ({
                   <TableCell className="bg-muted/50 sticky left-0 z-10 border-r relative group/row">
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground font-medium">{rowIndex + 1}</span>
-                      {rows > 1 && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
-                          onClick={() => handleDeleteRow(rowIndex)}
-                        >
-                          <Trash2 className="h-3 w-3 text-destructive" />
-                        </Button>
-                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0 opacity-0 group-hover/row:opacity-100 transition-opacity"
+                        onClick={() => handleDeleteRow(rowIndex)}
+                        title="Xóa hàng"
+                      >
+                        <Trash2 className="h-3 w-3 text-destructive" />
+                      </Button>
                     </div>
                     {/* Add row button after each row */}
                     <Button

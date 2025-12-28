@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, useBlocker } from 'react-router'
 import { useGetWorkBoardDetail } from '@/hooks/workBoards/useGetWorkBoardDetail'
-import { useUpdateWorkBoard } from '@/hooks/workBoards/useUpdateWorkBoard'
 import { useAddColumn } from '@/hooks/workBoards/useAddColumn'
 import { useUpdateColumn } from '@/hooks/workBoards/useUpdateColumn'
 import { useRemoveColumn } from '@/hooks/workBoards/useRemoveColumn'
@@ -25,13 +24,14 @@ import {
 } from '@/components/ui/alert-dialog'
 import type { IWorkBoardCell, IWorkBoardColumn } from '@/types/WorkBoard'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { queryClient } from '@/lib/queryClient'
+import { workBoardsKey } from '@/constants/assignments/assignment'
 
 export const WorkBoardDetail: React.FC = () => {
   const { id } = useParams()
   const navigate = useNavigate()
   const sheetId = id ? Number(id) : undefined
   const { workBoard, isFetching, error } = useGetWorkBoardDetail(sheetId)
-  const { updateWorkBoardMutation } = useUpdateWorkBoard()
   const { addColumnMutation } = useAddColumn()
   const { updateColumnMutation } = useUpdateColumn()
   const { removeColumnMutation } = useRemoveColumn()
@@ -456,6 +456,20 @@ export const WorkBoardDetail: React.FC = () => {
     )
   }
 
+  const handleDeleteRow = async (rowIndex: number) => {
+    if (!sheetId || !workBoard) return
+    const rowId = workBoard.rowIdMap?.[rowIndex]
+    if (rowId) {
+      try {
+        await removeSheetRowMutation.mutateAsync({ rowId })
+        // Invalidate queries to refresh the board
+        queryClient.invalidateQueries({ queryKey: workBoardsKey.detail(sheetId) })
+      } catch (error) {
+        console.error('Error deleting row:', error)
+      }
+    }
+  }
+
   if (isFetching) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -508,15 +522,12 @@ export const WorkBoardDetail: React.FC = () => {
             workBoard={workBoard}
             onSave={handleSave}
             isSaving={
-              updateWorkBoardMutation.isPending ||
-              addColumnMutation.isPending ||
-              updateColumnMutation.isPending ||
-              removeColumnMutation.isPending ||
               createSheetRowMutation.isPending ||
               updateSheetRowCellMutation.isPending ||
               removeSheetRowMutation.isPending
             }
             onUnsavedChangesChange={setHasUnsavedChanges}
+            onDeleteRow={handleDeleteRow}
           />
         </div>
       </div>
