@@ -18,9 +18,9 @@ export const useCreateWorkBoard = () => {
       return await POST(API_ENDPOINT.CREATE_SHEET_INFO, payload)
     },
     onSuccess: (response) => {
-      queryClient.invalidateQueries({
-        queryKey: [workBoardKey],
-        refetchType: 'all',
+      queryClient.refetchQueries({
+        queryKey: workBoardKey.all,
+        type: 'all',
       })
       SonnerToaster({
         type: 'success',

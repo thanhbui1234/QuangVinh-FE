@@ -161,7 +161,19 @@ export const EditableTable: React.FC<EditableTableProps> = ({
   }, [editingCell])
 
   const handleAddRow = () => {
+    const newRowIndex = rows
     setRows((prev: any) => prev + 1)
+
+    // Initialize empty cells for all columns in the new row
+    // This makes it clear to users that they can edit all cells
+    setCells((prev) => {
+      const newMap = new Map(prev)
+      // We don't actually set empty values, just increment the row count
+      // The cells will show "Nhấp để chỉnh sửa" placeholder automatically
+      return newMap
+    })
+
+    console.log(`Added new row at index ${newRowIndex}`)
   }
 
   const handleDeleteRow = (rowIndex: number) => {
@@ -264,6 +276,17 @@ export const EditableTable: React.FC<EditableTableProps> = ({
   }, [checkUnsavedChanges, onUnsavedChangesChange])
 
   const handleSave = () => {
+    // First, check if there are any changes at all
+    const hasAnyChanges = checkUnsavedChanges()
+
+    console.log('=== SAVE ATTEMPT ===')
+    console.log('Has any changes:', hasAnyChanges)
+
+    if (!hasAnyChanges) {
+      console.log('No changes detected, aborting save')
+      return
+    }
+
     const cellsArray: IWorkBoardCell[] = []
     cells.forEach((value, key) => {
       const [rowIndex, columnIndex] = key.split('-').map(Number)
@@ -311,6 +334,32 @@ export const EditableTable: React.FC<EditableTableProps> = ({
         }
       })
     }
+
+    // Check for cell changes
+    const originalCellsMap = new Map<string, string>()
+    if (workBoard) {
+      workBoard.cells?.forEach((cell) => {
+        const key = `${cell.rowIndex}-${cell.columnIndex}`
+        originalCellsMap.set(key, cell.value)
+      })
+    }
+
+    const hasCellChanges =
+      Array.from(cells.entries()).some(([key, value]) => {
+        return originalCellsMap.get(key) !== value
+      }) ||
+      Array.from(originalCellsMap.entries()).some(([key, value]) => {
+        return !cells.has(key) && value !== ''
+      })
+
+    console.log('Column changes:', {
+      added: columnChanges.added.length,
+      modified: columnChanges.modified.length,
+      deleted: columnChanges.deleted.length,
+    })
+    console.log('Has cell changes:', hasCellChanges)
+    console.log('Current cells count:', cells.size)
+    console.log('Original cells count:', originalCellsMap.size)
 
     onSave({
       rows,
