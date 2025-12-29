@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
+import { SwitchMode } from '@/components/ui/switchMode'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { ProfileInfoGrid } from '@/components/Profile/ProfileInfoGrid'
 import { useAuthStore } from '@/stores/authStore'
@@ -486,6 +487,14 @@ export const Profile = () => {
                 disabled={isRequestingNotifications}
                 onCheckedChange={handleToggleNotifications}
               />
+            </div>
+
+            <div className="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3 shadow-sm">
+              <div>
+                <p className="text-sm font-medium text-foreground">Giao diện</p>
+                <p className="text-xs text-muted-foreground">Chuyển đổi giữa chế độ sáng và tối</p>
+              </div>
+              <SwitchMode />
             </div>
 
             <Button variant="destructive" onClick={handleLogout} className="w-full">
