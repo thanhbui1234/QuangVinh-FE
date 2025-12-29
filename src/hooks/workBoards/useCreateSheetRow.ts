@@ -26,11 +26,6 @@ export const useCreateSheetRow = () => {
       queryClient.invalidateQueries({ queryKey: [sheetRowsKey.detail(variables.sheetId)] })
       // Also invalidate work board detail to update row count
       queryClient.invalidateQueries({ queryKey: [workBoardsKey.detail(variables.sheetId)] })
-      SonnerToaster({
-        type: 'success',
-        message: 'Thêm hàng thành công',
-        description: 'Hàng mới đã được thêm vào bảng',
-      })
     },
     onError: (error) => {
       SonnerToaster({

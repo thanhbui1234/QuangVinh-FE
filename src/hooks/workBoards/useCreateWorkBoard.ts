@@ -17,15 +17,10 @@ export const useCreateWorkBoard = () => {
       }
       return await POST(API_ENDPOINT.CREATE_SHEET_INFO, payload)
     },
-    onSuccess: (response) => {
+    onSuccess: () => {
       queryClient.refetchQueries({
         queryKey: workBoardKey.all,
         type: 'all',
-      })
-      SonnerToaster({
-        type: 'success',
-        message: 'Tạo bảng thành công',
-        description: (response as any)?.message || 'Bảng dữ liệu đã được tạo thành công',
       })
     },
     onError: (error: any) => {
