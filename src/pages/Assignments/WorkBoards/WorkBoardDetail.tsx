@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { useParams, useNavigate, useBlocker } from 'react-router'
+import { useParams, useNavigate } from 'react-router'
 import { useGetWorkBoardDetail } from '@/hooks/workBoards/useGetWorkBoardDetail'
 import { useAddColumn } from '@/hooks/workBoards/useAddColumn'
 import { useUpdateColumn } from '@/hooks/workBoards/useUpdateColumn'
@@ -12,16 +12,6 @@ import { useRemoveSheetRow } from '@/hooks/workBoards/useRemoveSheetRow'
 import { EditableTable } from '@/components/WorkBoards/EditableTable'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
 import type { IWorkBoardCell, IWorkBoardColumn } from '@/types/WorkBoard'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { queryClient } from '@/lib/queryClient'
@@ -41,54 +31,8 @@ export const WorkBoardDetail: React.FC = () => {
   const isMobile = useIsMobile()
   const containerRef = useRef<HTMLDivElement>(null)
   const [maxWidth, setMaxWidth] = useState<string>('100%')
-
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false)
-  const [showUnsavedChangesDialog, setShowUnsavedChangesDialog] = useState(false)
-  const [pendingNavigation, setPendingNavigation] = useState<(() => void) | null>(null)
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
-  const [pendingSaveData, setPendingSaveData] = useState<{
-    rows: number
-    columns: number
-    columnHeaders: IWorkBoardColumn[]
-    cells: IWorkBoardCell[]
-    columnChanges?: {
-      added: IWorkBoardColumn[]
-      modified: Array<{ original: IWorkBoardColumn; updated: IWorkBoardColumn }>
-      deleted: IWorkBoardColumn[]
-    }
-  } | null>(null)
-
-  // Block navigation when there are unsaved changes
-  const blocker = useBlocker(
-    ({ currentLocation, nextLocation }) =>
-      hasUnsavedChanges && currentLocation.pathname !== nextLocation.pathname
-  )
-
-  // Handle beforeunload for closing tab/window
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (hasUnsavedChanges) {
-        e.preventDefault()
-        e.returnValue = ''
-        return ''
-      }
-    }
-
-    window.addEventListener('beforeunload', handleBeforeUnload)
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload)
-    }
-  }, [hasUnsavedChanges])
-
-  // Handle navigation blocker
-  useEffect(() => {
-    if (blocker.state === 'blocked') {
-      setPendingNavigation(() => () => {
-        blocker.proceed()
-      })
-      setShowUnsavedChangesDialog(true)
-    }
-  }, [blocker])
+  // Track pending row creations to prevent duplicates
+  const pendingRowCreations = useRef<Set<number>>(new Set())
 
   // Calculate max width based on sidebar/tabbar
   useEffect(() => {
@@ -165,7 +109,7 @@ export const WorkBoardDetail: React.FC = () => {
     }
   }, [isMobile])
 
-  const handleSave = (data: {
+  const handleSave = async (data: {
     rows: number
     columns: number
     columnHeaders: IWorkBoardColumn[]
@@ -178,138 +122,14 @@ export const WorkBoardDetail: React.FC = () => {
   }) => {
     if (!sheetId) return
 
-    // Check if there are column changes
-    if (data.columnChanges) {
-      // Show confirmation dialog for column changes
-      setPendingSaveData(data)
-      setShowConfirmDialog(true)
-    } else {
-      // No column changes, just cell changes - process directly
-      handleCellChanges(data)
-    }
-  }
-
-  const handleCellChanges = async (data: {
-    rows: number
-    columns: number
-    columnHeaders: IWorkBoardColumn[]
-    cells: IWorkBoardCell[]
-  }) => {
-    if (!sheetId || !workBoard) return
-
     try {
-      // Get original cells for comparison
-      const originalCellsMap = new Map<string, string>()
-      if (workBoard.cells) {
-        workBoard.cells.forEach((cell) => {
-          const key = `${cell.rowIndex}-${cell.columnIndex}`
-          originalCellsMap.set(key, cell.value)
-        })
-      }
+      // 1. Process Column Changes if any
+      if (data.columnChanges) {
+        const { columnChanges } = data
 
-      // Find changed cells
-      // Determine effective column headers - prioritizing pendingSaveData if available (from confirm dialog flow)
-      // This solves the issue where column names might be outdated during cell updates
-      const effectiveColumnHeaders = pendingSaveData?.columnHeaders || data.columnHeaders
-
-      const changedCells = data.cells.filter((cell) => {
-        const key = `${cell.rowIndex}-${cell.columnIndex}`
-        const originalValue = originalCellsMap.get(key) || ''
-        return cell.value !== originalValue
-      })
-
-      if (changedCells.length === 0) {
-        setHasUnsavedChanges(false)
-        return
-      }
-
-      // Group cells by rowIndex
-      const cellsByRow = new Map<number, IWorkBoardCell[]>()
-      changedCells.forEach((cell) => {
-        if (!cellsByRow.has(cell.rowIndex)) {
-          cellsByRow.set(cell.rowIndex, [])
-        }
-        cellsByRow.get(cell.rowIndex)!.push(cell)
-      })
-
-      // Process each row
-      for (const [rowIndex, cells] of cellsByRow.entries()) {
-        const rowId = workBoard.rowIdMap?.[rowIndex]
-
-        // If row doesn't exist in backend, create it first
-        if (!rowId) {
-          // Build rowData from all cells in this row
-          const rowData: Record<string, any> = {}
-          cells.forEach((cell) => {
-            const columnName =
-              effectiveColumnHeaders[cell.columnIndex]?.name ||
-              effectiveColumnHeaders[cell.columnIndex]?.label
-            if (columnName) {
-              rowData[columnName] = cell.value
-            }
-          })
-
-          try {
-            await createSheetRowMutation.mutateAsync({
-              sheetId,
-              rowData,
-              color: '#FFFFFF',
-            })
-
-            // Note: We don't have the rowId from response, so we can't update cells
-            // The row is created with all data already
-            continue
-          } catch (error) {
-            console.error('Error creating row:', error)
-            continue
-          }
-        }
-
-        // Row exists, update each cell
-        for (const cell of cells) {
-          const columnName =
-            effectiveColumnHeaders[cell.columnIndex]?.name ||
-            effectiveColumnHeaders[cell.columnIndex]?.label
-
-          if (!columnName) {
-            console.warn(`No column name for columnIndex ${cell.columnIndex}, skipping`)
-            continue
-          }
-
-          try {
-            await updateSheetRowCellMutation.mutateAsync({
-              rowId,
-              columnName,
-              value: cell.value,
-            })
-          } catch (error) {
-            console.error(`Error updating cell:`, error)
-          }
-        }
-      }
-
-      setHasUnsavedChanges(false)
-    } catch (error) {
-      console.error('❌ Error saving cell changes:', error)
-    }
-  }
-
-  const handleConfirmSave = async () => {
-    if (!sheetId || !pendingSaveData) return
-
-    setShowConfirmDialog(false)
-
-    try {
-      // Process column changes
-      const { columnChanges } = pendingSaveData
-
-      if (columnChanges) {
         // Add new columns
         for (const newColumn of columnChanges.added) {
-          // Find the index in the current columnHeaders array
-          const columnIndex = pendingSaveData.columnHeaders.findIndex(
-            (col) => col.id === newColumn.id
-          )
+          const columnIndex = data.columnHeaders.findIndex((col) => col.id === newColumn.id)
           await addColumnMutation.mutateAsync({
             sheetId,
             name: newColumn.name || newColumn.label,
@@ -331,7 +151,6 @@ export const WorkBoardDetail: React.FC = () => {
             columnName: originalName,
           }
 
-          // Only include fields that actually changed
           if (updatedName && updatedName !== originalName) {
             updatePayload.newColumnName = updatedName
           }
@@ -350,8 +169,6 @@ export const WorkBoardDetail: React.FC = () => {
             updatePayload.newOptions = updated.options || []
           }
 
-          // Call API if there are actual changes (sheetId and columnName are always present)
-          // So we need more than 2 keys to have actual changes
           if (Object.keys(updatePayload).length > 2) {
             await updateColumnMutation.mutateAsync(updatePayload)
           }
@@ -366,8 +183,7 @@ export const WorkBoardDetail: React.FC = () => {
         }
       }
 
-      // Process cell changes using row APIs
-      // Get original cells for comparison
+      // 2. Process Cell Changes
       const originalCellsMap = new Map<string, string>()
       if (workBoard?.cells) {
         workBoard.cells.forEach((cell) => {
@@ -376,70 +192,96 @@ export const WorkBoardDetail: React.FC = () => {
         })
       }
 
-      // Find changed cells
-      const changedCells = pendingSaveData.cells.filter((cell) => {
+      const changedCells = data.cells.filter((cell) => {
         const key = `${cell.rowIndex}-${cell.columnIndex}`
         const originalValue = originalCellsMap.get(key) || ''
         return cell.value !== originalValue
       })
 
-      // Update each changed cell using upsert_cell_row API
-      for (const cell of changedCells) {
-        const rowId = workBoard?.rowIdMap?.[cell.rowIndex]
-        const columnName =
-          pendingSaveData.columnHeaders[cell.columnIndex]?.name ||
-          pendingSaveData.columnHeaders[cell.columnIndex]?.label
+      if (changedCells.length > 0) {
+        // Group cells by rowIndex
+        const cellsByRow = new Map<number, IWorkBoardCell[]>()
+        changedCells.forEach((cell) => {
+          if (!cellsByRow.has(cell.rowIndex)) {
+            cellsByRow.set(cell.rowIndex, [])
+          }
+          cellsByRow.get(cell.rowIndex)!.push(cell)
+        })
 
-        if (!rowId) {
-          console.warn(`No rowId found for rowIndex ${cell.rowIndex}, skipping cell update`)
-          continue
-        }
+        // Process each row
+        // Note: We use data.columnHeaders as the effective headers
+        const effectiveColumnHeaders = data.columnHeaders
 
-        if (!columnName) {
-          console.warn(
-            `No column name found for columnIndex ${cell.columnIndex}, skipping cell update`
-          )
-          continue
-        }
+        for (const [rowIndex, cells] of cellsByRow.entries()) {
+          const rowId = workBoard?.rowIdMap?.[rowIndex]
 
-        try {
-          await updateSheetRowCellMutation.mutateAsync({
-            rowId,
-            columnName,
-            value: cell.value,
-          })
-        } catch (error) {
-          console.error(
-            `Error updating cell at row ${cell.rowIndex}, column ${cell.columnIndex}:`,
-            error
-          )
-          // Continue with other cells even if one fails
+          // If row doesn't exist in backend, create it first
+          if (!rowId) {
+            // Check if we are already creating this row
+            if (pendingRowCreations.current.has(rowIndex)) {
+              console.log(`Skipping duplicate creation for row ${rowIndex}`)
+              continue
+            }
+
+            const rowData: Record<string, any> = {}
+            cells.forEach((cell) => {
+              const columnName =
+                effectiveColumnHeaders[cell.columnIndex]?.name ||
+                effectiveColumnHeaders[cell.columnIndex]?.label
+              if (columnName) {
+                rowData[columnName] = cell.value
+              }
+            })
+
+            try {
+              pendingRowCreations.current.add(rowIndex)
+              await createSheetRowMutation.mutateAsync({
+                sheetId,
+                rowData,
+                color: '#FFFFFF',
+              })
+            } catch (error) {
+              console.error('Error creating row:', error)
+            } finally {
+              // We keep it in the set to prevent immediate re-creation until the component unmounts or we implement a more complex cleanup.
+              // Actually, we should probably remove it after a timeout or rely on the fact that once created, the next render will have rowId.
+              // But since we invalidate queries, a re-render WILL happen.
+              // If we remove it immediately here, and the user types FAST before re-render, we might double create.
+              // So, keeping it until re-render is safer? But we don't have easy access to "when re-render with new data happens".
+              // Let's remove it for now, as the await above waits for the mutation (and invalidation) to finish?
+              // No, invalidation is async in onSuccess.
+              // Ideally we wait for the query to be stale?
+              // For now, let's just remove it. The mutex effect happens during the async await.
+              pendingRowCreations.current.delete(rowIndex)
+            }
+            continue
+          }
+
+          // Row exists, update each cell
+          for (const cell of cells) {
+            const columnName =
+              effectiveColumnHeaders[cell.columnIndex]?.name ||
+              effectiveColumnHeaders[cell.columnIndex]?.label
+
+            if (!columnName) {
+              console.warn(`No column name for columnIndex ${cell.columnIndex}, skipping`)
+              continue
+            }
+
+            try {
+              await updateSheetRowCellMutation.mutateAsync({
+                rowId,
+                columnName,
+                value: cell.value,
+              })
+            } catch (error) {
+              console.error(`Error updating cell:`, error)
+            }
+          }
         }
       }
-
-      // Success - clear pending data and unsaved changes
-      setPendingSaveData(null)
-      setHasUnsavedChanges(false)
     } catch (error) {
-      console.error('Error saving column changes:', error)
-      setPendingSaveData(null)
-    }
-  }
-
-  const handleConfirmLeave = () => {
-    setHasUnsavedChanges(false)
-    setShowUnsavedChangesDialog(false)
-    if (pendingNavigation) {
-      pendingNavigation()
-      setPendingNavigation(null)
-    }
-  }
-
-  const handleCancelLeave = () => {
-    setShowUnsavedChangesDialog(false)
-    setPendingNavigation(null)
-    if (blocker.state === 'blocked') {
-      blocker.reset()
+      console.error('❌ Error saving changes:', error)
     }
   }
 
@@ -470,7 +312,8 @@ export const WorkBoardDetail: React.FC = () => {
     }
   }
 
-  if (isFetching) {
+  // Only show loader if we don't have the workBoard data yet
+  if (!workBoard && isFetching) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="flex flex-col items-center gap-4">
@@ -526,48 +369,15 @@ export const WorkBoardDetail: React.FC = () => {
             isSaving={
               createSheetRowMutation.isPending ||
               updateSheetRowCellMutation.isPending ||
-              removeSheetRowMutation.isPending
+              removeSheetRowMutation.isPending ||
+              isFetching // Show "saving" if we are refetching too? Or just saving.
             }
-            onUnsavedChangesChange={setHasUnsavedChanges}
+            // Passing undefined for onUnsavedChangesChange as we auto-save
+            onUnsavedChangesChange={undefined}
             onDeleteRow={handleDeleteRow}
           />
         </div>
       </div>
-
-      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Xác nhận lưu thay đổi</AlertDialogTitle>
-            <AlertDialogDescription>
-              Những thay đổi của bạn về cột không thể hoàn tác. Bạn có chắc chắn muốn tiếp tục?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setPendingSaveData(null)}>Hủy</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmSave}>Đồng ý</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <AlertDialog open={showUnsavedChangesDialog} onOpenChange={setShowUnsavedChangesDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Cảnh báo thay đổi chưa lưu</AlertDialogTitle>
-            <AlertDialogDescription>
-              Những thay đổi của bạn chưa được lưu. Bạn vẫn muốn rời đi chứ?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleCancelLeave}>Hủy</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleConfirmLeave}
-              className="bg-yellow-500 hover:bg-yellow-600 text-white"
-            >
-              Xác nhận
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   )
 }

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
-import { Plus, Trash2, Save, Settings2 } from 'lucide-react'
+import { Plus, Trash2, Settings2 } from 'lucide-react'
+import { useDebouncedCallback } from 'use-debounce'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
@@ -53,47 +54,29 @@ export const EditableTable: React.FC<EditableTableProps> = ({
   const [originalColumns, setOriginalColumns] = useState<IWorkBoardColumn[]>([])
   const [showColumnManager, setShowColumnManager] = useState(false)
 
-  // Initialize cells from workBoard
+  // Store state in ref for reliable access in debounced callbacks
+  const stateRef = useRef({
+    cells,
+    columnHeaders,
+    rows,
+    columns,
+    originalColumns,
+    workBoard,
+  })
+
+  // Update ref when state changes
   useEffect(() => {
-    if (workBoard) {
-      setRows(workBoard.rows)
-      setColumns(workBoard.columns)
-      const headers = workBoard.columnHeaders || []
-      setColumnHeaders(headers)
-      // Store original columns for comparison
-      setOriginalColumns(headers.map((col) => ({ ...col })))
-
-      const cellsMap = new Map<string, string>()
-      workBoard.cells?.forEach((cell) => {
-        const key = `${cell.rowIndex}-${cell.columnIndex}`
-        cellsMap.set(key, cell.value)
-      })
-      setCells(cellsMap)
-    } else {
-      // Initialize with default columns
-      const defaultColumns: IWorkBoardColumn[] = Array.from({ length: columns }, (_, i) => ({
-        id: `col-${i}`,
-        label: `Cột ${i + 1}`,
-        width: 150,
-      }))
-      setColumnHeaders(defaultColumns)
-      setOriginalColumns([])
+    stateRef.current = {
+      cells,
+      columnHeaders,
+      rows,
+      columns,
+      originalColumns,
+      workBoard,
     }
-  }, [workBoard])
+  }, [cells, columnHeaders, rows, columns, originalColumns, workBoard])
 
-  // Update columns when columns count changes (only for new boards)
-  useEffect(() => {
-    if (!workBoard && columns > 0) {
-      setColumnHeaders((prev) => {
-        const newColumns: IWorkBoardColumn[] = Array.from({ length: columns }, (_, i) => {
-          const existing = prev[i]
-          return existing || { id: `col-${i}`, label: `Cột ${i + 1}`, width: 150 }
-        })
-        return newColumns.slice(0, columns)
-      })
-    }
-  }, [columns, workBoard])
-
+  // Helpers
   const getCellValue = useCallback(
     (rowIndex: number, colIndex: number): string => {
       const key = `${rowIndex}-${colIndex}`
@@ -102,122 +85,7 @@ export const EditableTable: React.FC<EditableTableProps> = ({
     [cells]
   )
 
-  const setCellValue = useCallback((rowIndex: number, colIndex: number, value: string) => {
-    const key = `${rowIndex}-${colIndex}`
-    setCells((prev) => {
-      const newMap = new Map(prev)
-      if (value) {
-        newMap.set(key, value)
-      } else {
-        newMap.delete(key)
-      }
-      return newMap
-    })
-  }, [])
-
-  const handleCellClick = (rowIndex: number, colIndex: number) => {
-    setEditingCell({ row: rowIndex, col: colIndex })
-    setEditingValue(getCellValue(rowIndex, colIndex))
-  }
-
-  const handleCellBlur = () => {
-    if (editingCell) {
-      setCellValue(editingCell.row, editingCell.col, editingValue)
-      setEditingCell(null)
-    }
-  }
-
-  const handleCellKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault()
-      if (editingCell) {
-        setCellValue(editingCell.row, editingCell.col, editingValue)
-        setEditingCell(null)
-      }
-    } else if (e.key === 'Escape') {
-      setEditingCell(null)
-      setEditingValue('')
-    } else if (e.key === 'Tab') {
-      e.preventDefault()
-      if (editingCell) {
-        setCellValue(editingCell.row, editingCell.col, editingValue)
-        const nextCol = editingCell.col + 1
-        if (nextCol < columns) {
-          setEditingCell({ row: editingCell.row, col: nextCol })
-          setEditingValue(getCellValue(editingCell.row, nextCol))
-        } else if (editingCell.row + 1 < rows) {
-          setEditingCell({ row: editingCell.row + 1, col: 0 })
-          setEditingValue(getCellValue(editingCell.row + 1, 0))
-        } else {
-          setEditingCell(null)
-        }
-      }
-    }
-  }
-
-  useEffect(() => {
-    if (editingCell && inputRef.current) {
-      inputRef.current.focus()
-      inputRef.current.select()
-    }
-  }, [editingCell])
-
-  const handleAddRow = () => {
-    setRows((prev: any) => prev + 1)
-
-    // Initialize empty cells for all columns in the new row
-    // This makes it clear to users that they can edit all cells
-    setCells((prev) => {
-      const newMap = new Map(prev)
-      // We don't actually set empty values, just increment the row count
-      // The cells will show "Nhấp để chỉnh sửa" placeholder automatically
-      return newMap
-    })
-  }
-
-  const handleDeleteRow = (rowIndex: number) => {
-    if (onDeleteRow) {
-      onDeleteRow(rowIndex)
-    }
-
-    if (rows > 0) {
-      setRows((prev: any) => prev - 1)
-      // Remove cells in deleted row
-      setCells((prev) => {
-        const newMap = new Map()
-        prev.forEach((value, key) => {
-          const [r] = key.split('-').map(Number)
-          if (r < rowIndex) {
-            newMap.set(key, value)
-          } else if (r > rowIndex) {
-            // Shift row indices down
-            const [col] = key.split('-').map(Number)
-            newMap.set(`${r - 1}-${col}`, value)
-          }
-        })
-        return newMap
-      })
-    }
-  }
-
-  const handleColumnHeaderChange = (colIndex: number, label: string) => {
-    setColumnHeaders((prev) => {
-      const newHeaders = [...prev]
-      newHeaders[colIndex] = {
-        ...newHeaders[colIndex],
-        label,
-        name: label, // Also update name when label changes
-      }
-      return newHeaders
-    })
-  }
-
-  const handleColumnsChange = (newColumns: IWorkBoardColumn[]) => {
-    setColumnHeaders(newColumns)
-    setColumns(newColumns.length)
-  }
-
-  // Check for unsaved changes
+  // Check for unsaved changes (internal check for diffing)
   const checkUnsavedChanges = useCallback(() => {
     if (!workBoard || originalColumns.length === 0) {
       // Check if cells have changed
@@ -270,92 +138,245 @@ export const EditableTable: React.FC<EditableTableProps> = ({
     return hasColumnChanges || hasDeletedColumns || hasCellChanges
   }, [workBoard, originalColumns, columnHeaders, cells])
 
-  // Notify parent about unsaved changes
+  // Internal Save Logic
+  const handleSaveInternal = useCallback(
+    (overrideColumns?: IWorkBoardColumn[], overrideCells?: Map<string, string>) => {
+      const currentCells = overrideCells || stateRef.current.cells
+      const currentColumns = overrideColumns || stateRef.current.columnHeaders
+      const currentRows = stateRef.current.rows
+      const currentOriginalColumns = stateRef.current.originalColumns
+      const currentWorkBoard = stateRef.current.workBoard
+
+      // Convert cells map to array
+      const cellsArray: IWorkBoardCell[] = []
+      currentCells.forEach((value, key) => {
+        const [rowIndex, columnIndex] = key.split('-').map(Number)
+        cellsArray.push({ rowIndex, columnIndex, value })
+      })
+
+      // Calculate column changes
+      const columnChanges = {
+        added: [] as IWorkBoardColumn[],
+        modified: [] as Array<{ original: IWorkBoardColumn; updated: IWorkBoardColumn }>,
+        deleted: [] as IWorkBoardColumn[],
+      }
+
+      if (currentWorkBoard && currentOriginalColumns.length > 0) {
+        // Find added columns
+        currentColumns.forEach((col) => {
+          const colName = col.name || col.label
+          const isNew =
+            col.id?.startsWith('col-new-') ||
+            !currentOriginalColumns.find((oc) => (oc.name || oc.label) === colName)
+          if (isNew) {
+            columnChanges.added.push(col)
+          }
+        })
+
+        // Find modified and deleted columns
+        currentOriginalColumns.forEach((originalCol) => {
+          const originalName = originalCol.name || originalCol.label
+          const currentCol = currentColumns.find((col) => (col.name || col.label) === originalName)
+          if (currentCol) {
+            // Check if any property changed
+            const hasChanges =
+              (currentCol.label || '') !== (originalCol.label || '') ||
+              (currentCol.name || '') !== (originalCol.name || '') ||
+              currentCol.index !== originalCol.index ||
+              (currentCol.color || '') !== (originalCol.color || '') ||
+              currentCol.required !== originalCol.required ||
+              JSON.stringify(currentCol.options || []) !== JSON.stringify(originalCol.options || [])
+            if (hasChanges) {
+              columnChanges.modified.push({ original: originalCol, updated: currentCol })
+            }
+          } else {
+            // Column was deleted
+            columnChanges.deleted.push(originalCol)
+          }
+        })
+      }
+
+      onSave({
+        rows: currentRows,
+        columns: currentColumns.length,
+        columnHeaders: currentColumns,
+        cells: cellsArray,
+        columnChanges:
+          columnChanges.added.length > 0 ||
+          columnChanges.modified.length > 0 ||
+          columnChanges.deleted.length > 0
+            ? columnChanges
+            : undefined,
+      })
+    },
+    [onSave]
+  )
+
+  const debouncedSave = useDebouncedCallback(() => {
+    handleSaveInternal()
+  }, 125)
+
+  const setCellValue = useCallback(
+    (rowIndex: number, colIndex: number, value: string) => {
+      const key = `${rowIndex}-${colIndex}`
+      setCells((prev) => {
+        const newMap = new Map(prev)
+        if (value) {
+          newMap.set(key, value)
+        } else {
+          newMap.delete(key)
+        }
+        return newMap
+      })
+      // Trigger auto-save
+      debouncedSave()
+    },
+    [debouncedSave]
+  )
+
+  // Other Handlers
+  const handleCellClick = (rowIndex: number, colIndex: number) => {
+    setEditingCell({ row: rowIndex, col: colIndex })
+    setEditingValue(getCellValue(rowIndex, colIndex))
+  }
+
+  const handleCellBlur = () => {
+    if (editingCell) {
+      setCellValue(editingCell.row, editingCell.col, editingValue)
+      setEditingCell(null)
+    }
+  }
+
+  const handleCellKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      if (editingCell) {
+        setCellValue(editingCell.row, editingCell.col, editingValue)
+        setEditingCell(null)
+      }
+    } else if (e.key === 'Escape') {
+      setEditingCell(null)
+      setEditingValue('')
+    } else if (e.key === 'Tab') {
+      e.preventDefault()
+      if (editingCell) {
+        setCellValue(editingCell.row, editingCell.col, editingValue)
+        const nextCol = editingCell.col + 1
+        if (nextCol < columns) {
+          setEditingCell({ row: editingCell.row, col: nextCol })
+          setEditingValue(getCellValue(editingCell.row, nextCol))
+        } else if (editingCell.row + 1 < rows) {
+          setEditingCell({ row: editingCell.row + 1, col: 0 })
+          setEditingValue(getCellValue(editingCell.row + 1, 0))
+        } else {
+          setEditingCell(null)
+        }
+      }
+    }
+  }
+
+  const handleAddRow = () => {
+    setRows((prev: any) => prev + 1)
+    setCells((prev) => {
+      const newMap = new Map(prev)
+      return newMap
+    })
+  }
+
+  const handleDeleteRow = (rowIndex: number) => {
+    if (onDeleteRow) {
+      onDeleteRow(rowIndex)
+    }
+
+    if (rows > 0) {
+      setRows((prev: any) => prev - 1)
+      setCells((prev) => {
+        const newMap = new Map()
+        prev.forEach((value, key) => {
+          const [r] = key.split('-').map(Number)
+          if (r < rowIndex) {
+            newMap.set(key, value)
+          } else if (r > rowIndex) {
+            const [col] = key.split('-').map(Number)
+            newMap.set(`${r - 1}-${col}`, value)
+          }
+        })
+        return newMap
+      })
+    }
+  }
+
+  const handleColumnHeaderChange = (colIndex: number, label: string) => {
+    const newHeaders = [...columnHeaders]
+    newHeaders[colIndex] = {
+      ...newHeaders[colIndex],
+      label,
+      name: label,
+    }
+    setColumnHeaders(newHeaders)
+    // Immediate save for column changes
+    handleSaveInternal(newHeaders)
+  }
+
+  const handleColumnsChange = (newColumns: IWorkBoardColumn[]) => {
+    setColumnHeaders(newColumns)
+    setColumns(newColumns.length)
+    // Immediate save for column changes
+    handleSaveInternal(newColumns)
+  }
+
+  // Effects
+  useEffect(() => {
+    if (workBoard) {
+      setRows(workBoard.rows)
+      setColumns(workBoard.columns)
+      const headers = workBoard.columnHeaders || []
+      setColumnHeaders(headers)
+      setOriginalColumns(headers.map((col) => ({ ...col })))
+
+      const cellsMap = new Map<string, string>()
+      workBoard.cells?.forEach((cell) => {
+        const key = `${cell.rowIndex}-${cell.columnIndex}`
+        cellsMap.set(key, cell.value)
+      })
+      setCells(cellsMap)
+    } else {
+      const defaultColumns: IWorkBoardColumn[] = Array.from({ length: columns }, (_, i) => ({
+        id: `col-${i}`,
+        label: `Cột ${i + 1}`,
+        width: 150,
+      }))
+      setColumnHeaders(defaultColumns)
+      setOriginalColumns([])
+    }
+  }, [workBoard])
+
+  useEffect(() => {
+    if (!workBoard && columns > 0) {
+      setColumnHeaders((prev) => {
+        const newColumns: IWorkBoardColumn[] = Array.from({ length: columns }, (_, i) => {
+          const existing = prev[i]
+          return existing || { id: `col-${i}`, label: `Cột ${i + 1}`, width: 150 }
+        })
+        return newColumns.slice(0, columns)
+      })
+    }
+  }, [columns, workBoard])
+
+  useEffect(() => {
+    if (editingCell && inputRef.current) {
+      inputRef.current.focus()
+      inputRef.current.select()
+    }
+  }, [editingCell])
+
+  // Notify parent about unsaved changes (Optional: keep if purely informational, mostly for sync)
   useEffect(() => {
     if (onUnsavedChangesChange) {
       const hasChanges = checkUnsavedChanges()
       onUnsavedChangesChange(hasChanges)
     }
   }, [checkUnsavedChanges, onUnsavedChangesChange])
-
-  const handleSave = () => {
-    // First, check if there are any changes at all
-    const hasAnyChanges = checkUnsavedChanges()
-
-    if (!hasAnyChanges) {
-      return
-    }
-
-    const cellsArray: IWorkBoardCell[] = []
-    cells.forEach((value, key) => {
-      const [rowIndex, columnIndex] = key.split('-').map(Number)
-      cellsArray.push({ rowIndex, columnIndex, value })
-    })
-
-    // Calculate column changes
-    const columnChanges = {
-      added: [] as IWorkBoardColumn[],
-      modified: [] as Array<{ original: IWorkBoardColumn; updated: IWorkBoardColumn }>,
-      deleted: [] as IWorkBoardColumn[],
-    }
-
-    if (workBoard && originalColumns.length > 0) {
-      // Find added columns (new columns without original name)
-      columnHeaders.forEach((col) => {
-        const colName = col.name || col.label
-        const isNew =
-          col.id?.startsWith('col-new-') ||
-          !originalColumns.find((oc) => (oc.name || oc.label) === colName)
-        if (isNew) {
-          columnChanges.added.push(col)
-        }
-      })
-
-      // Find modified and deleted columns
-      originalColumns.forEach((originalCol) => {
-        const originalName = originalCol.name || originalCol.label
-        const currentCol = columnHeaders.find((col) => (col.name || col.label) === originalName)
-        if (currentCol) {
-          // Check if any property changed
-          const hasChanges =
-            (currentCol.label || '') !== (originalCol.label || '') ||
-            (currentCol.name || '') !== (originalCol.name || '') ||
-            currentCol.index !== originalCol.index ||
-            (currentCol.color || '') !== (originalCol.color || '') ||
-            currentCol.required !== originalCol.required ||
-            JSON.stringify(currentCol.options || []) !== JSON.stringify(originalCol.options || [])
-          if (hasChanges) {
-            columnChanges.modified.push({ original: originalCol, updated: currentCol })
-          }
-        } else {
-          // Column was deleted
-          columnChanges.deleted.push(originalCol)
-        }
-      })
-    }
-
-    // Check for cell changes
-    const originalCellsMap = new Map<string, string>()
-    if (workBoard) {
-      workBoard.cells?.forEach((cell) => {
-        const key = `${cell.rowIndex}-${cell.columnIndex}`
-        originalCellsMap.set(key, cell.value)
-      })
-    }
-
-    onSave({
-      rows,
-      columns,
-      columnHeaders,
-      cells: cellsArray,
-      columnChanges:
-        columnChanges.added.length > 0 ||
-        columnChanges.modified.length > 0 ||
-        columnChanges.deleted.length > 0
-          ? columnChanges
-          : undefined,
-    })
-  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -371,10 +392,7 @@ export const EditableTable: React.FC<EditableTableProps> = ({
             Quản lý cột
           </Button>
         </div>
-        <Button onClick={handleSave} disabled={isSaving} size="sm">
-          <Save className="h-4 w-4 mr-1" />
-          {isSaving ? 'Đang lưu...' : 'Lưu'}
-        </Button>
+        <div className="text-sm text-muted-foreground">{isSaving ? 'Đang lưu...' : 'Đã lưu'}</div>
       </div>
 
       {/* Table */}

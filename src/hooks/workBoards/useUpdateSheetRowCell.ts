@@ -1,8 +1,8 @@
 import { useMutation } from '@tanstack/react-query'
 import { POST } from '@/core/api'
 import { API_ENDPOINT } from '@/common/apiEndpoint'
-import { sheetRowsKey } from '@/constants/assignments/assignment'
-import { queryClient } from '@/lib/queryClient'
+// import { sheetRowsKey } from '@/constants/assignments/assignment'
+// import { queryClient } from '@/lib/queryClient'
 import SonnerToaster from '@/components/ui/toaster'
 import type { IUpdateSheetRowCellRequest, IUpdateSheetRowCellResponse } from '@/types/WorkBoard'
 import { handleCommonError } from '@/utils/handleErrors'
@@ -24,10 +24,8 @@ export const useUpdateSheetRowCell = () => {
       }
     },
     onSuccess: () => {
-      // Invalidate sheet rows list to refetch
-      // Note: We need to get sheetId from somewhere, might need to pass it in the request
-      // For now, we'll invalidate all sheet rows queries
-      queryClient.invalidateQueries({ queryKey: [sheetRowsKey.getAll] })
+      // Do not invalidate queries to avoid UI flickering/refreshing
+      // The local state is already optimistic updated by the EditableTable component
     },
     onError: (error) => {
       SonnerToaster({
