@@ -59,13 +59,13 @@ const mapSheetInfoToWorkBoard = (sheetInfo: ISheetInfo): IWorkBoard => {
 
   rowsWithData.forEach((row: ISheetRow, newRowIndex: number) => {
     const rowData = row.rowData || {}
-    columns.forEach((col) => {
+    columns.forEach((col, colIdx) => {
       const value = rowData[col.name]
       // Only include cell if it has a value
       if (value != null && String(value).trim() !== '') {
         cells.push({
           rowIndex: newRowIndex,
-          columnIndex: col.index,
+          columnIndex: colIdx,
           value: String(value).trim(),
         })
       }
