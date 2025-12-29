@@ -423,18 +423,18 @@ export const EditableTable: React.FC<EditableTableProps> = ({
                                 setEditingCell(null)
                               }
                             }}
-                            className="h-8"
+                            className="h-8 text-gray-900 dark:text-gray-900"
                           />
                         ) : (
                           <div className="flex items-center justify-between group">
                             <div className="flex items-center gap-2 flex-1">
                               <div
-                                className="w-3 h-3 rounded-sm border border-gray-300"
+                                className="w-3 h-3 rounded-sm border border-border"
                                 style={{ backgroundColor: columnColor }}
                                 title={`Màu: ${columnColor}`}
                               />
                               <span
-                                className="flex-1 cursor-pointer hover:text-primary"
+                                className="flex-1 cursor-pointer hover:text-blue-600 transition-colors font-semibold text-gray-900 dark:text-gray-900"
                                 onClick={() => {
                                   setEditingCell({ row: -1, col: colIndex })
                                   setEditingValue(col.label)
@@ -519,7 +519,7 @@ export const EditableTable: React.FC<EditableTableProps> = ({
                               setCellValue(rowIndex, colIndex, value)
                             }}
                           >
-                            <SelectTrigger className="border-0 focus:ring-0 h-full rounded-none shadow-none min-h-[40px]">
+                            <SelectTrigger className="border-0 focus:ring-0 h-full rounded-none shadow-none min-h-[40px] text-gray-900 dark:text-gray-900">
                               <SelectValue placeholder="Chọn giá trị..." />
                             </SelectTrigger>
                             <SelectContent>
@@ -538,17 +538,15 @@ export const EditableTable: React.FC<EditableTableProps> = ({
                             onChange={(e) => setEditingValue(e.target.value)}
                             onBlur={handleCellBlur}
                             onKeyDown={handleCellKeyDown}
-                            className="border-0 focus-visible:ring-0 h-full rounded-none"
+                            className="border-0 focus-visible:ring-0 h-full rounded-none text-gray-900 dark:text-gray-900"
                           />
                         ) : (
                           <div
-                            className="p-2 min-h-[40px] cursor-pointer hover:bg-muted/50 transition-colors"
+                            className="p-2 min-h-[40px] cursor-pointer hover:bg-muted/50 transition-colors text-gray-900 dark:text-gray-900"
                             onClick={() => handleCellClick(rowIndex, colIndex)}
                           >
                             {cellValue || (
-                              <span className="text-muted-foreground text-sm">
-                                Nhấp để chỉnh sửa
-                              </span>
+                              <span className="text-gray-500 text-sm">Nhấp để chỉnh sửa</span>
                             )}
                           </div>
                         )}

@@ -45,6 +45,8 @@ const mentionsInputStyle = {
       outline: 'none',
       fontSize: 14,
       lineHeight: 1.5,
+      backgroundColor: 'transparent',
+      color: 'inherit',
     },
   },
   suggestions: {
@@ -360,13 +362,13 @@ export const CommentTask = ({ member, taskId }: { member: IMemberTask[]; taskId:
       <Card className="border-0 shadow-sm">
         <CardContent className="p-6">
           <div className="flex items-center gap-2 mb-5">
-            <MessageCircle className="w-5 h-5 text-gray-600" />
-            <h3 className="text-sm font-semibold text-gray-900">Bình luận ({comments.length})</h3>
+            <MessageCircle className="w-5 h-5 text-muted-foreground" />
+            <h3 className="text-sm font-semibold text-foreground">Bình luận ({comments.length})</h3>
           </div>
 
           {/* Comment Input */}
           <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="flex gap-3 mb-6 pb-6 border-b border-gray-100">
+            <div className="flex gap-3 mb-6 pb-6 border-b border-border">
               <Avatar>
                 <AvatarImage src={user?.avatar} />
                 <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white">
@@ -546,15 +548,15 @@ export const CommentTask = ({ member, taskId }: { member: IMemberTask[]; taskId:
             {isFetching && comments.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 space-y-4">
                 <Loader2 className="w-8 h-8 animate-spin text-primary/20" />
-                <p className="text-sm text-gray-400 font-medium">Đang tải bình luận...</p>
+                <p className="text-sm text-muted-foreground font-medium">Đang tải bình luận...</p>
               </div>
             ) : comments.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
-                <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-                  <MessageCircle className="w-8 h-8 text-gray-200" />
+                <div className="w-16 h-16 bg-muted/50 rounded-full flex items-center justify-center mb-4">
+                  <MessageCircle className="w-8 h-8 text-muted-foreground" />
                 </div>
-                <h4 className="text-sm font-semibold text-gray-900 mb-1">Chưa có bình luận</h4>
-                <p className="text-xs text-gray-400 max-w-[200px]">
+                <h4 className="text-sm font-semibold text-foreground mb-1">Chưa có bình luận</h4>
+                <p className="text-xs text-muted-foreground max-w-[200px]">
                   Hãy là người đầu tiên chia sẻ ý kiến về công việc này.
                 </p>
               </div>
@@ -568,7 +570,7 @@ export const CommentTask = ({ member, taskId }: { member: IMemberTask[]; taskId:
                     <div className="shrink-0 pt-1">
                       <Avatar
                         onClick={() => handleUserClick(c.creator.id)}
-                        className="w-9 h-9 md:w-10 md:h-10 cursor-pointer shadow-sm border border-gray-50 hover:opacity-90 transition-opacity"
+                        className="w-9 h-9 md:w-10 md:h-10 cursor-pointer shadow-sm border border-border hover:opacity-90 transition-opacity"
                       >
                         <AvatarImage src={c.creator?.avatar} alt={c.creator?.name} />
                         <AvatarFallback className="bg-primary/5 text-primary text-[10px] md:text-xs font-bold">
@@ -582,12 +584,14 @@ export const CommentTask = ({ member, taskId }: { member: IMemberTask[]; taskId:
                         <div className="flex flex-col sm:flex-row sm:items-center gap-x-2 gap-y-0.5 min-w-0">
                           <span
                             onClick={() => handleUserClick(c.creator.id)}
-                            className="font-bold text-[14px] text-gray-900 cursor-pointer hover:text-primary transition-colors truncate"
+                            className="font-bold text-[14px] text-foreground cursor-pointer hover:text-primary transition-colors truncate"
                           >
                             {c.creator?.name}
                           </span>
-                          <span className="text-[10px] md:text-[11px] text-gray-400 font-medium whitespace-nowrap">
-                            <span className="hidden sm:inline-block mr-2 text-gray-300">•</span>
+                          <span className="text-[10px] md:text-[11px] text-muted-foreground font-medium whitespace-nowrap">
+                            <span className="hidden sm:inline-block mr-2 text-muted-foreground">
+                              •
+                            </span>
                             {dayjs(c.createdTime).fromNow()}
                           </span>
                         </div>
@@ -599,7 +603,7 @@ export const CommentTask = ({ member, taskId }: { member: IMemberTask[]; taskId:
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-7 w-7 md:h-8 md:w-8 text-gray-300 hover:text-primary hover:bg-white rounded-md transition-all px-1.5"
+                              className="h-7 w-7 md:h-8 md:w-8 text-muted-foreground hover:text-primary hover:bg-background rounded-md transition-all px-1.5"
                               onClick={() => handleStartEdit(c.commentId, c.message, c.imageUrls)}
                             >
                               <Pencil className="h-3 w-3" />
@@ -607,7 +611,7 @@ export const CommentTask = ({ member, taskId }: { member: IMemberTask[]; taskId:
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-7 w-7 md:h-8 md:w-8 text-gray-300 hover:text-red-500 hover:bg-white rounded-md transition-all px-1.5"
+                              className="h-7 w-7 md:h-8 md:w-8 text-muted-foreground hover:text-destructive hover:bg-background rounded-md transition-all px-1.5"
                               onClick={() => handleRemoveComment(c.commentId)}
                             >
                               <Trash2 className="h-3 w-3" />
@@ -616,7 +620,7 @@ export const CommentTask = ({ member, taskId }: { member: IMemberTask[]; taskId:
                         )}
                       </div>
 
-                      <div className="text-[14px] md:text-[15px] text-gray-600 leading-relaxed break-words whitespace-pre-wrap">
+                      <div className="text-[14px] md:text-[15px] text-muted-foreground leading-relaxed break-words whitespace-pre-wrap">
                         {parseMentionsToHTML(c.message, c.mentionUsers, handleUserClick)}
                       </div>
 

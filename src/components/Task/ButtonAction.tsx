@@ -78,7 +78,7 @@ export const ButtonAction = ({
           variant="ghost"
           size="sm"
           onClick={() => setEditOpen(true)}
-          className="text-gray-700 hover:bg-gray-100 bg-gray-200"
+          className="hover:bg-accent hover:text-accent-foreground text-foreground bg-muted"
         >
           <Pencil className="w-4 h-4 sm:mr-1" />
           <span className="hidden sm:inline">Chỉnh sửa</span>
@@ -89,7 +89,7 @@ export const ButtonAction = ({
       <Button
         variant="ghost"
         size="sm"
-        className="text-gray-700 hover:bg-gray-100 bg-gray-200"
+        className="hover:bg-accent hover:text-accent-foreground text-foreground bg-muted"
         onClick={() => {
           const commentSection = document.querySelector('.comments-section')
           commentSection?.scrollIntoView({ behavior: 'smooth' })

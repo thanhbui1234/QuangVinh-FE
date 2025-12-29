@@ -23,8 +23,9 @@ const DocumentsShared = () => {
 
   const [tab, setTab] = useState('all')
 
-  if (isFetching) return <div className="p-8 text-center text-gray-500">Đang tải...</div>
-  if (!documents) return <div className="p-8 text-center text-gray-500">Không có tài liệu</div>
+  if (isFetching) return <div className="p-8 text-center text-muted-foreground">Đang tải...</div>
+  if (!documents)
+    return <div className="p-8 text-center text-muted-foreground">Không có tài liệu</div>
 
   const docs = documents || []
 
@@ -44,8 +45,8 @@ const DocumentsShared = () => {
   return (
     <div className="p-6 pb-24">
       <PageBreadcrumb />
-      <h1 className="text-3xl font-bold text-gray-900 mb-2">Tài liệu được chia sẻ</h1>
-      <p className="text-gray-600 mb-8">Tất cả file mà mọi người đã chia sẻ với bạn</p>
+      <h1 className="text-3xl font-bold text-foreground mb-2">Tài liệu được chia sẻ</h1>
+      <p className="text-muted-foreground mb-8">Tất cả file mà mọi người đã chia sẻ với bạn</p>
 
       <Tabs value={tab} onValueChange={setTab} className="w-full mb-10">
         <TabsList className="inline-flex h-12 items-center rounded-full bg-gray-100 p-1 gap-1">
@@ -88,7 +89,7 @@ const DocumentsShared = () => {
                 return (
                   <Card
                     key={doc.id}
-                    className="group relative h-full border border-gray-200/80 rounded-2xl bg-white/80 backdrop-blur-sm hover:shadow-xl hover:border-gray-300 hover:-translate-y-1.5 transition-all duration-300 overflow-hidden"
+                    className="group relative h-full border border-border/80 rounded-2xl bg-card/80 backdrop-blur-sm hover:shadow-xl hover:border-border hover:-translate-y-1.5 transition-all duration-300 overflow-hidden"
                   >
                     <CardHeader className="pb-3">
                       {isImage ? (
@@ -107,10 +108,10 @@ const DocumentsShared = () => {
                         </div>
                       )}
 
-                      <CardTitle className="text-lg font-medium text-gray-900 line-clamp-1 pr-10">
+                      <CardTitle className="text-lg font-medium text-foreground line-clamp-1 pr-10">
                         {doc.title || 'Chưa đặt tên'}
                       </CardTitle>
-                      <CardDescription className="text-sm text-gray-600 line-clamp-2">
+                      <CardDescription className="text-sm text-muted-foreground line-clamp-2">
                         {doc.uploader?.name
                           ? `Được chia sẻ bởi: ${doc.uploader?.name}`
                           : 'Không rõ người chia sẻ'}
@@ -131,7 +132,9 @@ const DocumentsShared = () => {
                             {doc.uploader?.name?.charAt(0).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
-                        <span className="text-xs text-gray-600 truncate">{doc.uploader?.name}</span>
+                        <span className="text-xs text-muted-foreground truncate">
+                          {doc.uploader?.name}
+                        </span>
                       </div>
                     </CardContent>
 

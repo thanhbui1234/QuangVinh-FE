@@ -23,12 +23,12 @@ export const DescriptionTask = ({
   return (
     <div className="relative group">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-gray-900">Mô tả</h3>
+        <h3 className="text-sm font-semibold text-foreground">Mô tả</h3>
       </div>
 
       {isEditingDescription ? (
         <div className="space-y-3">
-          <div className="border rounded-md p-4">
+          <div className="border border-border rounded-md p-4 bg-muted/30">
             <EditorJSComponent
               data={editedDescription}
               onChange={setEditedDescription}
@@ -48,18 +48,20 @@ export const DescriptionTask = ({
         </div>
       ) : (
         <div
-          className="text-gray-700 leading-relaxed prose max-w-none cursor-pointer hover:bg-gray-50 p-2 -m-2 rounded transition-colors"
+          className="text-foreground leading-relaxed prose max-w-none cursor-pointer hover:bg-accent hover:text-accent-foreground p-2 -m-2 rounded transition-colors"
           onClick={handleStartEdit}
         >
           {projectAssignmentDetail?.checkList ? (
-            <EditorJSComponent
-              key={projectAssignmentDetail.checkList} // 🔑 Force remount when checkList changes
-              data={convertHTMLToEditorJS(projectAssignmentDetail.checkList)}
-              readOnly={true}
-              placeholder=""
-            />
+            <div className="dark:text-gray-100">
+              <EditorJSComponent
+                key={projectAssignmentDetail.checkList} // 🔑 Force remount when checkList changes
+                data={convertHTMLToEditorJS(projectAssignmentDetail.checkList)}
+                readOnly={true}
+                placeholder=""
+              />
+            </div>
           ) : (
-            <span className="italic text-gray-400">Chưa có mô tả - Click để thêm</span>
+            <span className="italic text-muted-foreground">Chưa có mô tả - Click để thêm</span>
           )}
         </div>
       )}

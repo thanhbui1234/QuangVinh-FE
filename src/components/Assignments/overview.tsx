@@ -9,15 +9,15 @@ export const Overview = (props: { tasks: any }) => {
 
   return (
     <>
-      <div className="rounded-lg border border-gray-200 bg-white p-3">
+      <div className="rounded-lg border border-border bg-card p-3">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div className="flex items-center justify-between rounded-md border border-gray-100 bg-gray-50 p-3">
-            <div className="text-sm text-gray-600">Tổng số task</div>
-            <div className="text-lg font-semibold">{tasks.length}</div>
+          <div className="flex items-center justify-between rounded-md border border-border bg-muted/50 p-3">
+            <div className="text-sm text-muted-foreground">Tổng số task</div>
+            <div className="text-lg font-semibold text-foreground">{tasks.length}</div>
           </div>
-          <div className="flex items-center justify-between rounded-md border border-gray-100 bg-gray-50 p-3">
-            <div className="text-sm text-gray-600">Tổng số giờ</div>
-            <div className="text-lg font-semibold">{totalHours} giờ</div>
+          <div className="flex items-center justify-between rounded-md border border-border bg-muted/50 p-3">
+            <div className="text-sm text-muted-foreground">Tổng số giờ</div>
+            <div className="text-lg font-semibold text-foreground">{totalHours} giờ</div>
           </div>
         </div>
 
@@ -27,11 +27,11 @@ export const Overview = (props: { tasks: any }) => {
             return (
               <div
                 key={st}
-                className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-sm"
+                className="inline-flex items-center gap-2 rounded-full border border-border bg-muted/50 px-3 py-1 text-sm"
               >
                 <span className="flex items-center">{STATUS_ICON[st]}</span>
-                <span className="text-gray-700">{STATUS_LABEL[st]}</span>
-                <span className="ml-1 rounded-full bg-white px-2 py-0.5 text-xs font-semibold text-gray-700 border border-gray-200">
+                <span className="text-foreground">{STATUS_LABEL[st]}</span>
+                <span className="ml-1 rounded-full bg-background px-2 py-0.5 text-xs font-semibold text-foreground border border-border">
                   {count}
                 </span>
               </div>

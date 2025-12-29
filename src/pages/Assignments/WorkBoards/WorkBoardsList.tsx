@@ -45,7 +45,7 @@ export const WorkBoardsList: React.FC = () => {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-gray-200 border-t-slate-900 rounded-full animate-spin" />
-          <p className="text-gray-600 font-medium">Đang tải danh sách bảng công việc...</p>
+          <p className="text-muted-foreground font-medium">Đang tải danh sách bảng công việc...</p>
         </div>
       </div>
     )
@@ -75,7 +75,7 @@ export const WorkBoardsList: React.FC = () => {
 
       {workBoards.length === 0 ? (
         <Card className="p-12 text-center">
-          <p className="text-gray-500 mb-4">Chưa có bảng công việc nào</p>
+          <p className="text-muted-foreground mb-4">Chưa có bảng công việc nào</p>
           {isManagerPermission && (
             <Button onClick={() => setIsCreateOpen(true)} variant="outline">
               <Plus className="h-4 w-4 mr-2" />
@@ -88,7 +88,7 @@ export const WorkBoardsList: React.FC = () => {
           {workBoards.map((board) => (
             <Card
               key={board.id}
-              className="group flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white/80 p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md cursor-pointer"
+              className="group flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card/80 p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-border hover:shadow-md cursor-pointer"
               onClick={() => navigate(`/work-boards/${board.id}`)}
             >
               <div className="flex items-start justify-between gap-3 mb-3">
@@ -96,25 +96,25 @@ export const WorkBoardsList: React.FC = () => {
                   <p className="text-[11px] uppercase tracking-[0.14em] text-slate-400">
                     Bảng dữ liệu
                   </p>
-                  <h3 className="font-semibold text-base text-slate-900 line-clamp-1">
+                  <h3 className="font-semibold text-base text-foreground line-clamp-1">
                     {board.sheetName}
                   </h3>
                 </div>
-                <span className="inline-flex items-center rounded-full bg-slate-900/5 px-2 py-0.5 text-[11px] font-medium text-slate-600">
+                <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
                   ID #{board.id}
                 </span>
               </div>
 
-              <div className=" flex flex-col gap-2 border-t border-slate-100 pt-3 text-xs text-slate-500">
+              <div className=" flex flex-col gap-2 border-t border-border pt-3 text-xs text-muted-foreground">
                 <div className="flex flex-wrap gap-2">
-                  <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5">
+                  <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5">
                     <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-emerald-500" />
                     {board.columns?.length || 0} cột
                   </span>
-                  <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5">
+                  <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5">
                     {board.viewableUserIds?.length || 0} người xem
                   </span>
-                  <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5">
+                  <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5">
                     {board.editableUserIds?.length || 0} người sửa
                   </span>
                 </div>

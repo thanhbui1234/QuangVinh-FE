@@ -55,7 +55,7 @@ export default function AssignmentsAction({
   const statusConfig = getStatusConfig(status)
 
   return (
-    <div className="flex flex-col gap-6 md:flex-row md:justify-between md:items-start bg-white/50 p-4 rounded-xl border border-gray-100/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-300">
+    <div className="flex flex-col gap-6 md:flex-row md:justify-between md:items-start bg-card/50 p-4 rounded-xl border border-border/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-300">
       {/* Project Info */}
       <div className="flex flex-col gap-3 flex-1 min-w-0">
         <div className="flex flex-wrap items-center gap-3">
@@ -82,9 +82,9 @@ export default function AssignmentsAction({
           )}
         </div>
 
-        <div className="flex items-center gap-2 text-sm text-gray-500">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <span className="text-xs font-medium uppercase tracking-wider text-gray-400">Team</span>
-          <div className="h-4 w-[1px] bg-gray-200 mx-1"></div>
+          <div className="h-4 w-[1px] bg-border mx-1"></div>
           <div className="flex items-center flex-1 min-w-0">
             {projectAssignmentDetail?.memberIds && members.length > 0 ? (
               <TooltipProvider delayDuration={200}>
@@ -97,7 +97,7 @@ export default function AssignmentsAction({
                           className="relative cursor-pointer transition-transform hover:scale-110 hover:z-20 hover:-translate-y-1"
                           style={{ zIndex: displayMembers.length - index }}
                         >
-                          <Avatar className="h-8 w-8 border-2 border-white ring-1 ring-gray-100 shadow-sm">
+                          <Avatar className="h-8 w-8 border-2 border-card ring-1 ring-border shadow-sm">
                             <AvatarImage
                               src={m.avatar}
                               alt={m.name || m.email}
@@ -113,14 +113,14 @@ export default function AssignmentsAction({
                       </TooltipTrigger>
                       <TooltipContent
                         side="bottom"
-                        className="text-xs font-medium px-2 py-1 bg-gray-900 text-white border-0 shadow-xl"
+                        className="text-xs font-medium px-2 py-1 bg-foreground text-background border-0 shadow-xl"
                       >
                         {m.name || m.email}
                       </TooltipContent>
                     </Tooltip>
                   ))}
                   {members.length > 10 && (
-                    <div className="relative flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-gray-50 text-gray-500 font-semibold text-xs shadow-sm z-0 hover:bg-gray-100 transition-colors">
+                    <div className="relative flex h-8 w-8 items-center justify-center rounded-full border-2 border-card bg-muted text-muted-foreground font-semibold text-xs shadow-sm z-0 hover:bg-accent transition-colors">
                       +{members.length - 10}
                     </div>
                   )}
@@ -138,9 +138,9 @@ export default function AssignmentsAction({
         <div className="flex flex-wrap items-center gap-2 w-full md:w-auto mt-2 md:mt-0">
           <button
             onClick={() => setIsInviteOpen(true)}
-            className="group flex items-center justify-center h-9 px-3.5 gap-2 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:border-gray-300 transition-all duration-200 shadow-sm text-sm font-medium focus:ring-2 focus:ring-offset-2 focus:ring-gray-100 active:scale-95"
+            className="group flex items-center justify-center h-9 px-3.5 gap-2 rounded-lg border border-border bg-card text-foreground hover:bg-accent hover:text-accent-foreground hover:border-border transition-all duration-200 shadow-sm text-sm font-medium focus:ring-2 focus:ring-offset-2 focus:ring-muted active:scale-95"
           >
-            <UserPlus className="w-4 h-4 text-gray-500 group-hover:text-gray-700" />
+            <UserPlus className="w-4 h-4 text-muted-foreground group-hover:text-foreground" />
             <span className="whitespace-nowrap">Mời</span>
           </button>
 
@@ -155,7 +155,7 @@ export default function AssignmentsAction({
           {onEdit && (
             <button
               onClick={onEdit}
-              className="flex items-center justify-center h-9 w-9 rounded-lg border border-gray-200 bg-white text-gray-500 hover:bg-gray-50 hover:text-gray-900 hover:border-gray-300 transition-all duration-200 shadow-sm focus:ring-2 focus:ring-offset-2 focus:ring-gray-100 active:scale-95"
+              className="flex items-center justify-center h-9 w-9 rounded-lg border border-border bg-card text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:border-border transition-all duration-200 shadow-sm focus:ring-2 focus:ring-offset-2 focus:ring-muted active:scale-95"
               title="Cài đặt dự án"
             >
               <Settings className="w-4 h-4" />

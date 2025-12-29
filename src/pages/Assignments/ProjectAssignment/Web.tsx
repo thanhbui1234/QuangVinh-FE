@@ -144,11 +144,11 @@ const ProjectAssignment = () => {
 
             {/* Search Results Dropdown */}
             {showSearchDropdown && searchResults.length > 0 && (
-              <div className="absolute top-full mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-[300px] overflow-y-auto">
+              <div className="absolute top-full mt-1 w-full bg-card border border-border rounded-md shadow-lg z-50 max-h-[300px] overflow-y-auto">
                 {createSearchMutation.isPending ? (
-                  <div className="p-4 text-center text-gray-500">Đang tìm kiếm...</div>
+                  <div className="p-4 text-center text-muted-foreground">Đang tìm kiếm...</div>
                 ) : searchResults.length === 0 ? (
-                  <div className="p-4 text-center text-gray-500">Không tìm thấy dự án</div>
+                  <div className="p-4 text-center text-muted-foreground">Không tìm thấy dự án</div>
                 ) : (
                   <ul className="py-1">
                     {searchResults.map((project) => (
@@ -157,10 +157,10 @@ const ProjectAssignment = () => {
                         onClick={() => {
                           setShowSearchDropdown(false)
                         }}
-                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer transition-colors"
+                        className="px-4 py-2 hover:bg-accent cursor-pointer transition-colors"
                       >
                         <Link to={`/assignments/${project.taskGroupId}`}>
-                          <p className="font-medium text-gray-900">{project.name}</p>
+                          <p className="font-medium text-foreground">{project.name}</p>
                         </Link>
                       </li>
                     ))}

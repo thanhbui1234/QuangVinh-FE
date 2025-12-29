@@ -79,7 +79,7 @@ export const ProjectCard = ({ project, onEdit, onDelete }: ProjectCardProps) => 
       className="h-full"
       onClick={handleView}
     >
-      <Card className="group relative h-full cursor-pointer border border-border shadow-sm hover:shadow-md transition-all duration-300 bg-white overflow-hidden">
+      <Card className="group relative h-full cursor-pointer border border-border shadow-sm hover:shadow-md transition-all duration-300 bg-card overflow-hidden">
         {/* Accent Bar at top */}
         <CardContent className="p-5">
           {/* Top Row: Privacy & Actions */}
@@ -117,11 +117,11 @@ export const ProjectCard = ({ project, onEdit, onDelete }: ProjectCardProps) => 
 
           {/* Project Title */}
           <div className="mb-4">
-            <h3 className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2 leading-snug min-h-[3rem]">
+            <h3 className="text-lg font-bold text-foreground group-hover:text-blue-600 transition-colors line-clamp-2 leading-snug min-h-[3rem]">
               {project.name}
             </h3>
             <div className="flex items-center gap-2 mt-2">
-              <Users className="w-4 h-4 text-gray-400" />
+              <Users className="w-4 h-4 text-muted-foreground" />
               <span className="text-xs text-muted-foreground font-medium">
                 {project.memberIds?.length || 0} thành viên
               </span>
@@ -131,13 +131,13 @@ export const ProjectCard = ({ project, onEdit, onDelete }: ProjectCardProps) => 
           {/* Progress Section */}
           <div className="space-y-2 mb-5">
             <div className="flex justify-between items-end text-xs mb-1">
-              <span className="font-medium text-gray-700">Tiến độ công việc</span>
+              <span className="font-medium text-foreground">Tiến độ công việc</span>
               <span className="text-muted-foreground">
                 <span className="text-blue-600 font-semibold">{completedTasks}</span>/{totalTasks}{' '}
                 Hoàn thành
               </span>
             </div>
-            <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
               <div
                 className="h-full bg-blue-500 rounded-full transition-all duration-500 ease-out"
                 style={{ width: `${progressPercent}%` }}
@@ -146,13 +146,13 @@ export const ProjectCard = ({ project, onEdit, onDelete }: ProjectCardProps) => 
           </div>
 
           {/* Bottom Stats Grid */}
-          <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-50">
+          <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
             <div className="flex items-center gap-2">
               <div className={cn('p-2 rounded-lg', status.bg)}>
                 <CheckCircle2 className={cn('w-4 h-4', status.color)} />
               </div>
               <div className="flex flex-col">
-                <span className="text-[10px] text-gray-400 uppercase font-semibold">
+                <span className="text-[10px] text-muted-foreground uppercase font-semibold">
                   Trạng thái
                 </span>
                 <span className={cn('text-xs font-bold', status.color)}>{status.label}</span>
@@ -161,9 +161,9 @@ export const ProjectCard = ({ project, onEdit, onDelete }: ProjectCardProps) => 
           </div>
 
           {/* Small Footer */}
-          <div className="mt-4 pt-3 flex justify-between items-center text-[10px] text-gray-400">
+          <div className="mt-4 pt-3 flex justify-between items-center text-[10px] text-muted-foreground">
             <div className="flex items-center gap-1">
-              <Circle className="w-2 h-2 fill-gray-300 stroke-none" />
+              <Circle className="w-2 h-2 fill-muted stroke-none" />
               <span>Cập nhật: {formatTimestampToDate(project.updatedTime)}</span>
             </div>
             <div className="font-medium">By {project.owner?.name}</div>

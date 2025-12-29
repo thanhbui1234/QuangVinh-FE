@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useLocation, useNavigate } from 'react-router'
+import { ModeToggle } from '@/components/ui/modeToggle'
 
 type Props = {
   children?: ReactNode
@@ -245,14 +246,14 @@ const WebLayout = ({ children }: Props) => {
     })
 
   return (
-    <div className="flex h-screen bg-gray-50 ">
+    <div className="flex h-screen bg-background text-foreground">
       <div
         className={cn(
-          'bg-white border-r border-gray-200 flex flex-col transition-all duration-300 ease-in-out',
+          'bg-card border-r border-border flex flex-col transition-all duration-300 ease-in-out',
           isCollapsed ? 'w-18' : 'w-80'
         )}
       >
-        <div className="p-6 border-b border-gray-200">
+        <div className="p-6 border-b border-border">
           <div
             className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
             onClick={() => navigate('/dashboard')}
@@ -263,9 +264,9 @@ const WebLayout = ({ children }: Props) => {
               className="h-8 w-8 rounded-md object-contain"
             />
             {!isCollapsed && (
-              <span className="text-xl font-bold text-gray-900">Quang Vinh mobile</span>
+              <span className="text-xl font-bold text-foreground">Quang Vinh mobile</span>
             )}
-            {isCollapsed && <Home className="w-6 h-6 text-gray-900" />}
+            {isCollapsed && <Home className="w-6 h-6 text-foreground" />}
           </div>
         </div>
 
@@ -275,8 +276,8 @@ const WebLayout = ({ children }: Props) => {
               <Button
                 variant="ghost"
                 className={cn(
-                  'w-full justify-start h-12 px-4 text-gray-700 transition-all duration-200 ease-in-out hover:bg-blue-50 hover:text-blue-700 hover:translate-x-1 group',
-                  item.active && 'bg-blue-50 text-blue-700',
+                  'w-full justify-start h-12 px-4 text-muted-foreground transition-all duration-200 ease-in-out hover:bg-accent hover:text-accent-foreground hover:translate-x-1 group',
+                  item.active && 'bg-accent text-accent-foreground',
                   isCollapsed && 'px-2'
                 )}
                 onClick={() => handleNavigate(item)}
@@ -316,8 +317,8 @@ const WebLayout = ({ children }: Props) => {
                         className={cn(
                           'w-full justify-start h-10 px-4 text-sm transition-all duration-200 ease-in-out transform hover:translate-x-1 hover:shadow-sm',
                           isSubItemActive
-                            ? 'bg-blue-50 text-blue-700 font-medium shadow-sm'
-                            : 'text-gray-600 hover:bg-blue-50 hover:text-blue-700'
+                            ? 'bg-accent text-accent-foreground font-medium shadow-sm'
+                            : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                         )}
                         onClick={() => handleSubItemNavigate(subItem.href)}
                         style={{
@@ -334,10 +335,10 @@ const WebLayout = ({ children }: Props) => {
           ))}
         </nav>
 
-        <div className="p-4 border-t border-gray-200">
+        <div className="p-4 border-t border-border">
           <Button
             variant="ghost"
-            className="w-full justify-start h-12 px-4 text-gray-700 hover:bg-gray-50"
+            className="w-full justify-start h-12 px-4 text-muted-foreground hover:bg-accent"
             onClick={() => setIsCollapsed(!isCollapsed)}
           >
             <ChevronLeft
@@ -352,12 +353,13 @@ const WebLayout = ({ children }: Props) => {
       </div>
 
       <div className="flex-1 flex flex-col">
-        <header className="bg-white border-b border-gray-200 px-6 py-4">
+        <header className="bg-card border-b border-border px-6 py-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-semibold text-gray-900">
+            <h1 className="text-2xl font-semibold text-foreground">
               {getPageTitle(location.pathname, navigationItems)}
             </h1>
             <div className="flex items-center gap-4">
+              <ModeToggle />
               <BellNotification />
               <Avatar onClick={() => handleLogout()} className="cursor-pointer">
                 <AvatarImage src={userProfile?.avatar} />
@@ -369,7 +371,7 @@ const WebLayout = ({ children }: Props) => {
           </div>
         </header>
 
-        <main className="flex-1 bg-gray-50 relative overflow-auto p-1 h-[calc(100vh-64px)]">
+        <main className="flex-1 bg-background relative overflow-auto p-1 h-[calc(100vh-64px)]">
           {children}
 
           <div className="fixed bottom-6 right-6">

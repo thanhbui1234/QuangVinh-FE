@@ -37,9 +37,9 @@ export const DetailSection = ({ projectAssignmentDetail }: { projectAssignmentDe
         }
       default: // Thấp
         return {
-          bgColor: 'bg-gray-100',
-          textColor: 'text-gray-700',
-          borderColor: 'border-gray-200',
+          bgColor: 'bg-muted',
+          textColor: 'text-muted-foreground',
+          borderColor: 'border-muted',
         }
     }
   }, [projectAssignmentDetail?.priority])
@@ -47,7 +47,7 @@ export const DetailSection = ({ projectAssignmentDetail }: { projectAssignmentDe
   return (
     <div className="my-6 border-t pt-4">
       <details open className="group">
-        <summary className="flex items-center gap-2 cursor-pointer list-none font-semibold text-sm text-gray-900 mb-4">
+        <summary className="flex items-center gap-2 cursor-pointer list-none font-semibold text-sm text-foreground mb-4">
           <ChevronDown className="w-4 h-4 transition-transform group-open:rotate-0 -rotate-90" />
           Chi tiết
         </summary>
@@ -55,7 +55,7 @@ export const DetailSection = ({ projectAssignmentDetail }: { projectAssignmentDe
         <div className="space-y-3 ml-6">
           {/* Type */}
           <div className="flex items-start gap-3">
-            <span className="text-sm text-gray-600 w-20 shrink-0">Loại công việc:</span>
+            <span className="text-sm text-muted-foreground w-20 shrink-0">Loại công việc:</span>
             <div className="flex items-center gap-2">
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">
                 <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
@@ -68,7 +68,7 @@ export const DetailSection = ({ projectAssignmentDetail }: { projectAssignmentDe
 
           {/* Priority */}
           <div className="flex items-start gap-3">
-            <span className="text-sm text-gray-600 w-20 shrink-0">Mức độ:</span>
+            <span className="text-sm text-muted-foreground w-20 shrink-0">Mức độ:</span>
             <Select
               value={String(projectAssignmentDetail?.priority || 1)}
               onValueChange={(value: string) => {
