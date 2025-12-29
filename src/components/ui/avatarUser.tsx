@@ -10,7 +10,7 @@ const UserAvatar = ({ name, avatar, id }: { name?: string; avatar?: string; id?:
         </div>
       )}
       <div className="flex-1 min-w-0">
-        <div className="font-medium text-sm text-gray-900 truncate">{name || '--'}</div>
+        <div className="font-medium text-sm text-foreground truncate">{name || '--'}</div>
       </div>
     </div>
   </Link>

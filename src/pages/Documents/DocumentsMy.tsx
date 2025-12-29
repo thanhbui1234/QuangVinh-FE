@@ -135,13 +135,15 @@ const DocumentsMy = () => {
   return (
     <div className="max-w-4xl mx-auto py-10 overflow-y-hidden px-4">
       <PageBreadcrumb />
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-lg">
-        <div className="px-8 py-6 border-b border-gray-100">
+      <div className="bg-card rounded-2xl border border-border shadow-lg">
+        <div className="px-8 py-6 border-b border-border">
           <h2 className="text-2xl font-bold flex items-center gap-3">
             <Upload className="w-8 h-8 text-blue-600" />
             Tải lên tài liệu mới
           </h2>
-          <p className="text-gray-500 mt-1">Điền đầy đủ thông tin và chọn file để tải lên</p>
+          <p className="text-muted-foreground mt-1">
+            Điền đầy đủ thông tin và chọn file để tải lên
+          </p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="p-8 space-y-8">
@@ -149,8 +151,8 @@ const DocumentsMy = () => {
           <div className="space-y-4">
             <Label>File tài liệu *</Label>
             {!selectedFile ? (
-              <div className="border-2 border-dashed border-gray-300 rounded-xl p-5 text-center hover:border-gray-400 transition">
-                <Upload className="w-5 h- mx-auto text-gray-400 mb-4" />
+              <div className="border-2 border-dashed border-border rounded-xl p-5 text-center hover:border-muted-foreground transition">
+                <Upload className="w-5 h- mx-auto text-muted-foreground mb-4" />
                 <Button
                   type="button"
                   variant="outline"
@@ -159,7 +161,9 @@ const DocumentsMy = () => {
                   Chọn file từ máy
                 </Button>
                 <input id="file-input" type="file" className="hidden" onChange={handleFileSelect} />
-                <p className="text-sm text-gray-500 mt-3">Hỗ trợ PDF, hình ảnh (tối đa 10MB)</p>
+                <p className="text-sm text-muted-foreground mt-3">
+                  Hỗ trợ PDF, hình ảnh (tối đa 10MB)
+                </p>
               </div>
             ) : (
               <div className="flex items-center justify-between p-6 bg-blue-50 rounded-xl border border-blue-200">
@@ -168,8 +172,8 @@ const DocumentsMy = () => {
                     <FileIcon className="w-8 h-8 text-blue-600" />
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900">{selectedFile.name}</p>
-                    <p className="text-sm text-gray-600">
+                    <p className="font-semibold text-foreground">{selectedFile.name}</p>
+                    <p className="text-sm text-muted-foreground">
                       {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
                     </p>
                   </div>
@@ -238,10 +242,10 @@ const DocumentsMy = () => {
                       htmlFor="private"
                       className="flex items-center gap-3 cursor-pointer flex-1"
                     >
-                      <Lock className="w-5 h-5 text-gray-600" />
+                      <Lock className="w-5 h-5 text-muted-foreground" />
                       <div>
                         <p className="font-medium">Riêng tư</p>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-muted-foreground">
                           Chỉ bạn và người được chọn mới xem được
                         </p>
                       </div>
@@ -254,10 +258,10 @@ const DocumentsMy = () => {
                       htmlFor="public"
                       className="flex items-center gap-3 cursor-pointer flex-1"
                     >
-                      <Globe className="w-5 h-5 text-gray-600" />
+                      <Globe className="w-5 h-5 text-muted-foreground" />
                       <div>
                         <p className="font-medium">Công khai</p>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-muted-foreground">
                           Tất cả thành viên trong công ty đều xem được
                         </p>
                       </div>
@@ -270,8 +274,8 @@ const DocumentsMy = () => {
 
           {/* Viewable Users - chỉ hiện khi PRIVATE */}
           {privacyLevel === PrivacyLevel.PRIVATE && (
-            <div className="space-y-3 p-5 border rounded-xl bg-gray-50">
-              <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+            <div className="space-y-3 p-5 border rounded-xl bg-muted">
+              <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                 <Users className="w-5 h-5" />
                 Người được phép xem (tùy chọn)
               </div>
@@ -280,7 +284,7 @@ const DocumentsMy = () => {
                 name="viewableUserIds"
                 render={({ field }) => (
                   <div className="space-y-2">
-                    <div className="max-h-60 overflow-y-auto border rounded-lg bg-white">
+                    <div className="max-h-60 overflow-y-auto border rounded-lg bg-card">
                       {allUser && allUser.length > 0 ? (
                         allUser.map((user) => {
                           const isSelected = field.value?.includes(user.id.toString())
@@ -288,7 +292,7 @@ const DocumentsMy = () => {
                           return (
                             <label
                               key={user.id}
-                              className="flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
+                              className="flex items-center gap-3 p-3 hover:bg-accent cursor-pointer border-b last:border-b-0"
                             >
                               <input
                                 type="checkbox"
@@ -310,15 +314,15 @@ const DocumentsMy = () => {
                                   {user.name?.charAt(0)?.toUpperCase() || '?'}
                                 </div>
                                 <div className="flex-1">
-                                  <p className="font-medium text-gray-900">{user.name}</p>
-                                  <p className="text-xs text-gray-500">{user.email}</p>
+                                  <p className="font-medium text-foreground">{user.name}</p>
+                                  <p className="text-xs text-muted-foreground">{user.email}</p>
                                 </div>
                               </div>
                             </label>
                           )
                         })
                       ) : (
-                        <div className="p-4 text-center text-gray-500 text-sm">
+                        <div className="p-4 text-center text-muted-foreground text-sm">
                           Không có người dùng nào
                         </div>
                       )}
@@ -359,7 +363,7 @@ const DocumentsMy = () => {
           )}
 
           {/* Actions */}
-          <div className="flex justify-end gap-4 pt-8 border-t">
+          <div className="flex justify-end gap-4 pt-8 border-t border-border">
             <Button type="button" variant="outline" onClick={removeFile} disabled={isUploading}>
               Hủy bỏ
             </Button>

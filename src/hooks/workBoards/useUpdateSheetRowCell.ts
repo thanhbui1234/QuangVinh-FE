@@ -23,16 +23,11 @@ export const useUpdateSheetRowCell = () => {
         throw error
       }
     },
-    onSuccess: (_, variables) => {
+    onSuccess: () => {
       // Invalidate sheet rows list to refetch
       // Note: We need to get sheetId from somewhere, might need to pass it in the request
       // For now, we'll invalidate all sheet rows queries
       queryClient.invalidateQueries({ queryKey: [sheetRowsKey.getAll] })
-      SonnerToaster({
-        type: 'success',
-        message: 'Cập nhật ô thành công',
-        description: `Giá trị của cột "${variables.columnName}" đã được cập nhật`,
-      })
     },
     onError: (error) => {
       SonnerToaster({

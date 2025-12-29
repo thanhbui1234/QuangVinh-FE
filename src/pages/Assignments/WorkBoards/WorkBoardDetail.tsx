@@ -447,7 +447,7 @@ export const WorkBoardDetail: React.FC = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <p className="text-gray-600 font-medium mb-4">ID bảng công việc không hợp lệ</p>
+          <p className="text-muted-foreground font-medium mb-4">ID bảng công việc không hợp lệ</p>
           <Button onClick={() => navigate('/work-boards')} variant="outline">
             Quay lại danh sách
           </Button>
@@ -475,7 +475,7 @@ export const WorkBoardDetail: React.FC = () => {
       <div className="flex items-center justify-center min-h-screen">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-gray-200 border-t-slate-900 rounded-full animate-spin" />
-          <p className="text-gray-600 font-medium">Đang tải bảng công việc...</p>
+          <p className="text-muted-foreground font-medium">Đang tải bảng công việc...</p>
         </div>
       </div>
     )
@@ -485,7 +485,7 @@ export const WorkBoardDetail: React.FC = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <p className="text-gray-600 font-medium mb-2">Không tìm thấy bảng công việc</p>
+          <p className="text-muted-foreground font-medium mb-2">Không tìm thấy bảng công việc</p>
           {error && (
             <p className="text-sm text-red-500 mb-4">
               {error instanceof Error ? error.message : 'Đã xảy ra lỗi khi tải dữ liệu'}
@@ -512,7 +512,9 @@ export const WorkBoardDetail: React.FC = () => {
         </Button>
         <div>
           <h1 className="text-2xl font-semibold">{workBoard.name}</h1>
-          {workBoard.description && <p className="text-gray-600 mt-1">{workBoard.description}</p>}
+          {workBoard.description && (
+            <p className="text-muted-foreground mt-1">{workBoard.description}</p>
+          )}
         </div>
       </div>
 

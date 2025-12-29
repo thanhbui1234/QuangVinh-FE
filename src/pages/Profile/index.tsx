@@ -385,7 +385,7 @@ export const Profile = () => {
   const hasPhoneChanged = currentValues.phone !== initialValues.phone
 
   return (
-    <div className="w-full min-h-screen bg-gray-50">
+    <div className="w-full min-h-screen bg-background">
       <div className="px-4 pt-4">
         <PageBreadcrumb />
       </div>
@@ -398,7 +398,7 @@ export const Profile = () => {
         <div className="relative mb-6">
           <PhotoProvider maskOpacity={0.9} speed={() => 300}>
             <PhotoView src={avatarPreview}>
-              <Avatar className="size-32 ring-4 ring-white shadow-xl cursor-pointer">
+              <Avatar className="size-32 ring-4 ring-card shadow-xl cursor-pointer">
                 <AvatarImage src={avatarPreview} alt="Avatar" />
                 <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white text-3xl">
                   {currentValues.name?.charAt(0).toUpperCase() || 'U'}
@@ -432,8 +432,10 @@ export const Profile = () => {
 
         {/* Name Display */}
         <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">{currentValues.name || 'Người dùng'}</h1>
-          <p className="text-xl text-gray-500 mt-1">
+          <h1 className="text-2xl font-bold text-foreground">
+            {currentValues.name || 'Người dùng'}
+          </h1>
+          <p className="text-xl text-muted-foreground mt-1">
             {currentValues.position === 'WORKER'
               ? 'STAFF'
               : currentValues.position === 'MANAGER'
@@ -472,10 +474,12 @@ export const Profile = () => {
         {/* Logout Button */}
         {isOwnProfile && (
           <div className="mt-8 w-full max-w-md space-y-3">
-            <div className="flex items-center justify-between rounded-lg border bg-white px-4 py-3 shadow-sm">
+            <div className="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3 shadow-sm">
               <div>
-                <p className="text-sm font-medium text-gray-900">Nhận thông báo</p>
-                <p className="text-xs text-gray-500">Bật để nhận thông báo đẩy từ hệ thống</p>
+                <p className="text-sm font-medium text-foreground">Nhận thông báo</p>
+                <p className="text-xs text-muted-foreground">
+                  Bật để nhận thông báo đẩy từ hệ thống
+                </p>
               </div>
               <Switch
                 checked={isNotificationsOn}

@@ -142,7 +142,7 @@ export const DetailTask = () => {
     )
 
   if (!projectAssignmentDetail)
-    return <div className="text-center pt-20 text-2xl text-gray-400">Task not found.</div>
+    return <div className="text-center pt-20 text-2xl text-muted-foreground">Task not found.</div>
 
   return (
     <div className="">
@@ -173,7 +173,7 @@ export const DetailTask = () => {
 
               <CardContent className="p-6 pt-0">
                 <div className="flex items-start justify-between gap-4 mb-6">
-                  <h1 className="text-2xl md:text-3xl font-semibold text-gray-900 flex-1">
+                  <h1 className="text-2xl md:text-3xl font-semibold text-foreground flex-1">
                     {projectAssignmentDetail.description}
                   </h1>
                 </div>

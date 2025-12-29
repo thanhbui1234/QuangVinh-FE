@@ -197,7 +197,7 @@ const PersonnelList = () => {
             onClick: () => {
               navigate(`/profile/${record.id}`)
             },
-            className: 'cursor-pointer hover:bg-gray-50 transition-colors',
+            className: 'cursor-pointer transition-colors',
           }
         }}
       />
