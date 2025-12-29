@@ -45,7 +45,6 @@ export const WorkBoardsList: React.FC = () => {
   const handleCreate = (data: CreateSheetPayload) => {
     createWorkBoardMutation.mutate(data, {
       onSuccess: async (res) => {
-        // @ts-expect-error - response might have different structure depending on API wrapper
         // But usually res is the response body. Let's check api wrapper.
         // Assuming res contains the id or we need to find it?
         // Actually, createWorkBoard uses ICreateSheetRowResponse? No, it's custom.
