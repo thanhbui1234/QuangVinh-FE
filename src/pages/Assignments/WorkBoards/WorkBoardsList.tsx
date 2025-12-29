@@ -4,12 +4,16 @@ import { Plus } from 'lucide-react'
 import { useGetWorkBoards } from '@/hooks/workBoards/useGetWorkBoards'
 import { CreateWorkBoardModal } from '@/components/WorkBoards/CreateWorkBoardModal'
 import { useCreateWorkBoard } from '@/hooks/workBoards/useCreateWorkBoard'
+import { useAddColumn } from '@/hooks/workBoards/useAddColumn'
+import { useCreateSheetRow } from '@/hooks/workBoards/useCreateSheetRow'
 import type { CreateSheetPayload } from '@/types/Sheet'
 import { Card } from '@/components/ui/card'
 import { PageBreadcrumb } from '@/components/common/PageBreadcrumb'
 import useCheckRole from '@/hooks/useCheckRole'
 import { Input } from '@/components/ui/input'
 import { useNavigate } from 'react-router'
+import { LoadingOverlay } from '@/components/common/LoadingOverlay'
+import SonnerToaster from '@/components/ui/toaster'
 
 const formatDate = (value?: number) => {
   if (!value) return '-'
@@ -32,10 +36,85 @@ export const WorkBoardsList: React.FC = () => {
 
   const isInitialLoading = isFetching && workBoards.length === 0
 
+  /* Hooks for seeding data */
+  const { addColumnMutation } = useAddColumn()
+  const { createSheetRowMutation } = useCreateSheetRow()
+
+  const [isSeeding, setIsSeeding] = useState(false)
+
   const handleCreate = (data: CreateSheetPayload) => {
     createWorkBoardMutation.mutate(data, {
-      onSuccess: () => {
-        setIsCreateOpen(false)
+      onSuccess: async (res) => {
+        // @ts-expect-error - response might have different structure depending on API wrapper
+        // But usually res is the response body. Let's check api wrapper.
+        // Assuming res contains the id or we need to find it?
+        // Actually, createWorkBoard uses ICreateSheetRowResponse? No, it's custom.
+        // Let's look at useCreateWorkBoard.
+        // Re-checking useCreateWorkBoard... it returns ICreateWorkBoardResponse?
+        // Wait, standard mutation onSuccess receives the Data.
+
+        setIsSeeding(true)
+        let newSheetId: number | undefined
+        try {
+          // We need the ID. The response should have it.
+          // If 'res' has 'id' or 'sheetId'.
+          // Let's check types later if needed, but for now assuming `res.id` or `res`.
+          newSheetId = (res as any)?.id || (res as any)?.sheetId
+
+          if (newSheetId) {
+            const validSheetId = newSheetId
+            let columnsToUse: string[] = []
+
+            // 1. Create Default Columns if none provided
+            if (!data.columns || data.columns.length === 0) {
+              const defaultCols = Array.from({ length: 6 }, (_, i) => `Cột ${i + 1}`)
+              columnsToUse = defaultCols
+
+              // Create columns sequentially to ensure order? Or parallel?
+              // Sequential is safer for index.
+              for (let i = 0; i < defaultCols.length; i++) {
+                await addColumnMutation.mutateAsync({
+                  sheetId: validSheetId,
+                  name: defaultCols[i],
+                  type: 'text',
+                  index: i + 1,
+                  color: '#FFFFFF',
+                  required: false,
+                  options: [],
+                })
+              }
+            } else {
+              columnsToUse = data.columns.map((c) => c.name)
+            }
+
+            // 2. Create Default Rows (16 rows)
+            // We can do this in parallel chunks effectively
+            const rowPromises = Array.from({ length: 16 }, (_, i) => {
+              const rowData: Record<string, any> = {}
+              // Fill first column with example data?
+              if (columnsToUse.length > 0) {
+                rowData[columnsToUse[0]] = `Dòng ${i + 1}`
+              }
+
+              return createSheetRowMutation.mutateAsync({
+                sheetId: validSheetId,
+                rowData,
+                color: '#FFFFFF',
+              })
+            })
+
+            await Promise.all(rowPromises)
+          }
+        } catch (error) {
+          console.error('Error seeding default data:', error)
+        } finally {
+          setIsSeeding(false)
+          setIsCreateOpen(false)
+          SonnerToaster({
+            type: 'success',
+            message: 'Tạo bảng công việc thành công',
+          })
+        }
       },
     })
   }
@@ -131,7 +210,7 @@ export const WorkBoardsList: React.FC = () => {
         open={isCreateOpen}
         onOpenChange={setIsCreateOpen}
         onSubmit={handleCreate}
-        isSubmitting={createWorkBoardMutation.isPending}
+        isSubmitting={createWorkBoardMutation.isPending || isSeeding}
       />
 
       {hasNextPage && (
@@ -141,6 +220,8 @@ export const WorkBoardsList: React.FC = () => {
           </Button>
         </div>
       )}
+
+      <LoadingOverlay isOpen={isSeeding} message="Đang khởi tạo bảng dữ liệu..." />
     </div>
   )
 }

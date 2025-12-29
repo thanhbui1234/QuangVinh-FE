@@ -3,12 +3,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import { Switch } from '@/components/ui/switch'
+// import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { useGetAllUsers } from '@/hooks/personnel/useGetAllUsers'
 import useCheckRole from '@/hooks/useCheckRole'
-import type { CreateSheetPayload, SheetColumn, SheetColumnType } from '@/types/Sheet'
+import type { CreateSheetPayload, SheetColumn } from '@/types/Sheet'
 import type { PersonnelUser } from '@/types/Personnel'
 
 interface CreateWorkBoardModalProps {
@@ -18,116 +18,116 @@ interface CreateWorkBoardModalProps {
   isSubmitting?: boolean
 }
 
-const COLUMN_TYPES: { label: string; value: SheetColumnType }[] = [
-  { value: 'text', label: 'Văn bản' },
-  { value: 'number', label: 'Số' },
-  { value: 'select', label: 'Lựa chọn' },
-]
+// const COLUMN_TYPES: { label: string; value: SheetColumnType }[] = [
+//   { value: 'text', label: 'Văn bản' },
+//   { value: 'number', label: 'Số' },
+//   { value: 'select', label: 'Lựa chọn' },
+// ]
 
-interface ColumnConfigRowProps {
-  column: SheetColumn
-  onChange: (column: SheetColumn) => void
-  onRemove: () => void
-  disabled?: boolean
-}
+// interface ColumnConfigRowProps {
+//   column: SheetColumn
+//   onChange: (column: SheetColumn) => void
+//   onRemove: () => void
+//   disabled?: boolean
+// }
 
-const ColumnConfigRow: React.FC<ColumnConfigRowProps> = ({
-  column,
-  onChange,
-  onRemove,
-  disabled = false,
-}) => {
-  const [optionsInput, setOptionsInput] = useState(column.options.join(', '))
+// const ColumnConfigRow: React.FC<ColumnConfigRowProps> = ({
+//   column,
+//   onChange,
+//   onRemove,
+//   disabled = false,
+// }) => {
+//   const [optionsInput, setOptionsInput] = useState(column.options.join(', '))
 
-  const handleOptionsBlur = () => {
-    const parsed =
-      optionsInput
-        .split(',')
-        .map((item) => item.trim())
-        .filter(Boolean) || []
-    onChange({ ...column, options: parsed })
-  }
+//   const handleOptionsBlur = () => {
+//     const parsed =
+//       optionsInput
+//         .split(',')
+//         .map((item) => item.trim())
+//         .filter(Boolean) || []
+//     onChange({ ...column, options: parsed })
+//   }
 
-  return (
-    <div className="space-y-3 rounded-lg border p-3 bg-muted/30">
-      <div className="flex items-center gap-3">
-        <div className="flex-1 space-y-1">
-          <Label className="text-xs text-muted-foreground">Tên cột</Label>
-          <Input
-            value={column.name}
-            onChange={(e) => onChange({ ...column, name: e.target.value })}
-            placeholder="Ví dụ: Tên, Tuổi, Phòng ban..."
-            disabled={disabled}
-          />
-        </div>
-        <div className="w-[140px] space-y-1">
-          <Label className="text-xs text-muted-foreground">Kiểu dữ liệu</Label>
-          <select
-            className="h-9 w-full rounded-md border bg-background px-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-            value={column.type}
-            onChange={(e) => onChange({ ...column, type: e.target.value as SheetColumnType })}
-            disabled={disabled}
-          >
-            {COLUMN_TYPES.map((type) => (
-              <option key={type.value} value={type.value}>
-                {type.label}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="w-[90px] space-y-1">
-          <Label className="text-xs text-muted-foreground">Màu</Label>
-          <Input
-            type="color"
-            value={column.color}
-            onChange={(e) => onChange({ ...column, color: e.target.value })}
-            className="h-9 px-1"
-            disabled={disabled}
-          />
-        </div>
-        <div className="w-[110px] flex flex-col items-start justify-center gap-1">
-          <Label className="text-xs text-muted-foreground">Bắt buộc</Label>
-          <div className="flex items-center gap-2">
-            <Switch
-              checked={column.required}
-              onCheckedChange={(checked) => onChange({ ...column, required: checked })}
-              className="scale-90"
-              disabled={disabled}
-            />
-            <span className="text-xs text-muted-foreground">
-              {column.required ? 'Có' : 'Không'}
-            </span>
-          </div>
-        </div>
-        <Button type="button" variant="ghost" size="icon" onClick={onRemove} disabled={disabled}>
-          ✕
-        </Button>
-      </div>
+//   return (
+//     <div className="space-y-3 rounded-lg border p-3 bg-muted/30">
+//       <div className="flex items-center gap-3">
+//         <div className="flex-1 space-y-1">
+//           <Label className="text-xs text-muted-foreground">Tên cột</Label>
+//           <Input
+//             value={column.name}
+//             onChange={(e) => onChange({ ...column, name: e.target.value })}
+//             placeholder="Ví dụ: Tên, Tuổi, Phòng ban..."
+//             disabled={disabled}
+//           />
+//         </div>
+//         <div className="w-[140px] space-y-1">
+//           <Label className="text-xs text-muted-foreground">Kiểu dữ liệu</Label>
+//           <select
+//             className="h-9 w-full rounded-md border bg-background px-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+//             value={column.type}
+//             onChange={(e) => onChange({ ...column, type: e.target.value as SheetColumnType })}
+//             disabled={disabled}
+//           >
+//             {COLUMN_TYPES.map((type) => (
+//               <option key={type.value} value={type.value}>
+//                 {type.label}
+//               </option>
+//             ))}
+//           </select>
+//         </div>
+//         <div className="w-[90px] space-y-1">
+//           <Label className="text-xs text-muted-foreground">Màu</Label>
+//           <Input
+//             type="color"
+//             value={column.color}
+//             onChange={(e) => onChange({ ...column, color: e.target.value })}
+//             className="h-9 px-1"
+//             disabled={disabled}
+//           />
+//         </div>
+//         <div className="w-[110px] flex flex-col items-start justify-center gap-1">
+//           <Label className="text-xs text-muted-foreground">Bắt buộc</Label>
+//           <div className="flex items-center gap-2">
+//             <Switch
+//               checked={column.required}
+//               onCheckedChange={(checked) => onChange({ ...column, required: checked })}
+//               className="scale-90"
+//               disabled={disabled}
+//             />
+//             <span className="text-xs text-muted-foreground">
+//               {column.required ? 'Có' : 'Không'}
+//             </span>
+//           </div>
+//         </div>
+//         <Button type="button" variant="ghost" size="icon" onClick={onRemove} disabled={disabled}>
+//           ✕
+//         </Button>
+//       </div>
 
-      {column.type === 'select' && (
-        <div className="space-y-1">
-          <Label className="text-xs text-muted-foreground">Tùy chọn (ngăn cách bởi dấu phẩy)</Label>
-          <Input
-            value={optionsInput}
-            onChange={(e) => setOptionsInput(e.target.value)}
-            onBlur={handleOptionsBlur}
-            placeholder="Ví dụ: IT, HR, Finance, Marketing"
-            disabled={disabled}
-          />
-          {column.options.length > 0 && (
-            <div className="flex flex-wrap gap-1 pt-1">
-              {column.options.map((opt) => (
-                <Badge key={opt} variant="outline" className="text-xs">
-                  {opt}
-                </Badge>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  )
-}
+//       {column.type === 'select' && (
+//         <div className="space-y-1">
+//           <Label className="text-xs text-muted-foreground">Tùy chọn (ngăn cách bởi dấu phẩy)</Label>
+//           <Input
+//             value={optionsInput}
+//             onChange={(e) => setOptionsInput(e.target.value)}
+//             onBlur={handleOptionsBlur}
+//             placeholder="Ví dụ: IT, HR, Finance, Marketing"
+//             disabled={disabled}
+//           />
+//           {column.options.length > 0 && (
+//             <div className="flex flex-wrap gap-1 pt-1">
+//               {column.options.map((opt) => (
+//                 <Badge key={opt} variant="outline" className="text-xs">
+//                   {opt}
+//                 </Badge>
+//               ))}
+//             </div>
+//           )}
+//         </div>
+//       )}
+//     </div>
+//   )
+// }
 
 interface UserPermissionSelectorProps {
   allUsers: PersonnelUser[]
@@ -239,34 +239,34 @@ export const CreateWorkBoardModal: React.FC<CreateWorkBoardModalProps> = ({
   const { allUsers, isFetching: isLoadingUsers } = useGetAllUsers(open)
   const { isManagerPermission } = useCheckRole()
 
-  const handleAddColumn = () => {
-    setColumns((prev) => [
-      ...prev,
-      {
-        name: '',
-        type: 'text',
-        index: prev.length,
-        color: '#FFFFFF',
-        required: false,
-        options: [],
-      },
-    ])
-  }
+  // const handleAddColumn = () => {
+  //   setColumns((prev) => [
+  //     ...prev,
+  //     {
+  //       name: '',
+  //       type: 'text',
+  //       index: prev.length,
+  //       color: '#FFFFFF',
+  //       required: false,
+  //       options: [],
+  //     },
+  //   ])
+  // }
 
-  const handleChangeColumn = (index: number, next: SheetColumn) => {
-    setColumns((prev) => prev.map((col, i) => (i === index ? { ...next, index } : col)))
-  }
+  // const handleChangeColumn = (index: number, next: SheetColumn) => {
+  //   setColumns((prev) => prev.map((col, i) => (i === index ? { ...next, index } : col)))
+  // }
 
-  const handleRemoveColumn = (index: number) => {
-    setColumns((prev) =>
-      prev
-        .filter((_, i) => i !== index)
-        .map((col, i) => ({
-          ...col,
-          index: i,
-        }))
-    )
-  }
+  // const handleRemoveColumn = (index: number) => {
+  //   setColumns((prev) =>
+  //     prev
+  //       .filter((_, i) => i !== index)
+  //       .map((col, i) => ({
+  //         ...col,
+  //         index: i,
+  //       }))
+  //   )
+  // }
 
   const resetState = () => {
     setSheetName('')
@@ -305,10 +305,7 @@ export const CreateWorkBoardModal: React.FC<CreateWorkBoardModalProps> = ({
     onSubmit(payload)
   }
 
-  const isValid =
-    isManagerPermission &&
-    sheetName.trim().length > 0 &&
-    columns.some((c) => c.name.trim().length > 0)
+  const isValid = isManagerPermission && sheetName.trim().length > 0
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -347,7 +344,7 @@ export const CreateWorkBoardModal: React.FC<CreateWorkBoardModalProps> = ({
 
               <Separator />
 
-              <div className="space-y-3">
+              {/* <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-sm font-medium">Cấu hình cột</h3>
@@ -377,7 +374,7 @@ export const CreateWorkBoardModal: React.FC<CreateWorkBoardModalProps> = ({
                     />
                   ))}
                 </div>
-              </div>
+              </div> */}
 
               <Separator />
 
