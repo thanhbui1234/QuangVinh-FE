@@ -219,7 +219,6 @@ export const WorkBoardDetail: React.FC = () => {
           if (!rowId) {
             // Check if we are already creating this row
             if (pendingRowCreations.current.has(rowIndex)) {
-              console.log(`Skipping duplicate creation for row ${rowIndex}`)
               continue
             }
 
@@ -243,15 +242,6 @@ export const WorkBoardDetail: React.FC = () => {
             } catch (error) {
               console.error('Error creating row:', error)
             } finally {
-              // We keep it in the set to prevent immediate re-creation until the component unmounts or we implement a more complex cleanup.
-              // Actually, we should probably remove it after a timeout or rely on the fact that once created, the next render will have rowId.
-              // But since we invalidate queries, a re-render WILL happen.
-              // If we remove it immediately here, and the user types FAST before re-render, we might double create.
-              // So, keeping it until re-render is safer? But we don't have easy access to "when re-render with new data happens".
-              // Let's remove it for now, as the await above waits for the mutation (and invalidation) to finish?
-              // No, invalidation is async in onSuccess.
-              // Ideally we wait for the query to be stale?
-              // For now, let's just remove it. The mutex effect happens during the async await.
               pendingRowCreations.current.delete(rowIndex)
             }
             continue

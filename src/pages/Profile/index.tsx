@@ -82,10 +82,7 @@ export const Profile = () => {
         // Check OneSignal subscription status (will handle both OneSignal and browser permission)
         const hasPermission = await checkSubscriptionStatus()
         setIsNotificationsOn(hasPermission)
-
-        console.log('[Profile] Notification status checked:', hasPermission)
       } catch (error) {
-        console.error('Error checking notification status:', error)
         setIsNotificationsOn(false)
       }
     }

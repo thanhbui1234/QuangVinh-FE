@@ -248,7 +248,7 @@ export const EditableTable: React.FC<EditableTableProps> = ({
   }
 
   const handleCellKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' || ((e.ctrlKey || e.metaKey) && e.key === 's')) {
       e.preventDefault()
       if (editingCell) {
         setCellValue(editingCell.row, editingCell.col, editingValue)

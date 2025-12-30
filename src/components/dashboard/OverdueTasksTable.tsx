@@ -81,7 +81,6 @@ export function OverdueTasksTable({
       </Card>
     )
   }
-  console.log('tasks', tasks)
   return (
     <Card className={`${className} flex flex-col h-full`}>
       <CardContent className="p-4 flex flex-col flex-1">
