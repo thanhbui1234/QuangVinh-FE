@@ -80,6 +80,7 @@ export const API_ENDPOINT = {
   ADD_COLUMN: '/api/sheet-info/add-column',
   UPDATE_COLUMN: '/api/sheet-info/update-column',
   REMOVE_COLUMN: '/api/sheet-info/remove-column',
+  SEARCH_WORKBOARD: '/api/sheet-info/name-search',
   // Row
   CREATE_SHEET_ROW: '/api/sheet-row/create-sheet-row',
   UPDATE_SHEET_ROW: '/api/sheet-row/upsert-cell-row',

@@ -14,6 +14,10 @@ import { Input } from '@/components/ui/input'
 import { useNavigate } from 'react-router'
 import { LoadingOverlay } from '@/components/common/LoadingOverlay'
 import SonnerToaster from '@/components/ui/toaster'
+import { useSearchWorkBoard } from '@/hooks/workBoards/useSearchWorkBoard'
+import { useDebouncedCallback } from 'use-debounce'
+import { Link } from 'react-router'
+import type { ISheetInfo } from '@/types/WorkBoard'
 
 const formatDate = (value?: number) => {
   if (!value) return '-'
@@ -26,18 +30,42 @@ export const WorkBoardsList: React.FC = () => {
   const [searchText, setSearchText] = useState('')
   const { workBoards, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage } =
     useGetWorkBoards({
-      textSearch: searchText,
       size: 10,
     })
+  const { createSearchMutation } = useSearchWorkBoard()
   const { createWorkBoardMutation } = useCreateWorkBoard()
   const { isManagerPermission } = useCheckRole()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const navigate = useNavigate()
 
+  const [searchResults, setSearchResults] = useState<ISheetInfo[]>([])
+  const [showSearchDropdown, setShowSearchDropdown] = useState(false)
+
+  const debouncedSearch = useDebouncedCallback((searchValue: string) => {
+    if (searchValue.trim()) {
+      createSearchMutation.mutate(searchValue, {
+        onSuccess: (data: any) => {
+          // Assuming response structure, adjust based on actual API return
+          setSearchResults(data?.sheetInfos || data || [])
+          setShowSearchDropdown(true)
+        },
+      })
+    } else {
+      setSearchResults([])
+      setShowSearchDropdown(false)
+    }
+  }, 500)
+
+  const handleSearchChange = (value: string) => {
+    setSearchText(value)
+    debouncedSearch(value)
+  }
+
   const isInitialLoading = isFetching && workBoards.length === 0
 
   /* Hooks for seeding data */
   const { addColumnMutation } = useAddColumn()
+
   const { createSheetRowMutation } = useCreateSheetRow()
 
   const [isSeeding, setIsSeeding] = useState(false)
@@ -135,12 +163,42 @@ export const WorkBoardsList: React.FC = () => {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-col gap-2 w-full sm:w-auto">
           <h1 className="text-2xl font-semibold">Bảng công việc</h1>
-          <div className="w-full sm:w-80">
+          <div className="relative w-full sm:w-80">
             <Input
               placeholder="Tìm kiếm theo tên bảng..."
               value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              onFocus={() => searchResults.length > 0 && setShowSearchDropdown(true)}
             />
+            {/* Search Results Dropdown */}
+            {showSearchDropdown && searchResults.length > 0 && (
+              <div className="absolute top-full mt-1 w-full bg-card border border-border rounded-md shadow-lg z-50 max-h-[300px] overflow-y-auto">
+                {createSearchMutation.isPending ? (
+                  <div className="p-4 text-center text-muted-foreground">Đang tìm kiếm...</div>
+                ) : (
+                  <ul className="py-1">
+                    {searchResults.map((board) => (
+                      <li
+                        key={board.id}
+                        onClick={() => {
+                          setShowSearchDropdown(false)
+                        }}
+                        className="px-4 py-2 hover:bg-accent cursor-pointer transition-colors"
+                      >
+                        <Link to={`/work-boards/${board.id}`}>
+                          <p className="font-medium text-foreground">{board.sheetName}</p>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+
+            {/* Overlay to close dropdown */}
+            {showSearchDropdown && (
+              <div className="fixed inset-0 z-40" onClick={() => setShowSearchDropdown(false)} />
+            )}
           </div>
         </div>
         {isManagerPermission && (
