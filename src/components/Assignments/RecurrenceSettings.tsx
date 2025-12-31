@@ -27,6 +27,8 @@ export const RECURRENCE_TYPE_LABELS = {
   [RECURRENCE_TYPE.MONTHLY]: 'Hàng tháng',
 }
 
+export type RecurrenceType = keyof typeof RECURRENCE_TYPE_LABELS
+
 export const DAY_OF_WEEK_LABELS = {
   '1': 'Thứ 2',
   '2': 'Thứ 3',

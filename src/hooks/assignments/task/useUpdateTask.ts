@@ -21,6 +21,9 @@ export interface updateTaskPayload {
   status?: number
   startTime?: number
   progressScore?: number
+  recurrenceType?: number
+  recurrenceInterval?: number
+  recurrenceEnable?: boolean
 }
 
 export const useUpdateTask = () => {

@@ -23,6 +23,7 @@ import { OverviewKpiSection } from '@/components/dashboard/OverviewKpiSection'
 import { ProjectProgressDay } from '@/components/dashboard/ProjectProgressDay'
 import { OverdueTasksTable } from '@/components/dashboard/OverdueTasksTable'
 import { MyTasksTable } from '@/components/dashboard/MyTasksTable'
+import { RecurringTasksTable } from '@/components/dashboard/RecurringTasksTable'
 import { Skeleton } from '@/components/ui/skeleton'
 import { PageBreadcrumb } from '@/components/common/PageBreadcrumb'
 
@@ -187,6 +188,11 @@ export default function DashboardWeb() {
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <OverdueTasksTable limit={5} enabled={isManagerOrDirector} />
             <MyTasksTable limit={5} enabled={true} />
+          </div>
+
+          {/* Fourth row: Recurring tasks table */}
+          <div className="grid grid-cols-1 gap-4">
+            <RecurringTasksTable limit={5} enabled={isManagerOrDirector} />
           </div>
         </div>
       ) : (

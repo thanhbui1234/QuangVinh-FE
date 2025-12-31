@@ -85,6 +85,9 @@ export const DetailTask = () => {
       startTime: projectAssignmentDetail.startTime,
       checkList: projectAssignmentDetail.checkList,
       imageUrls: projectAssignmentDetail.imageUrls,
+      isRecurrenceEnabled: projectAssignmentDetail.recurrenceEnable || false,
+      recurrenceType: projectAssignmentDetail.recurrenceType,
+      recurrenceInterval: projectAssignmentDetail.recurrenceInterval,
     }
   }, [projectAssignmentDetail])
 
@@ -236,6 +239,9 @@ export const DetailTask = () => {
               supervisorId: data.supervisorId,
               startTime: data.startTime,
               imageUrls: data.imageUrls,
+              recurrenceType: data.recurrenceType,
+              recurrenceInterval: data.recurrenceInterval,
+              recurrenceEnable: data.isRecurrenceEnabled,
             },
             {
               onSuccess: () => {
