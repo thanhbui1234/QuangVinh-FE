@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -250,6 +250,11 @@ export const CreateWorkBoardModal: React.FC<CreateWorkBoardModalProps> = ({
   const { allUsers, isFetching: isLoadingUsers } = useGetAllUsers(open)
   const { isManagerPermission } = useCheckRole()
 
+  useEffect(() => {
+    if (sheetType === '1') {
+      resetState()
+    }
+  }, [sheetType])
   // const handleAddColumn = () => {
   //   setColumns((prev) => [
   //     ...prev,
