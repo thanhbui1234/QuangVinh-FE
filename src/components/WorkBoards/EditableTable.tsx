@@ -97,8 +97,7 @@ export const EditableTable: React.FC<EditableTableProps> = ({
     const hasColumnChanges = columnHeaders.some((col) => {
       const colName = col.name || col.label
       const isNew =
-        col.id?.startsWith('col-new-') ||
-        !originalColumns.find((oc) => (oc.name || oc.label) === colName)
+        col.id?.startsWith('col-new-') || !originalColumns.find((oc) => oc.id === col.id)
       if (isNew) return true
 
       const originalCol = originalColumns.find((oc) => (oc.name || oc.label) === colName)
@@ -116,8 +115,7 @@ export const EditableTable: React.FC<EditableTableProps> = ({
 
     // Check for deleted columns
     const hasDeletedColumns = originalColumns.some((originalCol) => {
-      const originalName = originalCol.name || originalCol.label
-      return !columnHeaders.find((col) => (col.name || col.label) === originalName)
+      return !columnHeaders.find((col) => col.id === originalCol.id)
     })
 
     // Check cell changes
@@ -164,10 +162,8 @@ export const EditableTable: React.FC<EditableTableProps> = ({
       if (currentWorkBoard && currentOriginalColumns.length > 0) {
         // Find added columns
         currentColumns.forEach((col) => {
-          const colName = col.name || col.label
           const isNew =
-            col.id?.startsWith('col-new-') ||
-            !currentOriginalColumns.find((oc) => (oc.name || oc.label) === colName)
+            col.id?.startsWith('col-new-') || !currentOriginalColumns.find((oc) => oc.id === col.id)
           if (isNew) {
             columnChanges.added.push(col)
           }
@@ -175,8 +171,7 @@ export const EditableTable: React.FC<EditableTableProps> = ({
 
         // Find modified and deleted columns
         currentOriginalColumns.forEach((originalCol) => {
-          const originalName = originalCol.name || originalCol.label
-          const currentCol = currentColumns.find((col) => (col.name || col.label) === originalName)
+          const currentCol = currentColumns.find((col) => col.id === originalCol.id)
           if (currentCol) {
             // Check if any property changed
             const hasChanges =
