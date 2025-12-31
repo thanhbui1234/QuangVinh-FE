@@ -3,9 +3,19 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
+import { cn } from '@/lib/utils'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Globe, Lock, Shield } from 'lucide-react'
 // import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+// import {
+//   Select,
+//   SelectContent,
+//   SelectItem,
+//   SelectTrigger,
+//   SelectValue,
+// } from '@/components/ui/select'
 import { useGetAllUsers } from '@/hooks/personnel/useGetAllUsers'
 import useCheckRole from '@/hooks/useCheckRole'
 import type { CreateSheetPayload, SheetColumn } from '@/types/Sheet'
@@ -232,6 +242,7 @@ export const CreateWorkBoardModal: React.FC<CreateWorkBoardModalProps> = ({
   isSubmitting = false,
 }) => {
   const [sheetName, setSheetName] = useState('')
+  const [sheetType, setSheetType] = useState<string>('1')
   const [columns, setColumns] = useState<SheetColumn[]>([])
   const [viewableUserIds, setViewableUserIds] = useState<number[]>([])
   const [editableUserIds, setEditableUserIds] = useState<number[]>([])
@@ -270,6 +281,7 @@ export const CreateWorkBoardModal: React.FC<CreateWorkBoardModalProps> = ({
 
   const resetState = () => {
     setSheetName('')
+    setSheetType('1')
     setColumns([])
     setViewableUserIds([])
     setEditableUserIds([])
@@ -296,10 +308,10 @@ export const CreateWorkBoardModal: React.FC<CreateWorkBoardModalProps> = ({
 
     const payload: CreateSheetPayload = {
       sheetName: sheetName.trim(),
-      sheetType: 1,
+      sheetType: Number(sheetType),
       columns: trimmedColumns,
-      viewableUserIds,
-      editableUserIds,
+      viewableUserIds: Number(sheetType) === 2 ? viewableUserIds : [],
+      editableUserIds: Number(sheetType) === 2 ? editableUserIds : [],
     }
 
     onSubmit(payload)
@@ -340,68 +352,130 @@ export const CreateWorkBoardModal: React.FC<CreateWorkBoardModalProps> = ({
                     disabled={!isManagerPermission}
                   />
                 </div>
-              </div>
-
-              <Separator />
-
-              {/* <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-sm font-medium">Cấu hình cột</h3>
-                    <p className="text-xs text-muted-foreground">
-                      Thêm các cột dữ liệu và thiết lập kiểu hiển thị cho từng cột.
-                    </p>
-                  </div>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={handleAddColumn}
-                    disabled={!isManagerPermission}
-                  >
-                    Thêm cột
-                  </Button>
-                </div>
 
                 <div className="space-y-3">
-                  {columns.map((column, index) => (
-                    <ColumnConfigRow
-                      key={index}
-                      column={column}
-                      onChange={(next) => handleChangeColumn(index, next)}
-                      onRemove={() => handleRemoveColumn(index)}
-                      disabled={!isManagerPermission}
-                    />
-                  ))}
+                  <Label>Loại bảng</Label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div
+                      className={cn(
+                        'cursor-pointer rounded-xl border-2 p-4 transition-all duration-200 hover:bg-muted/50',
+                        sheetType === '1'
+                          ? 'border-primary bg-primary/5'
+                          : 'border-transparent bg-muted/30'
+                      )}
+                      onClick={() => isManagerPermission && setSheetType('1')}
+                    >
+                      <div className="flex items-start gap-4">
+                        <div
+                          className={cn(
+                            'rounded-full p-2.5 mt-0.5',
+                            sheetType === '1'
+                              ? 'bg-primary/10 text-primary'
+                              : 'bg-muted text-muted-foreground'
+                          )}
+                        >
+                          <Globe className="h-5 w-5" />
+                        </div>
+                        <div className="space-y-1">
+                          <p
+                            className={cn(
+                              'font-medium',
+                              sheetType === '1' ? 'text-primary' : 'text-foreground'
+                            )}
+                          >
+                            Public
+                          </p>
+                          <p className="text-xs text-muted-foreground leading-relaxed">
+                            Công khai, mọi thành viên trong hệ thống đều có thể tìm thấy và xem nội
+                            dung bảng này.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div
+                      className={cn(
+                        'cursor-pointer rounded-xl border-2 p-4 transition-all duration-200 hover:bg-muted/50',
+                        sheetType === '2'
+                          ? 'border-primary bg-primary/5'
+                          : 'border-transparent bg-muted/30'
+                      )}
+                      onClick={() => isManagerPermission && setSheetType('2')}
+                    >
+                      <div className="flex items-start gap-4">
+                        <div
+                          className={cn(
+                            'rounded-full p-2.5 mt-0.5',
+                            sheetType === '2'
+                              ? 'bg-primary/10 text-primary'
+                              : 'bg-muted text-muted-foreground'
+                          )}
+                        >
+                          <Lock className="h-5 w-5" />
+                        </div>
+                        <div className="space-y-1">
+                          <p
+                            className={cn(
+                              'font-medium',
+                              sheetType === '2' ? 'text-primary' : 'text-foreground'
+                            )}
+                          >
+                            Private
+                          </p>
+                          <p className="text-xs text-muted-foreground leading-relaxed">
+                            Riêng tư, chỉ những người được cấp quyền mới có thể truy cập và xem nội
+                            dung.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div> */}
+              </div>
 
               <Separator />
 
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-sm font-medium">Phân quyền người dùng</h3>
-                    <p className="text-xs text-muted-foreground">
-                      Chọn ai có thể xem và ai có thể chỉnh sửa nội dung trong bảng này.
-                    </p>
-                  </div>
-                  {isLoadingUsers && (
-                    <span className="text-xs text-muted-foreground">
-                      Đang tải danh sách người dùng...
-                    </span>
-                  )}
-                </div>
+              <AnimatePresence>
+                {sheetType === '2' && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="space-y-4 pt-2">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-sm font-medium flex items-center gap-2">
+                            <Shield className="h-4 w-4 text-primary" />
+                            Phân quyền truy cập
+                          </h3>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Lựa chọn thành viên có quyền xem hoặc chỉnh sửa dữ liệu.
+                          </p>
+                        </div>
+                        {isLoadingUsers && (
+                          <span className="text-xs text-accent-foreground animate-pulse">
+                            Đang tải danh sách...
+                          </span>
+                        )}
+                      </div>
 
-                <UserPermissionSelector
-                  allUsers={allUsers}
-                  viewableUserIds={viewableUserIds}
-                  editableUserIds={editableUserIds}
-                  onChangeViewable={setViewableUserIds}
-                  onChangeEditable={setEditableUserIds}
-                  disabled={!isManagerPermission}
-                />
-              </div>
+                      <div className="rounded-lg border bg-card p-4 shadow-sm">
+                        <UserPermissionSelector
+                          allUsers={allUsers}
+                          viewableUserIds={viewableUserIds}
+                          editableUserIds={editableUserIds}
+                          onChangeViewable={setViewableUserIds}
+                          onChangeEditable={setEditableUserIds}
+                          disabled={!isManagerPermission}
+                        />
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
 
