@@ -8,3 +8,4 @@ export const dashboardProjectProgressDayKey = createQueryKeys<string>(
 )
 export const dashboardOverdueTasksKey = createQueryKeys<string>('dashboard-overdue-tasks')
 export const dashboardMyTasksKey = createQueryKeys<string>('dashboard-my-tasks')
+export const dashboardRecurringTasksKey = createQueryKeys<string>('dashboard-recurring-tasks')

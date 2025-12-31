@@ -1,29 +1,104 @@
 'use client'
 
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { MultiSelect } from '@/components/ui/multi-select'
 
 import { useCreateMember } from '@/hooks/profile/useCreateMember'
-import type { CreateMemberFormData } from '@/types'
-import { createMemberSchema } from '@/schemas/Auth'
 import { PersonnelDetailDialog } from '@/components/Personnel'
 import { Link } from 'react-router'
+import { ROLE } from '@/constants'
+import { useAuthStore } from '@/stores/authStore'
+import { z } from 'zod'
+
+// Helper function to get the highest role of current user
+const getHighestRole = (userRoles?: string[]): string | null => {
+  if (!userRoles || userRoles.length === 0) return null
+  if (userRoles.includes(ROLE.DIRECTOR)) return ROLE.DIRECTOR
+  if (userRoles.includes(ROLE.MANAGER)) return ROLE.MANAGER
+  if (userRoles.includes(ROLE.WORKER)) return ROLE.WORKER
+  return null
+}
+
+// Helper function to get allowed roles based on current user's role
+const getAllowedRoles = (currentUserRole: string | null): string[] => {
+  if (currentUserRole === ROLE.DIRECTOR) {
+    return [ROLE.MANAGER, ROLE.WORKER]
+  }
+  if (currentUserRole === ROLE.MANAGER) {
+    return [ROLE.WORKER]
+  }
+  return [] // WORKER cannot create any user
+}
 
 export const AddMember = () => {
   const { createMemberMutate, isPending, data } = useCreateMember()
   const [open, setOpen] = useState(false)
+  const { user } = useAuthStore()
+
+  // Get current user's highest role and allowed roles
+  const currentUserHighestRole = useMemo(() => getHighestRole(user?.roles), [user?.roles])
+  const allowedRoles = useMemo(
+    () => getAllowedRoles(currentUserHighestRole),
+    [currentUserHighestRole]
+  )
+
+  // Create dynamic schema based on allowed roles
+  const createMemberSchema = useMemo(() => {
+    return z.object({
+      email: z.string().email('Email không hợp lệ'),
+      password: z.string().min(1, 'Mật khẩu là bắt buộc'),
+      name: z.string().min(1, 'Tên nhân viên là bắt buộc'),
+      phone: z
+        .string()
+        .min(1, 'Số điện thoại là bắt buộc')
+        .regex(
+          /^(?:\+84|84|0)(3|5|7|8|9)[0-9]{8}$/,
+          'Số điện thoại không hợp lệ. Vui lòng nhập đúng định dạng Việt Nam'
+        ),
+      roles: z
+        .array(z.enum([ROLE.DIRECTOR, ROLE.MANAGER, ROLE.WORKER]))
+        .min(1, 'Vui lòng chọn ít nhất một vai trò')
+        .refine(
+          (roles) => {
+            if (!currentUserHighestRole) return false
+            return roles.every((role) => allowedRoles.includes(role))
+          },
+          {
+            message:
+              'Bạn không có quyền chọn vai trò này. Chỉ có thể chọn vai trò nhỏ hơn vai trò của bạn.',
+          }
+        ),
+    })
+  }, [allowedRoles, currentUserHighestRole])
+
+  type CreateMemberFormData = z.infer<typeof createMemberSchema>
+
   const form = useForm<CreateMemberFormData>({
     resolver: zodResolver(createMemberSchema),
     defaultValues: {
       email: '',
       password: '',
+      name: '',
+      phone: '',
+      roles: [],
     },
   })
+
+  // Filter role options based on allowed roles
+  const roleOptions = useMemo(() => {
+    const allRoles = [
+      { label: 'STAFF', value: ROLE.WORKER },
+      { label: 'MANAGER', value: ROLE.MANAGER },
+      { label: 'DIRECTOR', value: ROLE.DIRECTOR },
+    ]
+    return allRoles.filter((role) => allowedRoles.includes(role.value))
+  }, [allowedRoles])
 
   const onSubmit = (data: CreateMemberFormData) => {
     createMemberMutate(data, {
@@ -65,6 +140,19 @@ export const AddMember = () => {
 
           <CardContent>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+              {/* NAME */}
+              <div className="space-y-2">
+                <Label>Tên nhân viên</Label>
+                <Input
+                  className="h-11"
+                  placeholder="Nhập tên nhân viên"
+                  {...form.register('name')}
+                />
+                {form.formState.errors.name && (
+                  <p className="text-red-500 text-sm">{form.formState.errors.name.message}</p>
+                )}
+              </div>
+
               {/* EMAIL */}
               <div className="space-y-2">
                 <Label>Email</Label>
@@ -75,6 +163,15 @@ export const AddMember = () => {
                 />
                 {form.formState.errors.email && (
                   <p className="text-red-500 text-sm">{form.formState.errors.email.message}</p>
+                )}
+              </div>
+
+              {/* PHONE */}
+              <div className="space-y-2">
+                <Label>Số điện thoại</Label>
+                <Input className="h-11" placeholder="0123456789" {...form.register('phone')} />
+                {form.formState.errors.phone && (
+                  <p className="text-red-500 text-sm">{form.formState.errors.phone.message}</p>
                 )}
               </div>
 
@@ -89,6 +186,26 @@ export const AddMember = () => {
                 />
                 {form.formState.errors.password && (
                   <p className="text-red-500 text-sm">{form.formState.errors.password.message}</p>
+                )}
+              </div>
+
+              {/* ROLES */}
+              <div className="space-y-2">
+                <Label>Vai trò</Label>
+                <Controller
+                  name="roles"
+                  control={form.control}
+                  render={({ field }) => (
+                    <MultiSelect
+                      options={roleOptions}
+                      selected={field.value || []}
+                      onChange={field.onChange}
+                      placeholder="Chọn vai trò"
+                    />
+                  )}
+                />
+                {form.formState.errors.roles && (
+                  <p className="text-red-500 text-sm">{form.formState.errors.roles.message}</p>
                 )}
               </div>
 

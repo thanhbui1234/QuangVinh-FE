@@ -175,6 +175,7 @@ export interface MyTasksRequest {
   offset?: number
   limit?: number
   supervisorIds?: number[]
+  isRecurrenceTask?: boolean
 }
 
 export interface MyTasksResponse {
@@ -202,6 +203,10 @@ export interface MyTask {
   createdTime: number
   imageUrls: string[]
   checkList: string
+  recurrenceType?: number
+  recurrenceInterval?: number
+  nextExecutionTime?: number
+  recurrenceEnable?: boolean
 }
 
 export interface MyTaskUser {

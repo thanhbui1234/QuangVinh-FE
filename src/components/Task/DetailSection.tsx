@@ -8,10 +8,17 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useUpdatePriority } from '@/hooks/assignments/task/updatePriority'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, Repeat, Clock } from 'lucide-react'
+import {
+  type RecurrenceType,
+  RECURRENCE_TYPE_LABELS,
+} from '@/components/Assignments/RecurrenceSettings'
+import { Switch } from '@/components/ui/switch'
+import { useUpdateTask } from '@/hooks/assignments/task/useUpdateTask'
 
 export const DetailSection = ({ projectAssignmentDetail }: { projectAssignmentDetail: any }) => {
   const updatePriorityMutation = useUpdatePriority(projectAssignmentDetail)
+  const { updateTaskMutation } = useUpdateTask()
 
   // Memoize priority color config
   const priorityConfig = useMemo(() => {
@@ -92,6 +99,68 @@ export const DetailSection = ({ projectAssignmentDetail }: { projectAssignmentDe
               </SelectContent>
             </Select>
           </div>
+
+          {/* Recurrence Information */}
+          {projectAssignmentDetail?.recurrenceType && (
+            <>
+              <div className="flex items-start gap-3 pt-2 border-t">
+                <span className="text-sm text-muted-foreground w-20 shrink-0 flex items-center gap-1">
+                  <Repeat className="w-3.5 h-3.5" />
+                  Lặp lại:
+                </span>
+                <div className="flex-1 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium">
+                      {RECURRENCE_TYPE_LABELS[
+                        String(projectAssignmentDetail?.recurrenceType || '2') as RecurrenceType
+                      ] || 'N/A'}
+                    </span>
+                    {projectAssignmentDetail?.recurrenceInterval && (
+                      <span className="text-xs text-muted-foreground">
+                        (Mỗi {projectAssignmentDetail.recurrenceInterval}{' '}
+                        {projectAssignmentDetail.recurrenceType === 1
+                          ? 'giờ'
+                          : projectAssignmentDetail.recurrenceType === 2
+                            ? 'ngày'
+                            : projectAssignmentDetail.recurrenceType === 3
+                              ? 'tuần'
+                              : 'tháng'}
+                        )
+                      </span>
+                    )}
+                  </div>
+                  {projectAssignmentDetail?.nextExecutionTime && (
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Clock className="w-3 h-3" />
+                      Lần thực hiện tiếp theo:{' '}
+                      {new Date(projectAssignmentDetail.nextExecutionTime).toLocaleString('vi-VN', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2 pt-1">
+                    <Switch
+                      checked={projectAssignmentDetail?.recurrenceEnable || false}
+                      onCheckedChange={(checked) => {
+                        updateTaskMutation.mutate({
+                          taskId: projectAssignmentDetail?.taskId || projectAssignmentDetail?.id,
+                          recurrenceEnable: checked,
+                        })
+                      }}
+                      disabled={updateTaskMutation.isPending}
+                    />
+                    <span className="text-xs text-muted-foreground">
+                      {projectAssignmentDetail?.recurrenceEnable ? 'Đang bật' : 'Đang tắt'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </details>
     </div>
