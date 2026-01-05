@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
-import { Plus, Trash2, Settings2, RefreshCw, Loader2 } from 'lucide-react'
+import { Plus, Trash2, Settings2, RefreshCw } from 'lucide-react'
 import { useDebouncedCallback } from 'use-debounce'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
