@@ -61,8 +61,7 @@ export default function LeavesMobile() {
   const { user } = useAuthStore()
 
   // Fetch absence request by ID if provided in URL
-  const { absenceRequest: absenceRequestFromUrl, isFetching: isFetchingAbsenceRequest } =
-    useGetAbsenceRequestById(absenceRequestId)
+  const { absenceRequest: absenceRequestFromUrl } = useGetAbsenceRequestById(absenceRequestId)
 
   // Auto-open sheet when absence request is loaded from URL
   useEffect(() => {

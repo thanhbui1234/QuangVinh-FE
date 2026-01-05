@@ -7,7 +7,12 @@ import SonnerToaster from '@/components/ui/toaster'
 import type { IAddColumnRequest, IAddColumnResponse } from '@/types/WorkBoard'
 import { handleCommonError } from '@/utils/handleErrors'
 
-export const useAddColumn = () => {
+// Define options type
+interface UseAddColumnOptions {
+  suppressInvalidation?: boolean
+}
+
+export const useAddColumn = (options?: UseAddColumnOptions) => {
   const addColumnMutation = useMutation({
     mutationFn: async (payload: IAddColumnRequest): Promise<IAddColumnResponse> => {
       try {
@@ -19,9 +24,11 @@ export const useAddColumn = () => {
       }
     },
     onSuccess: (_, variables) => {
-      // Invalidate work board detail to refetch
-      queryClient.invalidateQueries({ queryKey: [workBoardsKey.detail(variables.sheetId)] })
-      queryClient.invalidateQueries({ queryKey: [workBoardsKey.getAll] })
+      if (!options?.suppressInvalidation) {
+        // Invalidate work board detail to refetch
+        queryClient.invalidateQueries({ queryKey: [workBoardsKey.detail(variables.sheetId)] })
+        queryClient.invalidateQueries({ queryKey: [workBoardsKey.getAll] })
+      }
     },
     onError: (error) => {
       SonnerToaster({

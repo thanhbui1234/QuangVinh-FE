@@ -20,12 +20,11 @@ import { convertToDateInput } from '@/utils/CommonUtils.ts'
 import { useRemoveLeaves } from '@/hooks/leaves/useRemoveLeaves'
 import { useAuthStore } from '@/stores/authStore'
 import { PageBreadcrumb } from '@/components/common/PageBreadcrumb'
-import { useSearchParams, useNavigate } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import useGetAbsenceRequestById from '@/hooks/leaves/useGetAbsenceRequestById'
 
 export default function LeavesWeb() {
   const [searchParams, setSearchParams] = useSearchParams()
-  const navigate = useNavigate()
   const absenceRequestIdParam = searchParams.get('absenceRequestId')
   const absenceRequestId = absenceRequestIdParam ? Number(absenceRequestIdParam) : null
 
@@ -64,8 +63,7 @@ export default function LeavesWeb() {
   const { user } = useAuthStore()
 
   // Fetch absence request by ID if provided in URL
-  const { absenceRequest: absenceRequestFromUrl, isFetching: isFetchingAbsenceRequest } =
-    useGetAbsenceRequestById(absenceRequestId)
+  const { absenceRequest: absenceRequestFromUrl } = useGetAbsenceRequestById(absenceRequestId)
 
   // Auto-open modal when absence request is loaded from URL
   useEffect(() => {

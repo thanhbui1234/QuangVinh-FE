@@ -163,7 +163,7 @@ export const EditableTable: React.FC<EditableTableProps> = ({
         deleted: [] as IWorkBoardColumn[],
       }
 
-      if (currentWorkBoard && currentOriginalColumns.length > 0) {
+      if (currentWorkBoard) {
         // Find added columns
         currentColumns.forEach((col) => {
           const isNew =
@@ -399,13 +399,30 @@ export const EditableTable: React.FC<EditableTableProps> = ({
       </div>
 
       {/* Table */}
+      {/* Table Content */}
       <Card className="overflow-hidden">
         {isFetching ? (
-          <div className="flex items-center justify-center h-150">
+          <div className="flex items-center justify-center h-64">
             <div className="flex flex-col items-center gap-4">
               <div className="w-12 h-12 border-4 border-gray-200 border-t-slate-900 rounded-full animate-spin" />
               <p className="text-muted-foreground font-medium">Đang tải bảng công việc...</p>
             </div>
+          </div>
+        ) : columnHeaders.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-64 text-center p-8">
+            <div className="bg-muted/50 p-4 rounded-full mb-4">
+              <Settings2 className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+              Chưa có cột nào được hiển thị
+            </h3>
+            <p className="text-muted-foreground max-w-sm mb-6">
+              Bảng hiện tại chưa có cột nào. Vui lòng thêm cột để bắt đầu nhập dữ liệu.
+            </p>
+            <Button onClick={() => setShowColumnManager(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Thêm cột ngay
+            </Button>
           </div>
         ) : (
           <div

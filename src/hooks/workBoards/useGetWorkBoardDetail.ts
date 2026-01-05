@@ -172,6 +172,7 @@ export const useGetWorkBoardDetail = (id: number | undefined, rowSize: number = 
   return {
     workBoard: data?.workBoard,
     isFetching,
+    isLoading: isFetching && !data, // Derived isLoading if not directly available, but useQuery v5 has isLoading.
     error,
     refetch,
   }

@@ -7,7 +7,12 @@ import SonnerToaster from '@/components/ui/toaster'
 import type { IUpdateColumnRequest, IUpdateColumnResponse } from '@/types/WorkBoard'
 import { handleCommonError } from '@/utils/handleErrors'
 
-export const useUpdateColumn = () => {
+// Define options type
+interface UseUpdateColumnOptions {
+  suppressInvalidation?: boolean
+}
+
+export const useUpdateColumn = (options?: UseUpdateColumnOptions) => {
   const updateColumnMutation = useMutation({
     mutationFn: async (payload: IUpdateColumnRequest): Promise<IUpdateColumnResponse> => {
       try {
@@ -19,9 +24,11 @@ export const useUpdateColumn = () => {
       }
     },
     onSuccess: (_, variables) => {
-      // Invalidate work board detail to refetch
-      queryClient.invalidateQueries({ queryKey: [workBoardsKey.detail(variables.sheetId)] })
-      queryClient.invalidateQueries({ queryKey: [workBoardsKey.getAll] })
+      if (!options?.suppressInvalidation) {
+        // Invalidate work board detail to refetch
+        queryClient.invalidateQueries({ queryKey: [workBoardsKey.detail(variables.sheetId)] })
+        queryClient.invalidateQueries({ queryKey: [workBoardsKey.getAll] })
+      }
     },
     onError: (error) => {
       SonnerToaster({

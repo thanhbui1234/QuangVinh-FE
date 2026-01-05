@@ -21,10 +21,10 @@ export const WorkBoardDetail: React.FC = () => {
   const { id } = useParams()
   const navigate = useNavigate()
   const sheetId = id ? Number(id) : undefined
-  const { workBoard, isFetching, error, refetch } = useGetWorkBoardDetail(sheetId)
-  const { addColumnMutation } = useAddColumn()
-  const { updateColumnMutation } = useUpdateColumn()
-  const { removeColumnMutation } = useRemoveColumn()
+  const { workBoard, isFetching, isLoading, error, refetch } = useGetWorkBoardDetail(sheetId)
+  const { addColumnMutation } = useAddColumn({ suppressInvalidation: true })
+  const { updateColumnMutation } = useUpdateColumn({ suppressInvalidation: true })
+  const { removeColumnMutation } = useRemoveColumn({ suppressInvalidation: true })
   const { createSheetRowMutation } = useCreateSheetRow()
   const { updateSheetRowCellMutation } = useUpdateSheetRowCell()
   const { removeSheetRowMutation } = useRemoveSheetRow()
@@ -34,6 +34,7 @@ export const WorkBoardDetail: React.FC = () => {
   // Track pending row creations to prevent duplicates
   const pendingRowCreations = useRef<Set<number>>(new Set())
   // Calculate max width based on sidebar/tabbar
+  console.log('workBoard', workBoard)
   useEffect(() => {
     const calculateMaxWidth = () => {
       if (isMobile) {
@@ -125,19 +126,22 @@ export const WorkBoardDetail: React.FC = () => {
       // 1. Process Column Changes if any
       if (data.columnChanges) {
         const { columnChanges } = data
+        const promises: Promise<any>[] = []
 
         // Add new columns
         for (const newColumn of columnChanges.added) {
           const columnIndex = data.columnHeaders.findIndex((col) => col.id === newColumn.id)
-          await addColumnMutation.mutateAsync({
-            sheetId,
-            name: newColumn.name || newColumn.label,
-            type: newColumn.type || 'text',
-            index: newColumn.index ?? columnIndex,
-            color: newColumn.color || '#FFFFFF',
-            required: newColumn.required || false,
-            options: newColumn.options || [],
-          })
+          promises.push(
+            addColumnMutation.mutateAsync({
+              sheetId,
+              name: newColumn.name || newColumn.label,
+              type: newColumn.type || 'text',
+              index: newColumn.index ?? columnIndex,
+              color: newColumn.color || '#FFFFFF',
+              required: newColumn.required || false,
+              options: newColumn.options || [],
+            })
+          )
         }
 
         // Update modified columns
@@ -169,16 +173,26 @@ export const WorkBoardDetail: React.FC = () => {
           }
 
           if (Object.keys(updatePayload).length > 2) {
-            await updateColumnMutation.mutateAsync(updatePayload)
+            promises.push(updateColumnMutation.mutateAsync(updatePayload))
           }
         }
 
         // Remove deleted columns
         for (const deletedColumn of columnChanges.deleted) {
-          await removeColumnMutation.mutateAsync({
-            sheetId,
-            columnName: deletedColumn.name || deletedColumn.label,
-          })
+          promises.push(
+            removeColumnMutation.mutateAsync({
+              sheetId,
+              columnName: deletedColumn.name || deletedColumn.label,
+            })
+          )
+        }
+
+        // Wait for all column operations to complete
+        if (promises.length > 0) {
+          await Promise.all(promises)
+          // Invalidate queries once after all column changes
+          queryClient.invalidateQueries({ queryKey: [workBoardsKey.detail(sheetId)] })
+          queryClient.invalidateQueries({ queryKey: [workBoardsKey.getAll] })
         }
       }
 
@@ -304,7 +318,7 @@ export const WorkBoardDetail: React.FC = () => {
   }
 
   // Only show loader if we don't have the workBoard data yet
-  if (!workBoard && isFetching) {
+  if (!workBoard && isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="flex flex-col items-center gap-4">
@@ -315,7 +329,7 @@ export const WorkBoardDetail: React.FC = () => {
     )
   }
 
-  if (!workBoard && !isFetching) {
+  if (!workBoard && !isFetching && !isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -357,12 +371,12 @@ export const WorkBoardDetail: React.FC = () => {
           <EditableTable
             workBoard={workBoard}
             onSave={handleSave}
-            isFetching={isFetching}
+            isFetching={isLoading} // Use isLoading instead of isFetching for big table loader
             isSaving={
               createSheetRowMutation.isPending ||
               updateSheetRowCellMutation.isPending ||
               removeSheetRowMutation.isPending ||
-              isFetching // Show "saving" if we are refetching too? Or just saving.
+              (isFetching && !isLoading) // Show "Saving..." during background refetch
             }
             onRefresh={handleRefreshSheet}
             // Passing undefined for onUnsavedChangesChange as we auto-save
