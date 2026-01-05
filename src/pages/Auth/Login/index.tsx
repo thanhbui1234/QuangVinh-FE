@@ -40,7 +40,7 @@ const Login = () => {
                 {...register('email')}
                 type="text"
                 placeholder="Username"
-                className="pl-10 h-12 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                className="pl-10 h-12 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-gray-50 text-black dark:text-black"
               />
             </div>
             {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
@@ -54,7 +54,7 @@ const Login = () => {
                 {...register('password')}
                 type={showPassword ? 'text' : 'password'}
                 placeholder="Mật khẩu"
-                className="pl-10 pr-10 h-12 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                className="pl-10 pr-10 h-12 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-gray-50 text-black dark:text-black"
               />
               <button
                 type="button"

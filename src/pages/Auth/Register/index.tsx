@@ -40,7 +40,7 @@ const Register = () => {
                 {...register('email')}
                 type="text"
                 placeholder="Email"
-                className="pl-10 h-12 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                className="pl-10 h-12 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-gray-50 text-black dark:text-black"
               />
             </div>
             {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
@@ -54,7 +54,7 @@ const Register = () => {
                 {...register('phone')}
                 type="text"
                 placeholder="Số điện thoại"
-                className="pl-10 h-12 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                className="pl-10 h-12 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-gray-50 text-black dark:text-black"
               />
             </div>
             {errors.phone && <p className="text-red-500 text-sm">{errors.phone.message}</p>}
@@ -67,7 +67,7 @@ const Register = () => {
                 {...register('name')}
                 type="text"
                 placeholder="Tên đăng nhập"
-                className="pl-10 h-12 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                className="pl-10 h-12 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-gray-50 text-black dark:text-black"
               />
             </div>
             {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
@@ -81,7 +81,7 @@ const Register = () => {
                 {...register('password')}
                 type={showPassword ? 'text' : 'password'}
                 placeholder="Mật khẩu"
-                className="pl-10 pr-10 h-12 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                className="pl-10 pr-10 h-12 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-gray-50 text-black dark:text-black"
               />
               <button
                 type="button"
@@ -102,7 +102,7 @@ const Register = () => {
                 {...register('confirmPassword')}
                 type={showConfirmPassword ? 'text' : 'password'}
                 placeholder="Xác nhận mật khẩu"
-                className="pl-10 pr-10 h-12 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                className="pl-10 pr-10 h-12 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-gray-50 text-black dark:text-black"
               />
               <button
                 type="button"

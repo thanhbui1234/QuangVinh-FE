@@ -12,9 +12,9 @@ export const NotificationPage = () => {
       <PageBreadcrumb />
       <h1 className="text-3xl font-bold mb-6">Tất cả thông báo</h1>
 
-      <div className="bg-white rounded-2xl shadow">
+      <div className="bg-white dark:bg-gray-950 rounded-2xl shadow">
         {notifications?.length === 0 ? (
-          <p className="text-center py-8 text-gray-500">Không có thông báo</p>
+          <p className="text-center py-8 text-gray-500 dark:text-gray-400">Không có thông báo</p>
         ) : (
           notifications?.map((noti: any) => (
             <NotificationItem
