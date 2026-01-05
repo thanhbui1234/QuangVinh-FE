@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
-import { Plus, Trash2, Settings2 } from 'lucide-react'
+import { Plus, Trash2, Settings2, RefreshCw, Loader2 } from 'lucide-react'
 import { useDebouncedCallback } from 'use-debounce'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -32,14 +32,18 @@ interface EditableTableProps {
   isSaving?: boolean
   onUnsavedChangesChange?: (hasUnsavedChanges: boolean) => void
   onDeleteRow?: (rowIndex: number) => void
+  onRefresh?: () => void
+  isFetching?: boolean
 }
 
 export const EditableTable: React.FC<EditableTableProps> = ({
   workBoard,
   onSave,
   isSaving = false,
+  isFetching = false,
   onUnsavedChangesChange,
   onDeleteRow,
+  onRefresh,
 }) => {
   const [rows, setRows] = useState(workBoard?.rows || 5)
   const [columns, setColumns] = useState(workBoard?.columns || 5)
@@ -386,208 +390,222 @@ export const EditableTable: React.FC<EditableTableProps> = ({
             <Settings2 className="h-4 w-4 mr-1" />
             Quản lý cột
           </Button>
+          <Button onClick={onRefresh} variant="outline" size="sm">
+            <RefreshCw className="h-4 w-4 mr-1" />
+            Tải lại
+          </Button>
         </div>
         <div className="text-sm text-muted-foreground">{isSaving ? 'Đang lưu...' : 'Đã lưu'}</div>
       </div>
 
       {/* Table */}
       <Card className="overflow-hidden">
-        <div
-          ref={tableRef}
-          className="relative w-full overflow-x-auto overflow-y-auto max-h-[calc(100vh-300px)]"
-          style={{ width: '100%' }}
-        >
-          <table
-            className="caption-bottom text-sm"
-            style={{ minWidth: 'max-content', width: '100%' }}
+        {isFetching ? (
+          <div className="flex items-center justify-center h-150">
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-12 h-12 border-4 border-gray-200 border-t-slate-900 rounded-full animate-spin" />
+              <p className="text-muted-foreground font-medium">Đang tải bảng công việc...</p>
+            </div>
+          </div>
+        ) : (
+          <div
+            ref={tableRef}
+            className="relative w-full overflow-x-auto overflow-y-auto max-h-[calc(100vh-300px)]"
+            style={{ width: '100%' }}
           >
-            <TableHeader className="sticky top-0 z-10 bg-muted/50">
-              <TableRow>
-                <TableHead className="w-12 bg-muted/50 sticky left-0 z-20 border-r">
-                  <div className="flex items-center justify-between group">
-                    <span className="text-muted-foreground">#</span>
-                  </div>
-                </TableHead>
-                {columnHeaders.map((col, colIndex) => {
-                  const columnColor = col.color || '#FFFFFF'
-                  return (
-                    <React.Fragment key={col.id}>
-                      <TableHead
-                        className="min-w-[150px] whitespace-nowrap relative group/col"
-                        style={{
-                          borderTop: `3px solid ${columnColor}`,
-                          backgroundColor: columnColor,
-                        }}
-                      >
-                        {editingCell?.row === -1 && editingCell?.col === colIndex ? (
-                          <Input
-                            ref={colIndex === 0 ? inputRef : undefined}
-                            value={editingValue}
-                            onChange={(e) => setEditingValue(e.target.value)}
-                            onBlur={() => {
-                              handleColumnHeaderChange(colIndex, editingValue || col.label)
-                              setEditingCell(null)
-                            }}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
+            <table
+              className="caption-bottom text-sm"
+              style={{ minWidth: 'max-content', width: '100%' }}
+            >
+              <TableHeader className="sticky top-0 z-10 bg-muted/50">
+                <TableRow>
+                  <TableHead className="w-12 bg-muted/50 sticky left-0 z-20 border-r">
+                    <div className="flex items-center justify-between group">
+                      <span className="text-muted-foreground">#</span>
+                    </div>
+                  </TableHead>
+                  {columnHeaders.map((col, colIndex) => {
+                    const columnColor = col.color || '#FFFFFF'
+                    return (
+                      <React.Fragment key={col.id}>
+                        <TableHead
+                          className="min-w-[150px] whitespace-nowrap relative group/col"
+                          style={{
+                            borderTop: `3px solid ${columnColor}`,
+                            backgroundColor: columnColor,
+                          }}
+                        >
+                          {editingCell?.row === -1 && editingCell?.col === colIndex ? (
+                            <Input
+                              ref={colIndex === 0 ? inputRef : undefined}
+                              value={editingValue}
+                              onChange={(e) => setEditingValue(e.target.value)}
+                              onBlur={() => {
                                 handleColumnHeaderChange(colIndex, editingValue || col.label)
                                 setEditingCell(null)
-                              } else if (e.key === 'Escape') {
-                                setEditingCell(null)
-                              }
-                            }}
-                            className="h-8 text-gray-900 dark:text-gray-900"
-                          />
-                        ) : (
-                          <div className="flex items-center justify-between group">
-                            <div className="flex items-center gap-2 flex-1">
-                              <div
-                                className="w-3 h-3 rounded-sm border border-border"
-                                style={{ backgroundColor: columnColor }}
-                                title={`Màu: ${columnColor}`}
-                              />
-                              <span
-                                className="flex-1 cursor-pointer hover:text-blue-600 transition-colors font-semibold text-gray-900 dark:text-gray-900"
-                                onClick={() => {
-                                  setEditingCell({ row: -1, col: colIndex })
-                                  setEditingValue(col.label)
-                                }}
-                              >
-                                {col.label}
-                              </span>
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  handleColumnHeaderChange(colIndex, editingValue || col.label)
+                                  setEditingCell(null)
+                                } else if (e.key === 'Escape') {
+                                  setEditingCell(null)
+                                }
+                              }}
+                              className="h-8 text-gray-900 dark:text-gray-900"
+                            />
+                          ) : (
+                            <div className="flex items-center justify-between group">
+                              <div className="flex items-center gap-2 flex-1">
+                                <div
+                                  className="w-3 h-3 rounded-sm border border-border"
+                                  style={{ backgroundColor: columnColor }}
+                                  title={`Màu: ${columnColor}`}
+                                />
+                                <span
+                                  className="flex-1 cursor-pointer hover:text-blue-600 transition-colors font-semibold text-gray-900 dark:text-gray-900"
+                                  onClick={() => {
+                                    setEditingCell({ row: -1, col: colIndex })
+                                    setEditingValue(col.label)
+                                  }}
+                                >
+                                  {col.label}
+                                </span>
+                              </div>
                             </div>
-                          </div>
-                        )}
-                      </TableHead>
-                    </React.Fragment>
-                  )
-                })}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {Array.from({ length: rows }).map((_, rowIndex) => (
-                <TableRow key={rowIndex} className={cn(rowIndex % 2 === 1 && 'bg-muted/50')}>
-                  <TableCell className="bg-muted/50 sticky left-0 z-10 border-r relative group/row">
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground font-medium">{rowIndex + 1}</span>
+                          )}
+                        </TableHead>
+                      </React.Fragment>
+                    )
+                  })}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {Array.from({ length: rows }).map((_, rowIndex) => (
+                  <TableRow key={rowIndex} className={cn(rowIndex % 2 === 1 && 'bg-muted/50')}>
+                    <TableCell className="bg-muted/50 sticky left-0 z-10 border-r relative group/row">
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground font-medium">{rowIndex + 1}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 opacity-0 group-hover/row:opacity-100 transition-opacity"
+                          onClick={() => handleDeleteRow(rowIndex)}
+                          title="Xóa hàng"
+                        >
+                          <Trash2 className="h-3 w-3 text-destructive" />
+                        </Button>
+                      </div>
+                      {/* Add row button after each row */}
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-6 w-6 p-0 opacity-0 group-hover/row:opacity-100 transition-opacity"
-                        onClick={() => handleDeleteRow(rowIndex)}
-                        title="Xóa hàng"
+                        className="absolute -bottom-3 left-0 right-0 h-6 w-full p-0 opacity-0 group-hover/row:opacity-100 hover:opacity-100 z-30 bg-background border border-t-0 rounded-b-md"
+                        onClick={() => {
+                          handleAddRow()
+                          // Shift cells down
+                          setTimeout(() => {
+                            setCells((prev) => {
+                              const newMap = new Map()
+                              prev.forEach((value, key) => {
+                                const [r, c] = key.split('-').map(Number)
+                                if (r > rowIndex) {
+                                  newMap.set(`${r + 1}-${c}`, value)
+                                } else {
+                                  newMap.set(key, value)
+                                }
+                              })
+                              return newMap
+                            })
+                          }, 0)
+                        }}
+                        title="Thêm hàng sau"
                       >
-                        <Trash2 className="h-3 w-3 text-destructive" />
+                        <Plus className="h-4 w-4" />
                       </Button>
-                    </div>
-                    {/* Add row button after each row */}
+                    </TableCell>
+                    {Array.from({ length: columns }).map((_, colIndex) => {
+                      const isEditing =
+                        editingCell?.row === rowIndex && editingCell?.col === colIndex
+                      const cellValue = getCellValue(rowIndex, colIndex)
+                      const column = columnHeaders[colIndex]
+                      const hasOptions = column?.options && column.options.length > 0
+                      const columnType = column?.type || 'text'
+                      const columnColor = column?.color || '#FFFFFF'
+
+                      return (
+                        <TableCell
+                          key={colIndex}
+                          className={cn(
+                            'min-w-[150px] p-0 whitespace-nowrap',
+                            isEditing && 'bg-primary/10'
+                          )}
+                          style={{ backgroundColor: columnColor }}
+                        >
+                          {columnType === 'select' && hasOptions ? (
+                            <Select
+                              value={cellValue || undefined}
+                              onValueChange={(value) => {
+                                setCellValue(rowIndex, colIndex, value)
+                              }}
+                            >
+                              <SelectTrigger className="border-0 focus:ring-0 h-full rounded-none shadow-none min-h-[40px] text-gray-900 dark:text-gray-900">
+                                <SelectValue placeholder="Chọn giá trị..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {column.options?.map((option, idx) => (
+                                  <SelectItem key={idx} value={option}>
+                                    {option}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          ) : isEditing ? (
+                            <Input
+                              ref={inputRef}
+                              type={columnType === 'number' ? 'number' : 'text'}
+                              value={editingValue}
+                              onChange={(e) => setEditingValue(e.target.value)}
+                              onBlur={handleCellBlur}
+                              onKeyDown={handleCellKeyDown}
+                              className="border-0 focus-visible:ring-0 h-full rounded-none text-gray-900 dark:text-gray-900"
+                            />
+                          ) : (
+                            <div
+                              className="p-2 min-h-[40px] cursor-pointer hover:bg-muted/50 transition-colors text-gray-900 dark:text-gray-900"
+                              onClick={() => handleCellClick(rowIndex, colIndex)}
+                            >
+                              {cellValue || (
+                                <span className="text-gray-500 text-sm">Nhấp để chỉnh sửa</span>
+                              )}
+                            </div>
+                          )}
+                        </TableCell>
+                      )
+                    })}
+                  </TableRow>
+                ))}
+                {/* Add row button at the end */}
+                <TableRow>
+                  <TableCell className="bg-muted/50 sticky left-0 z-10 border-r">
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="absolute -bottom-3 left-0 right-0 h-6 w-full p-0 opacity-0 group-hover/row:opacity-100 hover:opacity-100 z-30 bg-background border border-t-0 rounded-b-md"
-                      onClick={() => {
-                        handleAddRow()
-                        // Shift cells down
-                        setTimeout(() => {
-                          setCells((prev) => {
-                            const newMap = new Map()
-                            prev.forEach((value, key) => {
-                              const [r, c] = key.split('-').map(Number)
-                              if (r > rowIndex) {
-                                newMap.set(`${r + 1}-${c}`, value)
-                              } else {
-                                newMap.set(key, value)
-                              }
-                            })
-                            return newMap
-                          })
-                        }, 0)
-                      }}
-                      title="Thêm hàng sau"
+                      className="w-full h-full p-0 hover:bg-muted/50"
+                      onClick={handleAddRow}
+                      title="Thêm hàng"
                     >
                       <Plus className="h-4 w-4" />
                     </Button>
                   </TableCell>
-                  {Array.from({ length: columns }).map((_, colIndex) => {
-                    const isEditing = editingCell?.row === rowIndex && editingCell?.col === colIndex
-                    const cellValue = getCellValue(rowIndex, colIndex)
-                    const column = columnHeaders[colIndex]
-                    const hasOptions = column?.options && column.options.length > 0
-                    const columnType = column?.type || 'text'
-                    const columnColor = column?.color || '#FFFFFF'
-
-                    return (
-                      <TableCell
-                        key={colIndex}
-                        className={cn(
-                          'min-w-[150px] p-0 whitespace-nowrap',
-                          isEditing && 'bg-primary/10'
-                        )}
-                        style={{ backgroundColor: columnColor }}
-                      >
-                        {columnType === 'select' && hasOptions ? (
-                          <Select
-                            value={cellValue || undefined}
-                            onValueChange={(value) => {
-                              setCellValue(rowIndex, colIndex, value)
-                            }}
-                          >
-                            <SelectTrigger className="border-0 focus:ring-0 h-full rounded-none shadow-none min-h-[40px] text-gray-900 dark:text-gray-900">
-                              <SelectValue placeholder="Chọn giá trị..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {column.options?.map((option, idx) => (
-                                <SelectItem key={idx} value={option}>
-                                  {option}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        ) : isEditing ? (
-                          <Input
-                            ref={inputRef}
-                            type={columnType === 'number' ? 'number' : 'text'}
-                            value={editingValue}
-                            onChange={(e) => setEditingValue(e.target.value)}
-                            onBlur={handleCellBlur}
-                            onKeyDown={handleCellKeyDown}
-                            className="border-0 focus-visible:ring-0 h-full rounded-none text-gray-900 dark:text-gray-900"
-                          />
-                        ) : (
-                          <div
-                            className="p-2 min-h-[40px] cursor-pointer hover:bg-muted/50 transition-colors text-gray-900 dark:text-gray-900"
-                            onClick={() => handleCellClick(rowIndex, colIndex)}
-                          >
-                            {cellValue || (
-                              <span className="text-gray-500 text-sm">Nhấp để chỉnh sửa</span>
-                            )}
-                          </div>
-                        )}
-                      </TableCell>
-                    )
-                  })}
+                  {Array.from({ length: columns }).map((_, colIndex) => (
+                    <TableCell key={colIndex} className="min-w-[150px] p-0" />
+                  ))}
                 </TableRow>
-              ))}
-              {/* Add row button at the end */}
-              <TableRow>
-                <TableCell className="bg-muted/50 sticky left-0 z-10 border-r">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-full h-full p-0 hover:bg-muted/50"
-                    onClick={handleAddRow}
-                    title="Thêm hàng"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </TableCell>
-                {Array.from({ length: columns }).map((_, colIndex) => (
-                  <TableCell key={colIndex} className="min-w-[150px] p-0" />
-                ))}
-              </TableRow>
-            </TableBody>
-          </table>
-        </div>
+              </TableBody>
+            </table>
+          </div>
+        )}
       </Card>
 
       <ColumnManager

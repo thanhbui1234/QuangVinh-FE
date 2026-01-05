@@ -21,6 +21,7 @@ export const NotificationPage = () => {
               key={noti.id}
               noti={noti}
               onSeen={(id) => seenNotificationMutation.mutate({ notiId: id, seen: true })}
+              notiType={noti.type}
             />
           ))
         )}

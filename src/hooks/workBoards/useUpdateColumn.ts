@@ -22,11 +22,6 @@ export const useUpdateColumn = () => {
       // Invalidate work board detail to refetch
       queryClient.invalidateQueries({ queryKey: [workBoardsKey.detail(variables.sheetId)] })
       queryClient.invalidateQueries({ queryKey: [workBoardsKey.getAll] })
-      SonnerToaster({
-        type: 'success',
-        message: 'Cập nhật cột thành công',
-        description: `Cột "${variables.columnName}" đã được cập nhật`,
-      })
     },
     onError: (error) => {
       SonnerToaster({

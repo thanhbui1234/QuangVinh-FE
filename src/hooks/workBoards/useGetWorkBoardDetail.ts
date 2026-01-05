@@ -97,9 +97,12 @@ const mapSheetInfoToWorkBoard = (sheetInfo: ISheetInfo): IWorkBoard => {
 }
 
 export const useGetWorkBoardDetail = (id: number | undefined, rowSize: number = 50) => {
-  const { data, isFetching, error } = useQuery({
+  const { data, isFetching, error, refetch } = useQuery({
     queryKey: [workBoardsKey.detail(id || 0), rowSize],
+    // ... (rest of queryFn is fine)
     queryFn: async () => {
+      // ...
+      // Can't easily use search/replace across large block, so just fix the return
       if (!id || isNaN(id)) {
         throw new Error('Invalid sheet ID')
       }
@@ -170,5 +173,6 @@ export const useGetWorkBoardDetail = (id: number | undefined, rowSize: number = 
     workBoard: data?.workBoard,
     isFetching,
     error,
+    refetch,
   }
 }

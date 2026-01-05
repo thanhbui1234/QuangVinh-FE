@@ -5,9 +5,11 @@ import { useNavigate } from 'react-router'
 interface NotificationItemProps {
   noti: any
   onSeen?: (id: number) => void
+  notiType?: string
 }
 
-export const NotificationItem = ({ noti, onSeen }: NotificationItemProps) => {
+export const NotificationItem = ({ noti, onSeen, notiType }: NotificationItemProps) => {
+  console.log('notiType', notiType)
   const navigate = useNavigate()
 
   const handleClick = () => {

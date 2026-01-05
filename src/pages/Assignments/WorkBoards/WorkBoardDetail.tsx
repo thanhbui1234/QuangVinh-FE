@@ -21,7 +21,7 @@ export const WorkBoardDetail: React.FC = () => {
   const { id } = useParams()
   const navigate = useNavigate()
   const sheetId = id ? Number(id) : undefined
-  const { workBoard, isFetching, error } = useGetWorkBoardDetail(sheetId)
+  const { workBoard, isFetching, error, refetch } = useGetWorkBoardDetail(sheetId)
   const { addColumnMutation } = useAddColumn()
   const { updateColumnMutation } = useUpdateColumn()
   const { removeColumnMutation } = useRemoveColumn()
@@ -33,7 +33,6 @@ export const WorkBoardDetail: React.FC = () => {
   const [maxWidth, setMaxWidth] = useState<string>('100%')
   // Track pending row creations to prevent duplicates
   const pendingRowCreations = useRef<Set<number>>(new Set())
-
   // Calculate max width based on sidebar/tabbar
   useEffect(() => {
     const calculateMaxWidth = () => {
@@ -287,7 +286,9 @@ export const WorkBoardDetail: React.FC = () => {
       </div>
     )
   }
-
+  const handleRefreshSheet = () => {
+    refetch()
+  }
   const handleDeleteRow = async (rowIndex: number) => {
     if (!sheetId || !workBoard) return
     const rowId = workBoard.rowIdMap?.[rowIndex]
@@ -356,12 +357,14 @@ export const WorkBoardDetail: React.FC = () => {
           <EditableTable
             workBoard={workBoard}
             onSave={handleSave}
+            isFetching={isFetching}
             isSaving={
               createSheetRowMutation.isPending ||
               updateSheetRowCellMutation.isPending ||
               removeSheetRowMutation.isPending ||
               isFetching // Show "saving" if we are refetching too? Or just saving.
             }
+            onRefresh={handleRefreshSheet}
             // Passing undefined for onUnsavedChangesChange as we auto-save
             onUnsavedChangesChange={undefined}
             onDeleteRow={handleDeleteRow}
