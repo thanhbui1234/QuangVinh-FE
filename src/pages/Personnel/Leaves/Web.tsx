@@ -62,31 +62,49 @@ export default function LeavesWeb() {
   const { removeLeavesMutate, isRemovingLeave } = useRemoveLeaves()
   const { user } = useAuthStore()
 
+  // Track if modal was opened from URL param to prevent reopening
+  const hasOpenedFromUrlRef = useRef<number | null>(null)
+
   // Fetch absence request by ID if provided in URL
   const { absenceRequest: absenceRequestFromUrl } = useGetAbsenceRequestById(absenceRequestId)
 
   // Auto-open modal when absence request is loaded from URL
+  // Only depends on absenceRequestId and absenceRequestFromUrl, not viewDialogOpen
+  // This prevents reopening when modal is closed
   useEffect(() => {
-    if (absenceRequestFromUrl && absenceRequestId && !viewDialogOpen) {
+    // Only open if:
+    // 1. absenceRequestId exists (URL param is present)
+    // 2. absenceRequestFromUrl is loaded
+    // 3. We haven't opened this specific request yet
+    if (
+      absenceRequestId &&
+      absenceRequestFromUrl &&
+      hasOpenedFromUrlRef.current !== absenceRequestId
+    ) {
       setSelectedRequest(absenceRequestFromUrl)
       setViewDialogOpen(true)
+      hasOpenedFromUrlRef.current = absenceRequestId
     }
-  }, [
-    absenceRequestFromUrl,
-    absenceRequestId,
-    viewDialogOpen,
-    setSelectedRequest,
-    setViewDialogOpen,
-  ])
+  }, [absenceRequestFromUrl, absenceRequestId, setSelectedRequest, setViewDialogOpen])
+
+  // Reset ref when absenceRequestId is cleared (URL param removed)
+  useEffect(() => {
+    if (!absenceRequestId) {
+      // URL param was cleared, reset the ref to allow opening again if new param is added
+      hasOpenedFromUrlRef.current = null
+    }
+  }, [absenceRequestId])
 
   // Clear URL param when modal is closed
   const handleViewDialogChange = (open: boolean) => {
     setViewDialogOpen(open)
-    if (!open && absenceRequestId) {
+    if (!open) {
       // Remove query param when closing
-      const newSearchParams = new URLSearchParams(searchParams)
-      newSearchParams.delete('absenceRequestId')
-      setSearchParams(newSearchParams, { replace: true })
+      if (absenceRequestId) {
+        const newSearchParams = new URLSearchParams(searchParams)
+        newSearchParams.delete('absenceRequestId')
+        setSearchParams(newSearchParams, { replace: true })
+      }
     }
   }
 

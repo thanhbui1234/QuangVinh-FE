@@ -10,13 +10,29 @@ import { useGetNotiBell } from '@/hooks/notifications/useGetNotiBell'
 import { useSeenNotification } from '@/hooks/notifications/useSeenNotification'
 import { useNavigate } from 'react-router'
 import { NotificationItem } from '../Notification/NotificationItem'
+import { useEffect, useRef } from 'react'
 
 export default function BellNotification() {
   const navigate = useNavigate()
-  const { notifications } = useGetNotiBell()
+  const { notifications, refetch } = useGetNotiBell()
   const { seenNotificationMutation } = useSeenNotification()
+  const intervalRef = useRef<any>(null)
 
   const unreadCount = notifications?.filter((n: any) => !n.seen)?.length
+
+  useEffect(() => {
+    // Set interval để refetch data mỗi 30 giây (có thể điều chỉnh)
+    intervalRef.current = setInterval(() => {
+      refetch()
+    }, 5000) // 30 giây
+
+    // Cleanup interval khi component unmount
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+      }
+    }
+  }, [refetch])
 
   return (
     <DropdownMenu>
