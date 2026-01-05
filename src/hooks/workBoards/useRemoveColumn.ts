@@ -7,7 +7,12 @@ import SonnerToaster from '@/components/ui/toaster'
 import type { IRemoveColumnRequest, IRemoveColumnResponse } from '@/types/WorkBoard'
 import { handleCommonError } from '@/utils/handleErrors'
 
-export const useRemoveColumn = () => {
+// Define options type
+interface UseRemoveColumnOptions {
+  suppressInvalidation?: boolean
+}
+
+export const useRemoveColumn = (options?: UseRemoveColumnOptions) => {
   const removeColumnMutation = useMutation({
     mutationFn: async (payload: IRemoveColumnRequest): Promise<IRemoveColumnResponse> => {
       try {
@@ -19,14 +24,11 @@ export const useRemoveColumn = () => {
       }
     },
     onSuccess: (_, variables) => {
-      // Invalidate work board detail to refetch
-      queryClient.invalidateQueries({ queryKey: [workBoardsKey.detail(variables.sheetId)] })
-      queryClient.invalidateQueries({ queryKey: [workBoardsKey.getAll] })
-      SonnerToaster({
-        type: 'success',
-        message: 'Xóa cột thành công',
-        description: `Cột "${variables.columnName}" đã được xóa khỏi bảng`,
-      })
+      if (!options?.suppressInvalidation) {
+        // Invalidate work board detail to refetch
+        queryClient.invalidateQueries({ queryKey: [workBoardsKey.detail(variables.sheetId)] })
+        queryClient.invalidateQueries({ queryKey: [workBoardsKey.getAll] })
+      }
     },
     onError: (error) => {
       SonnerToaster({

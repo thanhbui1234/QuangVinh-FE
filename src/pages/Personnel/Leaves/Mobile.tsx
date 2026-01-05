@@ -20,8 +20,14 @@ import { useRemoveLeaves } from '@/hooks/leaves/useRemoveLeaves'
 import ConfirmationSheetMobile from '@/components/base/ConfirmationSheetMobile.tsx'
 import { Trash2, CheckCircle, XCircle } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
+import { useSearchParams } from 'react-router-dom'
+import useGetAbsenceRequestById from '@/hooks/leaves/useGetAbsenceRequestById'
 
 export default function LeavesMobile() {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const absenceRequestIdParam = searchParams.get('absenceRequestId')
+  const absenceRequestId = absenceRequestIdParam ? Number(absenceRequestIdParam) : null
+
   const {
     canApprove,
     selectedRequest,
@@ -38,6 +44,7 @@ export default function LeavesMobile() {
     confirmAction,
     viewDetails,
     isUpdatingStatus,
+    setSelectedRequest,
   } = useLeaves()
 
   const [offset, setOffset] = useState(0)
@@ -52,6 +59,52 @@ export default function LeavesMobile() {
 
   const { removeLeavesMutate, isRemovingLeave } = useRemoveLeaves()
   const { user } = useAuthStore()
+
+  // Track if sheet was opened from URL param to prevent reopening
+  const hasOpenedFromUrlRef = useRef<number | null>(null)
+
+  // Fetch absence request by ID if provided in URL
+  const { absenceRequest: absenceRequestFromUrl } = useGetAbsenceRequestById(absenceRequestId)
+
+  // Auto-open sheet when absence request is loaded from URL
+  // Only depends on absenceRequestId and absenceRequestFromUrl, not viewDialogOpen
+  // This prevents reopening when sheet is closed
+  useEffect(() => {
+    // Only open if:
+    // 1. absenceRequestId exists (URL param is present)
+    // 2. absenceRequestFromUrl is loaded
+    // 3. We haven't opened this specific request yet
+    if (
+      absenceRequestId &&
+      absenceRequestFromUrl &&
+      hasOpenedFromUrlRef.current !== absenceRequestId
+    ) {
+      setSelectedRequest(absenceRequestFromUrl)
+      setViewDialogOpen(true)
+      hasOpenedFromUrlRef.current = absenceRequestId
+    }
+  }, [absenceRequestFromUrl, absenceRequestId, setSelectedRequest, setViewDialogOpen])
+
+  // Reset ref when absenceRequestId is cleared (URL param removed)
+  useEffect(() => {
+    if (!absenceRequestId) {
+      // URL param was cleared, reset the ref to allow opening again if new param is added
+      hasOpenedFromUrlRef.current = null
+    }
+  }, [absenceRequestId])
+
+  // Clear URL param when sheet is closed
+  const handleViewSheetChange = (open: boolean) => {
+    setViewDialogOpen(open)
+    if (!open) {
+      // Remove query param when closing
+      if (absenceRequestId) {
+        const newSearchParams = new URLSearchParams(searchParams)
+        newSearchParams.delete('absenceRequestId')
+        setSearchParams(newSearchParams, { replace: true })
+      }
+    }
+  }
 
   // Check if current user is the creator of the leave request
   const canEditOrDelete = useCallback(
@@ -255,8 +308,8 @@ export default function LeavesMobile() {
       />
       <ViewDetailsSheetMobile
         open={viewDialogOpen}
-        onOpenChange={setViewDialogOpen}
-        selectedRequest={selectedRequest}
+        onOpenChange={handleViewSheetChange}
+        selectedRequest={selectedRequest || absenceRequestFromUrl}
         onEdit={handleEditLeave}
         onDelete={handleDeleteLeave}
         canEditOrDelete={canEditOrDelete}

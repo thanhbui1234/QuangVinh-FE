@@ -20,8 +20,14 @@ import { convertToDateInput } from '@/utils/CommonUtils.ts'
 import { useRemoveLeaves } from '@/hooks/leaves/useRemoveLeaves'
 import { useAuthStore } from '@/stores/authStore'
 import { PageBreadcrumb } from '@/components/common/PageBreadcrumb'
+import { useSearchParams } from 'react-router-dom'
+import useGetAbsenceRequestById from '@/hooks/leaves/useGetAbsenceRequestById'
 
 export default function LeavesWeb() {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const absenceRequestIdParam = searchParams.get('absenceRequestId')
+  const absenceRequestId = absenceRequestIdParam ? Number(absenceRequestIdParam) : null
+
   const {
     canApprove,
     selectedRequest,
@@ -38,6 +44,7 @@ export default function LeavesWeb() {
     confirmAction,
     viewDetails,
     isUpdatingStatus,
+    setSelectedRequest,
   } = useLeaves()
 
   const [offset, setOffset] = useState(0)
@@ -54,6 +61,52 @@ export default function LeavesWeb() {
 
   const { removeLeavesMutate, isRemovingLeave } = useRemoveLeaves()
   const { user } = useAuthStore()
+
+  // Track if modal was opened from URL param to prevent reopening
+  const hasOpenedFromUrlRef = useRef<number | null>(null)
+
+  // Fetch absence request by ID if provided in URL
+  const { absenceRequest: absenceRequestFromUrl } = useGetAbsenceRequestById(absenceRequestId)
+
+  // Auto-open modal when absence request is loaded from URL
+  // Only depends on absenceRequestId and absenceRequestFromUrl, not viewDialogOpen
+  // This prevents reopening when modal is closed
+  useEffect(() => {
+    // Only open if:
+    // 1. absenceRequestId exists (URL param is present)
+    // 2. absenceRequestFromUrl is loaded
+    // 3. We haven't opened this specific request yet
+    if (
+      absenceRequestId &&
+      absenceRequestFromUrl &&
+      hasOpenedFromUrlRef.current !== absenceRequestId
+    ) {
+      setSelectedRequest(absenceRequestFromUrl)
+      setViewDialogOpen(true)
+      hasOpenedFromUrlRef.current = absenceRequestId
+    }
+  }, [absenceRequestFromUrl, absenceRequestId, setSelectedRequest, setViewDialogOpen])
+
+  // Reset ref when absenceRequestId is cleared (URL param removed)
+  useEffect(() => {
+    if (!absenceRequestId) {
+      // URL param was cleared, reset the ref to allow opening again if new param is added
+      hasOpenedFromUrlRef.current = null
+    }
+  }, [absenceRequestId])
+
+  // Clear URL param when modal is closed
+  const handleViewDialogChange = (open: boolean) => {
+    setViewDialogOpen(open)
+    if (!open) {
+      // Remove query param when closing
+      if (absenceRequestId) {
+        const newSearchParams = new URLSearchParams(searchParams)
+        newSearchParams.delete('absenceRequestId')
+        setSearchParams(newSearchParams, { replace: true })
+      }
+    }
+  }
 
   const filterStatusKey = useMemo(() => JSON.stringify([...filterStatus].sort()), [filterStatus])
 
@@ -317,11 +370,13 @@ export default function LeavesWeb() {
       {/* View Details Dialog */}
       <ViewDetailsDialog
         open={viewDialogOpen}
-        onOpenChange={setViewDialogOpen}
-        selectedRequest={selectedRequest}
+        onOpenChange={handleViewDialogChange}
+        selectedRequest={selectedRequest || absenceRequestFromUrl}
         onEdit={handleEditLeave}
         onDelete={handleDeleteLeave}
         canEditOrDelete={canEditOrDelete}
+        canApprove={canApprove as boolean}
+        onActionClick={handleActionClick}
       />
 
       {/* Confirmation Dialog */}
