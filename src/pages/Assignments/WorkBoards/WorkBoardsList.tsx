@@ -71,6 +71,7 @@ export const WorkBoardsList: React.FC = () => {
   const [isSeeding, setIsSeeding] = useState(false)
 
   const handleCreate = (data: CreateSheetPayload) => {
+    setIsCreateOpen(false)
     createWorkBoardMutation.mutate(data, {
       onSuccess: async (res) => {
         // But usually res is the response body. Let's check api wrapper.
@@ -129,7 +130,6 @@ export const WorkBoardsList: React.FC = () => {
                 color: '#FFFFFF',
               })
             })
-
             await Promise.all(rowPromises)
           }
         } catch (error) {
