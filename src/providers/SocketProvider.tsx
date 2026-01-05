@@ -6,6 +6,7 @@ import { getTokenAuth } from '@/utils/auth'
 import { SOCKET_CONFIG } from '@/constants/socket'
 import { queryClient } from '@/lib/queryClient'
 import { notificationsKeys } from '@/constants/queryKey'
+import { notiBellKey } from '@/constants'
 import { useAuthStore } from '@/stores/authStore'
 
 interface SocketContextValue {
@@ -49,9 +50,14 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     if (receiveMessageTime) {
       console.log('[SocketProvider] New message received, invalidating queries...')
 
-      // Invalidate tất cả notification queries
+      // Invalidate tất cả notification queries (cho notification page)
       queryClient.invalidateQueries({
         queryKey: notificationsKeys.all,
+      })
+
+      // Invalidate notification bell queries (cho chuông thông báo)
+      queryClient.invalidateQueries({
+        queryKey: notiBellKey.all,
       })
 
       // Set flag có notification mới

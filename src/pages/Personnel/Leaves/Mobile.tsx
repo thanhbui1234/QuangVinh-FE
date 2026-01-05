@@ -20,8 +20,14 @@ import { useRemoveLeaves } from '@/hooks/leaves/useRemoveLeaves'
 import ConfirmationSheetMobile from '@/components/base/ConfirmationSheetMobile.tsx'
 import { Trash2, CheckCircle, XCircle } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
+import { useSearchParams } from 'react-router-dom'
+import useGetAbsenceRequestById from '@/hooks/leaves/useGetAbsenceRequestById'
 
 export default function LeavesMobile() {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const absenceRequestIdParam = searchParams.get('absenceRequestId')
+  const absenceRequestId = absenceRequestIdParam ? Number(absenceRequestIdParam) : null
+
   const {
     canApprove,
     selectedRequest,
@@ -38,6 +44,7 @@ export default function LeavesMobile() {
     confirmAction,
     viewDetails,
     isUpdatingStatus,
+    setSelectedRequest,
   } = useLeaves()
 
   const [offset, setOffset] = useState(0)
@@ -52,6 +59,35 @@ export default function LeavesMobile() {
 
   const { removeLeavesMutate, isRemovingLeave } = useRemoveLeaves()
   const { user } = useAuthStore()
+
+  // Fetch absence request by ID if provided in URL
+  const { absenceRequest: absenceRequestFromUrl, isFetching: isFetchingAbsenceRequest } =
+    useGetAbsenceRequestById(absenceRequestId)
+
+  // Auto-open sheet when absence request is loaded from URL
+  useEffect(() => {
+    if (absenceRequestFromUrl && absenceRequestId && !viewDialogOpen) {
+      setSelectedRequest(absenceRequestFromUrl)
+      setViewDialogOpen(true)
+    }
+  }, [
+    absenceRequestFromUrl,
+    absenceRequestId,
+    viewDialogOpen,
+    setSelectedRequest,
+    setViewDialogOpen,
+  ])
+
+  // Clear URL param when sheet is closed
+  const handleViewSheetChange = (open: boolean) => {
+    setViewDialogOpen(open)
+    if (!open && absenceRequestId) {
+      // Remove query param when closing
+      const newSearchParams = new URLSearchParams(searchParams)
+      newSearchParams.delete('absenceRequestId')
+      setSearchParams(newSearchParams, { replace: true })
+    }
+  }
 
   // Check if current user is the creator of the leave request
   const canEditOrDelete = useCallback(
@@ -255,8 +291,8 @@ export default function LeavesMobile() {
       />
       <ViewDetailsSheetMobile
         open={viewDialogOpen}
-        onOpenChange={setViewDialogOpen}
-        selectedRequest={selectedRequest}
+        onOpenChange={handleViewSheetChange}
+        selectedRequest={selectedRequest || absenceRequestFromUrl}
         onEdit={handleEditLeave}
         onDelete={handleDeleteLeave}
         canEditOrDelete={canEditOrDelete}

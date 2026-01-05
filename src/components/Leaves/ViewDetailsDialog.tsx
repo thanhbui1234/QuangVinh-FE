@@ -26,6 +26,12 @@ type ViewDetailsDialogProps = {
   onEdit?: (request: LeavesListDataResponse) => void
   onDelete?: (request: LeavesListDataResponse) => void
   canEditOrDelete?: (request: LeavesListDataResponse) => any
+  canApprove?: boolean
+  onActionClick?: (
+    id: number,
+    action: 'approve' | 'reject',
+    request?: LeavesListDataResponse
+  ) => void
 }
 
 export default function ViewDetailsDialog({
@@ -35,6 +41,8 @@ export default function ViewDetailsDialog({
   onEdit,
   onDelete,
   canEditOrDelete,
+  canApprove = false,
+  onActionClick,
 }: ViewDetailsDialogProps) {
   const getTimeLeaves = () => {
     if (!selectedRequest?.offFrom && !selectedRequest?.offTo) return null
@@ -138,38 +146,66 @@ export default function ViewDetailsDialog({
               <p className="text-sm">{formatDate(selectedRequest.createdTime)}</p>
             </div>
 
-            {/* Action Buttons - Only show for pending requests and if user is the creator */}
-            {selectedRequest.status === StatusLeaves.PENDING &&
-              canEditOrDelete &&
-              canEditOrDelete(selectedRequest) &&
-              (onEdit || onDelete) && (
-                <div className="flex gap-2 pt-2">
-                  {onEdit && (
+            {/* Action Buttons */}
+            {selectedRequest.status === StatusLeaves.PENDING && (
+              <div className="flex flex-col gap-2 pt-2">
+                {/* Approve/Reject buttons - for managers */}
+                {canApprove && onActionClick && (
+                  <div className="flex gap-2">
                     <Button
                       onClick={() => {
-                        onEdit(selectedRequest)
-                        onOpenChange(false)
+                        onActionClick(selectedRequest.id, 'approve', selectedRequest)
                       }}
-                      className="flex-1 gap-2"
+                      className="flex-1 gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
                     >
-                      <Edit className="size-4" />
-                      Sửa đơn
+                      <CheckCircle2 className="size-4" />
+                      Duyệt đơn
                     </Button>
-                  )}
-                  {onDelete && (
                     <Button
+                      onClick={() => {
+                        onActionClick(selectedRequest.id, 'reject', selectedRequest)
+                      }}
                       variant="destructive"
-                      onClick={() => {
-                        onDelete(selectedRequest)
-                      }}
                       className="flex-1 gap-2"
                     >
-                      <Trash2 className="size-4" />
-                      Xoá đơn
+                      <XCircle className="size-4" />
+                      Từ chối
                     </Button>
-                  )}
-                </div>
-              )}
+                  </div>
+                )}
+
+                {/* Edit/Delete buttons - Only if user is the creator */}
+                {canEditOrDelete && canEditOrDelete(selectedRequest) && (onEdit || onDelete) && (
+                  <div className="flex gap-2">
+                    {onEdit && (
+                      <Button
+                        onClick={() => {
+                          onEdit(selectedRequest)
+                          onOpenChange(false)
+                        }}
+                        className="flex-1 gap-2"
+                        variant="outline"
+                      >
+                        <Edit className="size-4" />
+                        Sửa đơn
+                      </Button>
+                    )}
+                    {onDelete && (
+                      <Button
+                        variant="destructive"
+                        onClick={() => {
+                          onDelete(selectedRequest)
+                        }}
+                        className="flex-1 gap-2"
+                      >
+                        <Trash2 className="size-4" />
+                        Xoá đơn
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </DialogContent>

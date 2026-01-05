@@ -1,20 +1,55 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import dayjs from 'dayjs'
 import { useNavigate } from 'react-router'
+import { NotiType } from '@/constants'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 interface NotificationItemProps {
   noti: any
   onSeen?: (id: number) => void
-  notiType?: string
+  notiType?: string | number
 }
 
 export const NotificationItem = ({ noti, onSeen, notiType }: NotificationItemProps) => {
-  console.log('notiType', notiType)
   const navigate = useNavigate()
+  const isMobile = useIsMobile()
+
+  // Get notiType from prop or from noti object
+  const currentNotiType = notiType || noti.notiType || noti.type
 
   const handleClick = () => {
     onSeen?.(noti.id)
-    navigate(`/tasks/${noti.extraId}`)
+
+    const type = Number(currentNotiType)
+
+    // Types 5,6: Navigate to group details (using extraId as groupId)
+    if (type === NotiType.INVITE_MEMBER_GROUP || type === NotiType.REMOVE_MEMBER_GROUP) {
+      const groupId = noti.extraId
+      if (groupId) {
+        navigate(`/assignments/${groupId}`)
+      }
+      return
+    }
+
+    // Types 8,9,10: Navigate to leaves page and show modal/sheet
+    if (
+      type === NotiType.CREATE_ABSENCE ||
+      type === NotiType.APPROVE_ABSENCE ||
+      type === NotiType.REJECT_ABSENCE
+    ) {
+      const absenceRequestId = noti.objectId
+      if (absenceRequestId) {
+        // Navigate to leaves page with query param
+        const leavesPath = isMobile ? '/mobile/leaves' : '/personnel/leaves'
+        navigate(`${leavesPath}?absenceRequestId=${absenceRequestId}`)
+      }
+      return
+    }
+
+    // Default: navigate to task (existing behavior)
+    if (noti.extraId) {
+      navigate(`/tasks/${noti.extraId}`)
+    }
   }
 
   return (

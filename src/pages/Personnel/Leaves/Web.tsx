@@ -20,8 +20,15 @@ import { convertToDateInput } from '@/utils/CommonUtils.ts'
 import { useRemoveLeaves } from '@/hooks/leaves/useRemoveLeaves'
 import { useAuthStore } from '@/stores/authStore'
 import { PageBreadcrumb } from '@/components/common/PageBreadcrumb'
+import { useSearchParams, useNavigate } from 'react-router-dom'
+import useGetAbsenceRequestById from '@/hooks/leaves/useGetAbsenceRequestById'
 
 export default function LeavesWeb() {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const navigate = useNavigate()
+  const absenceRequestIdParam = searchParams.get('absenceRequestId')
+  const absenceRequestId = absenceRequestIdParam ? Number(absenceRequestIdParam) : null
+
   const {
     canApprove,
     selectedRequest,
@@ -38,6 +45,7 @@ export default function LeavesWeb() {
     confirmAction,
     viewDetails,
     isUpdatingStatus,
+    setSelectedRequest,
   } = useLeaves()
 
   const [offset, setOffset] = useState(0)
@@ -54,6 +62,35 @@ export default function LeavesWeb() {
 
   const { removeLeavesMutate, isRemovingLeave } = useRemoveLeaves()
   const { user } = useAuthStore()
+
+  // Fetch absence request by ID if provided in URL
+  const { absenceRequest: absenceRequestFromUrl, isFetching: isFetchingAbsenceRequest } =
+    useGetAbsenceRequestById(absenceRequestId)
+
+  // Auto-open modal when absence request is loaded from URL
+  useEffect(() => {
+    if (absenceRequestFromUrl && absenceRequestId && !viewDialogOpen) {
+      setSelectedRequest(absenceRequestFromUrl)
+      setViewDialogOpen(true)
+    }
+  }, [
+    absenceRequestFromUrl,
+    absenceRequestId,
+    viewDialogOpen,
+    setSelectedRequest,
+    setViewDialogOpen,
+  ])
+
+  // Clear URL param when modal is closed
+  const handleViewDialogChange = (open: boolean) => {
+    setViewDialogOpen(open)
+    if (!open && absenceRequestId) {
+      // Remove query param when closing
+      const newSearchParams = new URLSearchParams(searchParams)
+      newSearchParams.delete('absenceRequestId')
+      setSearchParams(newSearchParams, { replace: true })
+    }
+  }
 
   const filterStatusKey = useMemo(() => JSON.stringify([...filterStatus].sort()), [filterStatus])
 
@@ -317,11 +354,13 @@ export default function LeavesWeb() {
       {/* View Details Dialog */}
       <ViewDetailsDialog
         open={viewDialogOpen}
-        onOpenChange={setViewDialogOpen}
-        selectedRequest={selectedRequest}
+        onOpenChange={handleViewDialogChange}
+        selectedRequest={selectedRequest || absenceRequestFromUrl}
         onEdit={handleEditLeave}
         onDelete={handleDeleteLeave}
         canEditOrDelete={canEditOrDelete}
+        canApprove={canApprove as boolean}
+        onActionClick={handleActionClick}
       />
 
       {/* Confirmation Dialog */}
