@@ -34,7 +34,6 @@ export const WorkBoardDetail: React.FC = () => {
   // Track pending row creations to prevent duplicates
   const pendingRowCreations = useRef<Set<number>>(new Set())
   // Calculate max width based on sidebar/tabbar
-  console.log('workBoard', workBoard)
   useEffect(() => {
     const calculateMaxWidth = () => {
       if (isMobile) {
@@ -108,6 +107,8 @@ export const WorkBoardDetail: React.FC = () => {
       observer.disconnect()
     }
   }, [isMobile])
+
+  const [isManualRefetching, setIsManualRefetching] = useState(false)
 
   const handleSave = async (data: {
     rows: number
@@ -300,8 +301,11 @@ export const WorkBoardDetail: React.FC = () => {
       </div>
     )
   }
-  const handleRefreshSheet = () => {
-    refetch()
+
+  const handleRefreshSheet = async () => {
+    setIsManualRefetching(true)
+    await refetch()
+    setIsManualRefetching(false)
   }
   const handleDeleteRow = async (rowIndex: number) => {
     if (!sheetId || !workBoard) return
@@ -371,12 +375,12 @@ export const WorkBoardDetail: React.FC = () => {
           <EditableTable
             workBoard={workBoard}
             onSave={handleSave}
-            isFetching={isLoading} // Use isLoading instead of isFetching for big table loader
+            isFetching={isLoading || isManualRefetching} // Only show loader on initial load OR manual refresh
             isSaving={
               createSheetRowMutation.isPending ||
               updateSheetRowCellMutation.isPending ||
               removeSheetRowMutation.isPending ||
-              (isFetching && !isLoading) // Show "Saving..." during background refetch
+              (isFetching && !isLoading && !isManualRefetching) // Show "Saving..." during background refetch if not initial/manual
             }
             onRefresh={handleRefreshSheet}
             // Passing undefined for onUnsavedChangesChange as we auto-save

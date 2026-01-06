@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Plus, Trash2, Settings2, X, Check } from 'lucide-react'
+import { GripVertical, Plus, Trash2, Settings2, X, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -54,6 +54,7 @@ export const ColumnManager: React.FC<ColumnManagerProps> = ({
 }) => {
   const [localColumns, setLocalColumns] = useState<IWorkBoardColumn[]>([])
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
 
   useEffect(() => {
     if (open) {
@@ -101,6 +102,32 @@ export const ColumnManager: React.FC<ColumnManagerProps> = ({
     }
   }
 
+  const handleDragStart = (index: number) => {
+    setDraggedIndex(index)
+  }
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault()
+    if (draggedIndex === null || draggedIndex === index) return
+
+    const newColumns = [...localColumns]
+    const draggedColumn = newColumns[draggedIndex]
+    newColumns.splice(draggedIndex, 1)
+    newColumns.splice(index, 0, draggedColumn)
+
+    // Update indices
+    newColumns.forEach((col, idx) => {
+      col.index = idx
+    })
+
+    setLocalColumns(newColumns)
+    setDraggedIndex(index)
+  }
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null)
+  }
+
   const handleSave = () => {
     onColumnsChange(localColumns)
     onOpenChange(false)
@@ -128,7 +155,7 @@ export const ColumnManager: React.FC<ColumnManagerProps> = ({
 
           {/* Columns List */}
           <div className="space-y-3">
-            {localColumns.map((column) => (
+            {localColumns.map((column, index) => (
               <ColumnCard
                 key={column.id}
                 column={column}
@@ -139,6 +166,10 @@ export const ColumnManager: React.FC<ColumnManagerProps> = ({
                 onDelete={() => handleDeleteColumn(column.id)}
                 onAddOption={(option) => handleAddOption(column.id, option)}
                 onRemoveOption={(optionIndex) => handleRemoveOption(column.id, optionIndex)}
+                onDragStart={() => handleDragStart(index)}
+                onDragOver={(e) => handleDragOver(e, index)}
+                onDragEnd={handleDragEnd}
+                isDragging={draggedIndex === index}
               />
             ))}
           </div>
@@ -175,6 +206,10 @@ interface ColumnCardProps {
   onDelete: () => void
   onAddOption: (option: string) => void
   onRemoveOption: (optionIndex: number) => void
+  onDragStart: () => void
+  onDragOver: (e: React.DragEvent) => void
+  onDragEnd: () => void
+  isDragging: boolean
 }
 
 const ColumnCard: React.FC<ColumnCardProps> = ({
@@ -186,6 +221,10 @@ const ColumnCard: React.FC<ColumnCardProps> = ({
   onDelete,
   onAddOption,
   onRemoveOption,
+  onDragStart,
+  onDragOver,
+  onDragEnd,
+  isDragging,
 }) => {
   const [optionInput, setOptionInput] = useState('')
 
@@ -198,11 +237,23 @@ const ColumnCard: React.FC<ColumnCardProps> = ({
 
   return (
     <div
-      className="border rounded-lg p-4 bg-card transition-all hover:shadow-md"
+      draggable
+      onDragStart={onDragStart}
+      onDragOver={onDragOver}
+      onDragEnd={onDragEnd}
+      className={cn(
+        'border rounded-lg p-4 bg-card transition-all',
+        isDragging && 'opacity-50 scale-95',
+        !isDragging && 'hover:shadow-md'
+      )}
       style={{ borderLeftColor: column.color, borderLeftWidth: '4px' }}
     >
       {/* Header */}
       <div className="flex items-start gap-3">
+        <div className="cursor-move mt-1">
+          <GripVertical className="h-5 w-5 text-muted-foreground" />
+        </div>
+
         <div className="flex-1 space-y-3">
           {/* Column Name */}
           <div className="flex items-center gap-2">
@@ -235,9 +286,8 @@ const ColumnCard: React.FC<ColumnCardProps> = ({
                 <Select
                   value={column.type || 'text'}
                   onValueChange={(value) => onUpdate({ type: value })}
-                  disabled={!String(column.id).startsWith('col-new-')}
                 >
-                  <SelectTrigger disabled={!String(column.id).startsWith('col-new-')}>
+                  <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>

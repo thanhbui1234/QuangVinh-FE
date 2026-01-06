@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
-import { Plus, Trash2, Settings2, RefreshCw } from 'lucide-react'
+import { Plus, Trash2, Settings2, RefreshCw, Settings } from 'lucide-react'
 import { useDebouncedCallback } from 'use-debounce'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,6 +15,8 @@ import {
 } from '@/components/ui/select'
 import { ColumnManager } from './ColumnManager'
 import { type IWorkBoard, type IWorkBoardCell, type IWorkBoardColumn } from '@/types/WorkBoard'
+import { DialogConfirm } from '../ui/alertComponent'
+import { SettingWorkBoards } from './SettingWorkBoards'
 
 interface EditableTableProps {
   workBoard: IWorkBoard | null
@@ -57,6 +59,9 @@ export const EditableTable: React.FC<EditableTableProps> = ({
   const tableRef = useRef<HTMLDivElement>(null)
   const [originalColumns, setOriginalColumns] = useState<IWorkBoardColumn[]>([])
   const [showColumnManager, setShowColumnManager] = useState(false)
+  const [openConfirm, setOpenConfirm] = useState(false)
+  const [rowIndex, setRowIndex] = useState(-1)
+  const [showSetting, setShowSetting] = useState(false)
 
   // Store state in ref for reliable access in debounced callbacks
   const stateRef = useRef({
@@ -348,7 +353,7 @@ export const EditableTable: React.FC<EditableTableProps> = ({
       setColumnHeaders(defaultColumns)
       setOriginalColumns([])
     }
-  }, [workBoard])
+  }, [workBoard, columns])
 
   useEffect(() => {
     if (!workBoard && columns > 0) {
@@ -393,6 +398,9 @@ export const EditableTable: React.FC<EditableTableProps> = ({
           <Button onClick={onRefresh} variant="outline" size="sm">
             <RefreshCw className="h-4 w-4 mr-1" />
             Tải lại
+          </Button>
+          <Button onClick={() => setShowSetting(true)} variant="outline" size="sm">
+            <Settings className="w-4 h-4" />
           </Button>
         </div>
         <div className="text-sm text-muted-foreground">{isSaving ? 'Đang lưu...' : 'Đã lưu'}</div>
@@ -507,7 +515,10 @@ export const EditableTable: React.FC<EditableTableProps> = ({
                           variant="ghost"
                           size="sm"
                           className="h-6 w-6 p-0 opacity-0 group-hover/row:opacity-100 transition-opacity"
-                          onClick={() => handleDeleteRow(rowIndex)}
+                          onClick={() => {
+                            setOpenConfirm(true)
+                            setRowIndex(rowIndex)
+                          }}
                           title="Xóa hàng"
                         >
                           <Trash2 className="h-3 w-3 text-destructive" />
@@ -631,6 +642,14 @@ export const EditableTable: React.FC<EditableTableProps> = ({
         columns={columnHeaders}
         onColumnsChange={handleColumnsChange}
       />
+      <DialogConfirm
+        open={openConfirm}
+        onOpenChange={setOpenConfirm}
+        onConfirm={() => handleDeleteRow(rowIndex)}
+        title="Bạn có chắc chắn muốn xóa hàng này?"
+        description="Hành động này không thể hoàn tác."
+      />
+      <SettingWorkBoards open={showSetting} onOpenChange={setShowSetting as any} />
     </div>
   )
 }
