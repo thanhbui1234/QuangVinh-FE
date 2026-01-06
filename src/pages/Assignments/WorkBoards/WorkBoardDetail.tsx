@@ -21,7 +21,8 @@ export const WorkBoardDetail: React.FC = () => {
   const { id } = useParams()
   const navigate = useNavigate()
   const sheetId = id ? Number(id) : undefined
-  const { workBoard, isFetching, isLoading, error, refetch } = useGetWorkBoardDetail(sheetId)
+  const { workBoard, isFetching, isLoading, error, refetchAndClearCache } =
+    useGetWorkBoardDetail(sheetId)
   const { addColumnMutation } = useAddColumn({ suppressInvalidation: true })
   const { updateColumnMutation } = useUpdateColumn({ suppressInvalidation: true })
   const { removeColumnMutation } = useRemoveColumn({ suppressInvalidation: true })
@@ -304,7 +305,7 @@ export const WorkBoardDetail: React.FC = () => {
 
   const handleRefreshSheet = async () => {
     setIsManualRefetching(true)
-    await refetch()
+    await refetchAndClearCache()
     setIsManualRefetching(false)
   }
   const handleDeleteRow = async (rowIndex: number) => {

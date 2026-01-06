@@ -1,6 +1,4 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog'
-import { Button } from '../ui/button'
-import { DialogClose, DialogDescription, DialogFooter } from '../ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../ui/dialog'
 
 export const SettingWorkBoards = ({
   open,
@@ -11,19 +9,11 @@ export const SettingWorkBoards = ({
 }) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Cài đặt bảng</DialogTitle>
-          <DialogDescription>Cài đặt bảng</DialogDescription>
+      <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden bg-white rounded-xl shadow-lg border border-gray-100">
+        <DialogHeader className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+          <DialogTitle className="text-lg font-semibold text-gray-800">Cài đặt bảng</DialogTitle>
         </DialogHeader>
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
-          </DialogClose>
-          <DialogClose asChild>
-            <Button onClick={onOpenChange}>Continue</Button>
-          </DialogClose>
-        </DialogFooter>
+        <DialogDescription className="px-6 py-4">Cài đặt bảng</DialogDescription>
       </DialogContent>
     </Dialog>
   )

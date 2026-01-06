@@ -1,7 +1,5 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { workBoardsKey } from '@/constants/assignments/assignment'
-import { useEffect } from 'react'
-import { handleCommonError } from '@/utils/handleErrors'
 import { API_ENDPOINT } from '@/common/apiEndpoint'
 import { POST } from '@/core/api'
 import type {
@@ -97,83 +95,70 @@ const mapSheetInfoToWorkBoard = (sheetInfo: ISheetInfo): IWorkBoard => {
 }
 
 export const useGetWorkBoardDetail = (id: number | undefined, rowSize: number = 50) => {
+  const queryClient = useQueryClient()
+
+  const queryKey = [workBoardsKey.detail(id || 0), rowSize]
+
   const { data, isFetching, error, refetch } = useQuery({
-    queryKey: [workBoardsKey.detail(id || 0), rowSize],
-    // ... (rest of queryFn is fine)
+    queryKey,
     queryFn: async () => {
-      // ...
-      // Can't easily use search/replace across large block, so just fix the return
       if (!id || isNaN(id)) {
         throw new Error('Invalid sheet ID')
       }
+
       const payload: IGetSheetDetailRequest = {
         sheetId: id,
         rowSize,
       }
 
-      try {
-        const response = (await POST(
-          API_ENDPOINT.GET_SHEET_DETAIL,
-          payload
-        )) as IGetSheetDetailResponse
+      const response = (await POST(
+        API_ENDPOINT.GET_SHEET_DETAIL,
+        payload
+      )) as IGetSheetDetailResponse
 
-        // Handle different possible response structures
-        let sheetInfo: ISheetInfo
+      let sheetInfo: ISheetInfo
 
-        if (response?.sheetInfo) {
-          // Standard response structure
-          sheetInfo = response.sheetInfo
-        } else if (response && 'id' in response && 'sheetName' in response) {
-          // Direct sheetInfo structure
-          sheetInfo = response as unknown as ISheetInfo
-        } else {
-          console.error('Unexpected response structure:', response)
-          throw new Error('Invalid API response: unexpected structure')
-        }
-
-        if (!sheetInfo) {
-          throw new Error('Invalid API response: missing sheetInfo')
-        }
-
-        // Ensure columns and rows are arrays (they might be undefined)
-        if (!Array.isArray(sheetInfo.columns)) {
-          console.warn('sheetInfo.columns is not an array, defaulting to empty array')
-          sheetInfo.columns = []
-        }
-        if (!Array.isArray(sheetInfo.rows)) {
-          console.warn('sheetInfo.rows is not an array, defaulting to empty array')
-          sheetInfo.rows = []
-        }
-
-        const workBoard: IWorkBoard = mapSheetInfoToWorkBoard(sheetInfo)
-
-        return { workBoard }
-      } catch (err: any) {
-        console.error('Error fetching work board detail:', err)
-        console.error('Payload sent:', payload)
-        console.error('Error details:', {
-          message: err?.message,
-          response: err?.response?.data,
-          status: err?.response?.status,
-        })
-        throw err
+      if (response?.sheetInfo) {
+        sheetInfo = response.sheetInfo
+      } else if (response && 'id' in response && 'sheetName' in response) {
+        sheetInfo = response as unknown as ISheetInfo
+      } else {
+        throw new Error('Invalid API response')
       }
+
+      sheetInfo.columns ??= []
+      sheetInfo.rows ??= []
+
+      const workBoard: IWorkBoard = mapSheetInfoToWorkBoard(sheetInfo)
+
+      return { workBoard }
     },
     enabled: !!id && !isNaN(id) && id > 0,
     retry: 1,
   })
 
-  useEffect(() => {
-    if (error) {
-      handleCommonError(error)
-    }
-  }, [error])
+  /**
+   * 🔥 refetch mới: clear cache + fetch lại
+   */
+  const refetchAndClearCache = async () => {
+    await queryClient.removeQueries({
+      queryKey,
+      exact: true,
+    })
+
+    // fetch lại sau khi clear
+    return queryClient.fetchQuery({
+      queryKey,
+      queryFn: () => Promise.resolve(refetch()).then((r) => r.data),
+    })
+  }
 
   return {
     workBoard: data?.workBoard,
     isFetching,
-    isLoading: isFetching && !data, // Derived isLoading if not directly available, but useQuery v5 has isLoading.
+    isLoading: isFetching && !data,
     error,
-    refetch,
+    refetch, // giữ lại refetch cũ
+    refetchAndClearCache, // ✅ refetch mới có clear cache
   }
 }
