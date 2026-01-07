@@ -1,7 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip'
 import { useNavigate } from 'react-router'
-import useCheckRole from '@/hooks/useCheckRole'
 import { Settings, Plus, UserPlus } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { STATUS_PROJECT } from '@/constants/assignments/privacy'
@@ -21,7 +20,6 @@ export default function AssignmentsAction({
   onEdit?: () => void
 }) {
   const navigate = useNavigate()
-  const { hasPermission } = useCheckRole()
   const members = projectAssignmentDetail?.members || []
   const displayMembers = members.slice(0, 10) // Max 10 items
   const status = projectAssignmentDetail?.status
@@ -134,35 +132,33 @@ export default function AssignmentsAction({
       </div>
 
       {/* Action Buttons */}
-      {hasPermission && (
-        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto mt-2 md:mt-0">
-          <button
-            onClick={() => setIsInviteOpen(true)}
-            className="group flex items-center justify-center h-9 px-3.5 gap-2 rounded-lg border border-border bg-card text-foreground hover:bg-accent hover:text-accent-foreground hover:border-border transition-all duration-200 shadow-sm text-sm font-medium focus:ring-2 focus:ring-offset-2 focus:ring-muted active:scale-95"
-          >
-            <UserPlus className="w-4 h-4 text-muted-foreground group-hover:text-foreground" />
-            <span className="whitespace-nowrap">Mời</span>
-          </button>
+      <div className="flex flex-wrap items-center gap-2 w-full md:w-auto mt-2 md:mt-0">
+        <button
+          onClick={() => setIsInviteOpen(true)}
+          className="group flex items-center justify-center h-9 px-3.5 gap-2 rounded-lg border border-border bg-card text-foreground hover:bg-accent hover:text-accent-foreground hover:border-border transition-all duration-200 shadow-sm text-sm font-medium focus:ring-2 focus:ring-offset-2 focus:ring-muted active:scale-95"
+        >
+          <UserPlus className="w-4 h-4 text-muted-foreground group-hover:text-foreground" />
+          <span className="whitespace-nowrap">Mời</span>
+        </button>
 
-          <button
-            onClick={() => setIsCreateOpen(true)}
-            className="group flex-1 md:flex-none flex items-center justify-center h-9 px-4 gap-2 rounded-lg bg-slate-900 text-white hover:bg-slate-800 transition-all duration-200 shadow-md hover:shadow-lg hover:shadow-slate-900/20 text-sm font-medium focus:ring-2 focus:ring-offset-2 focus:ring-slate-900 active:scale-95"
-          >
-            <Plus className="w-4 h-4" />
-            <span className="whitespace-nowrap">Tạo việc</span>
-          </button>
+        <button
+          onClick={() => setIsCreateOpen(true)}
+          className="group flex-1 md:flex-none flex items-center justify-center h-9 px-4 gap-2 rounded-lg bg-slate-900 text-white hover:bg-slate-800 transition-all duration-200 shadow-md hover:shadow-lg hover:shadow-slate-900/20 text-sm font-medium focus:ring-2 focus:ring-offset-2 focus:ring-slate-900 active:scale-95"
+        >
+          <Plus className="w-4 h-4" />
+          <span className="whitespace-nowrap">Tạo việc</span>
+        </button>
 
-          {onEdit && (
-            <button
-              onClick={onEdit}
-              className="flex items-center justify-center h-9 w-9 rounded-lg border border-border bg-card text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:border-border transition-all duration-200 shadow-sm focus:ring-2 focus:ring-offset-2 focus:ring-muted active:scale-95"
-              title="Cài đặt dự án"
-            >
-              <Settings className="w-4 h-4" />
-            </button>
-          )}
-        </div>
-      )}
+        {onEdit && (
+          <button
+            onClick={onEdit}
+            className="flex items-center justify-center h-9 w-9 rounded-lg border border-border bg-card text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:border-border transition-all duration-200 shadow-sm focus:ring-2 focus:ring-offset-2 focus:ring-muted active:scale-95"
+            title="Cài đặt dự án"
+          >
+            <Settings className="w-4 h-4" />
+          </button>
+        )}
+      </div>
     </div>
   )
 }
