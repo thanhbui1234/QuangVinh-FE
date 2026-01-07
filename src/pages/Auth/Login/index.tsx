@@ -31,7 +31,7 @@ const Login = () => {
       <div className="  rounded-2xl shadow-2xl p-8">
         <h1 className="text-2xl font-bold text-gray-900 text-center mb-8">Đăng nhập</h1>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" autoComplete="off">
           {/* Username Field */}
           <div className="space-y-2">
             <div className="relative">
@@ -40,6 +40,7 @@ const Login = () => {
                 {...register('email')}
                 type="text"
                 placeholder="Username"
+                autoComplete="off"
                 className="pl-10 h-12 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-gray-50 text-black dark:text-black"
               />
             </div>
@@ -54,6 +55,7 @@ const Login = () => {
                 {...register('password')}
                 type={showPassword ? 'text' : 'password'}
                 placeholder="Mật khẩu"
+                autoComplete="off"
                 className="pl-10 pr-10 h-12 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-gray-50 text-black dark:text-black"
               />
               <button
