@@ -21,7 +21,7 @@ import { useRemoveLeaves } from '@/hooks/leaves/useRemoveLeaves'
 import { useAuthStore } from '@/stores/authStore'
 import { PageBreadcrumb } from '@/components/common/PageBreadcrumb'
 import { useSearchParams } from 'react-router-dom'
-import useGetAbsenceRequestById from '@/hooks/leaves/useGetAbsenceRequestById'
+import useGetLeaveDetail from '@/hooks/leaves/useGetLeaveDetail'
 
 export default function LeavesWeb() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -42,7 +42,6 @@ export default function LeavesWeb() {
     setFilterStatus,
     handleActionClick,
     confirmAction,
-    viewDetails,
     isUpdatingStatus,
     setSelectedRequest,
   } = useLeaves()
@@ -58,6 +57,7 @@ export default function LeavesWeb() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deleteRequest, setDeleteRequest] = useState<LeavesListDataResponse | null>(null)
   const [calendarOpen, setCalendarOpen] = useState(false)
+  const [detailRequestId, setDetailRequestId] = useState<number | null>(null)
 
   const { removeLeavesMutate, isRemovingLeave } = useRemoveLeaves()
   const { user } = useAuthStore()
@@ -66,7 +66,12 @@ export default function LeavesWeb() {
   const hasOpenedFromUrlRef = useRef<number | null>(null)
 
   // Fetch absence request by ID if provided in URL
-  const { absenceRequest: absenceRequestFromUrl } = useGetAbsenceRequestById(absenceRequestId)
+  const { absenceRequest: absenceRequestFromUrl, isFetching: isFetchingDetailFromUrl } =
+    useGetLeaveDetail(absenceRequestId)
+
+  // Fetch detail when detailRequestId is set (from viewDetails or other actions)
+  const { absenceRequest: detailRequest, isFetching: isFetchingDetail } =
+    useGetLeaveDetail(detailRequestId)
 
   // Auto-open modal when absence request is loaded from URL
   // Only depends on absenceRequestId and absenceRequestFromUrl, not viewDialogOpen
@@ -87,6 +92,16 @@ export default function LeavesWeb() {
     }
   }, [absenceRequestFromUrl, absenceRequestId, setSelectedRequest, setViewDialogOpen])
 
+  // Update selectedRequest when detail is fetched
+  useEffect(() => {
+    if (detailRequest) {
+      if (import.meta.env.NODE_ENV === 'development') {
+        console.log('LeavesWeb - detailRequest received:', detailRequest)
+      }
+      setSelectedRequest(detailRequest)
+    }
+  }, [detailRequest])
+
   // Reset ref when absenceRequestId is cleared (URL param removed)
   useEffect(() => {
     if (!absenceRequestId) {
@@ -105,6 +120,9 @@ export default function LeavesWeb() {
         newSearchParams.delete('absenceRequestId')
         setSearchParams(newSearchParams, { replace: true })
       }
+      // Clear detail request ID
+      setDetailRequestId(null)
+      setSelectedRequest(null)
     }
   }
 
@@ -360,7 +378,16 @@ export default function LeavesWeb() {
             handleActionClick(Number(id), action, request)
           }
         }}
-        onViewDetails={viewDetails}
+        onViewDetails={(request) => {
+          if (import.meta.env.NODE_ENV === 'development') {
+            console.log('LeavesWeb - onViewDetails called with request:', request)
+          }
+          // Set selectedRequest from list first (for immediate display)
+          setSelectedRequest(request)
+          // Then fetch detail using the detail API to get latest data
+          setDetailRequestId(request.id)
+          setViewDialogOpen(true)
+        }}
         onEdit={handleEditLeave}
         onDelete={handleDeleteLeave}
         canEditOrDelete={canEditOrDelete}
@@ -372,6 +399,7 @@ export default function LeavesWeb() {
         open={viewDialogOpen}
         onOpenChange={handleViewDialogChange}
         selectedRequest={selectedRequest || absenceRequestFromUrl}
+        isLoading={isFetchingDetail || isFetchingDetailFromUrl}
         onEdit={handleEditLeave}
         onDelete={handleDeleteLeave}
         canEditOrDelete={canEditOrDelete}

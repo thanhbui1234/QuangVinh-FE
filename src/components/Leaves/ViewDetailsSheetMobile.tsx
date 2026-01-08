@@ -17,6 +17,7 @@ type ViewDetailsSheetMobileProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   selectedRequest: LeavesListDataResponse | null
+  isLoading?: boolean
   onEdit?: (request: LeavesListDataResponse) => void
   onDelete?: (request: LeavesListDataResponse) => void
   canEditOrDelete?: (request: LeavesListDataResponse) => any
@@ -26,6 +27,7 @@ export default function ViewDetailsSheetMobile({
   open,
   onOpenChange,
   selectedRequest,
+  isLoading = false,
   onEdit,
   onDelete,
   canEditOrDelete,
@@ -42,7 +44,11 @@ export default function ViewDetailsSheetMobile({
       title="Chi tiết đơn nghỉ"
       description="Thông tin chi tiết về đơn xin nghỉ"
     >
-      {selectedRequest && (
+      {isLoading ? (
+        <div className="flex items-center justify-center py-8">
+          <p className="text-sm text-muted-foreground">Đang tải...</p>
+        </div>
+      ) : selectedRequest ? (
         <div className="space-y-4 pb-6">
           {/* iOS-style Info Card */}
           <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-4 space-y-3">
@@ -176,6 +182,10 @@ export default function ViewDetailsSheetMobile({
                 )}
               </div>
             )}
+        </div>
+      ) : (
+        <div className="flex items-center justify-center py-8">
+          <p className="text-sm text-muted-foreground">Không tìm thấy thông tin đơn nghỉ</p>
         </div>
       )}
     </BottomSheet>

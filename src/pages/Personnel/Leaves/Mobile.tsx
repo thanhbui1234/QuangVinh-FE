@@ -21,7 +21,7 @@ import ConfirmationSheetMobile from '@/components/base/ConfirmationSheetMobile.t
 import { Trash2, CheckCircle, XCircle } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
 import { useSearchParams } from 'react-router-dom'
-import useGetAbsenceRequestById from '@/hooks/leaves/useGetAbsenceRequestById'
+import useGetLeaveDetail from '@/hooks/leaves/useGetLeaveDetail'
 
 export default function LeavesMobile() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -42,7 +42,6 @@ export default function LeavesMobile() {
     setFilterStatus,
     handleActionClick,
     confirmAction,
-    viewDetails,
     isUpdatingStatus,
     setSelectedRequest,
   } = useLeaves()
@@ -55,6 +54,7 @@ export default function LeavesMobile() {
   const [editInitialValues, setEditInitialValues] = useState<Partial<LeaveFormValues> | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deleteRequest, setDeleteRequest] = useState<LeavesListDataResponse | null>(null)
+  const [detailRequestId, setDetailRequestId] = useState<number | null>(null)
   const limit = 10
 
   const { removeLeavesMutate, isRemovingLeave } = useRemoveLeaves()
@@ -64,7 +64,12 @@ export default function LeavesMobile() {
   const hasOpenedFromUrlRef = useRef<number | null>(null)
 
   // Fetch absence request by ID if provided in URL
-  const { absenceRequest: absenceRequestFromUrl } = useGetAbsenceRequestById(absenceRequestId)
+  const { absenceRequest: absenceRequestFromUrl, isFetching: isFetchingDetailFromUrl } =
+    useGetLeaveDetail(absenceRequestId)
+
+  // Fetch detail when detailRequestId is set (from viewDetails or other actions)
+  const { absenceRequest: detailRequest, isFetching: isFetchingDetail } =
+    useGetLeaveDetail(detailRequestId)
 
   // Auto-open sheet when absence request is loaded from URL
   // Only depends on absenceRequestId and absenceRequestFromUrl, not viewDialogOpen
@@ -85,6 +90,16 @@ export default function LeavesMobile() {
     }
   }, [absenceRequestFromUrl, absenceRequestId, setSelectedRequest, setViewDialogOpen])
 
+  // Update selectedRequest when detail is fetched
+  useEffect(() => {
+    if (detailRequest) {
+      if (import.meta.env.NODE_ENV === 'development') {
+        console.log('LeavesMobile - detailRequest received:', detailRequest)
+      }
+      setSelectedRequest(detailRequest)
+    }
+  }, [detailRequest])
+
   // Reset ref when absenceRequestId is cleared (URL param removed)
   useEffect(() => {
     if (!absenceRequestId) {
@@ -103,6 +118,9 @@ export default function LeavesMobile() {
         newSearchParams.delete('absenceRequestId')
         setSearchParams(newSearchParams, { replace: true })
       }
+      // Clear detail request ID
+      setDetailRequestId(null)
+      setSelectedRequest(null)
     }
   }
 
@@ -290,7 +308,16 @@ export default function LeavesMobile() {
         <LeaveListMobile
           items={allItems}
           canApprove={canApprove as boolean}
-          onViewDetails={viewDetails}
+          onViewDetails={(request) => {
+            if (import.meta.env.NODE_ENV === 'development') {
+              console.log('LeavesMobile - onViewDetails called with request:', request)
+            }
+            // Set selectedRequest from list first (for immediate display)
+            setSelectedRequest(request)
+            // Then fetch detail using the detail API to get latest data
+            setDetailRequestId(request.id)
+            setViewDialogOpen(true)
+          }}
           onActionClick={handleActionClick}
           onCreateClick={handleCreateClick}
           onLoadMore={handleLoadMore}
@@ -310,6 +337,7 @@ export default function LeavesMobile() {
         open={viewDialogOpen}
         onOpenChange={handleViewSheetChange}
         selectedRequest={selectedRequest || absenceRequestFromUrl}
+        isLoading={isFetchingDetail || isFetchingDetailFromUrl}
         onEdit={handleEditLeave}
         onDelete={handleDeleteLeave}
         canEditOrDelete={canEditOrDelete}
