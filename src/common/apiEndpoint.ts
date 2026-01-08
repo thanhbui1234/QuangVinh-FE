@@ -45,6 +45,7 @@ export const API_ENDPOINT = {
   GET_USER_APPROVE_LEAVES: '/api/absence-request/get_approvable_users',
   REMOVE_LEAVES: '/api/absence-request/remove',
   GET_APPROVED_LEAVES_BY_TIME: '/api/absence-request/get-approved-by-time',
+  GET_DETAIL_LEAVES: '/api/absence-request/get-detail',
   // profile
   GET_PROFILE: '/api/user/get-info',
   UPDATE_EMAIL: '/api/user/update-email',

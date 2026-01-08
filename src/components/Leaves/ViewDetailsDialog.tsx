@@ -23,6 +23,7 @@ type ViewDetailsDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   selectedRequest: LeavesListDataResponse | null
+  isLoading?: boolean
   onEdit?: (request: LeavesListDataResponse) => void
   onDelete?: (request: LeavesListDataResponse) => void
   canEditOrDelete?: (request: LeavesListDataResponse) => any
@@ -38,6 +39,7 @@ export default function ViewDetailsDialog({
   open,
   onOpenChange,
   selectedRequest,
+  isLoading = false,
   onEdit,
   onDelete,
   canEditOrDelete,
@@ -60,7 +62,11 @@ export default function ViewDetailsDialog({
           </DialogTitle>
           <DialogDescription>Thông tin chi tiết về đơn xin nghỉ</DialogDescription>
         </DialogHeader>
-        {selectedRequest && (
+        {isLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <p className="text-muted-foreground">Đang tải...</p>
+          </div>
+        ) : selectedRequest ? (
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
@@ -206,6 +212,10 @@ export default function ViewDetailsDialog({
                 )}
               </div>
             )}
+          </div>
+        ) : (
+          <div className="flex items-center justify-center py-8">
+            <p className="text-muted-foreground">Không tìm thấy thông tin đơn nghỉ</p>
           </div>
         )}
       </DialogContent>
