@@ -14,6 +14,7 @@ import ProjectAssignment from '@/pages/Assignments/ProjectAssignment/Web'
 import { DetailTask } from '@/pages/Assignments/DetailTask/DetailTask'
 import { WorkBoardDetail } from '@/pages/Assignments/WorkBoards/WorkBoardDetail'
 import { WorkBoardsList } from '@/pages/Assignments/WorkBoards/WorkBoardsList'
+import { FilterWorkboard } from '@/pages/Assignments/FilerWorkboard'
 const router = createBrowserRouter([
   {
     path: '/',
@@ -100,6 +101,16 @@ const router = createBrowserRouter([
       {
         index: true,
         element: <Profile />,
+      },
+    ],
+  },
+  {
+    path: '/filter/work-boards',
+    element: <PrivateRoute children={<ResponsiveLayout />} />,
+    children: [
+      {
+        index: true,
+        element: <FilterWorkboard />,
       },
     ],
   },

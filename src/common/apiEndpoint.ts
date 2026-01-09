@@ -81,10 +81,20 @@ export const API_ENDPOINT = {
   ADD_COLUMN: '/api/sheet-info/add-column',
   UPDATE_COLUMN: '/api/sheet-info/update-column',
   REMOVE_COLUMN: '/api/sheet-info/remove-column',
+  GET_STATISTICS_BY_COLUMN_WORKBOARD: '/api/sheet-info/stats-by-column',
   SEARCH_WORKBOARD: '/api/sheet-info/name-search',
   // Row
   CREATE_SHEET_ROW: '/api/sheet-row/create-sheet-row',
   UPDATE_SHEET_ROW: '/api/sheet-row/upsert-cell-row',
   REMOVE_SHEET_ROW: '/api/sheet-row/remove',
   GET_SHEET_ROW: '/api/sheet-row/get-list',
+  // collection
+  CREATE_COLLECTION: '/api/sheet-collection/create',
+  GET_COLLECTIONS: '/api/sheet-collection/get-list',
+  UPDATE_COLLECTION: '/api/sheet-collection/update',
+  UPDATE_COLLECTION_STATUS: '/api/sheet-collection/update-status',
+  UPDATE_COLLECTION_NAME: '/api/sheet-collection/update-name',
+  DELETE_COLLECTION: '/api/sheet-collection/remove',
+  GET_COLLECTION_DETAIL: '/api/sheet-collection/get-by-id',
+  SEARCH_COLLECTION: '/api/sheet-collection/name-search',
 }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
-import { Plus, Trash2, Settings2, RefreshCw, Settings } from 'lucide-react'
+import { Plus, Trash2, Settings2, RefreshCw, Settings, BarChart3 } from 'lucide-react'
 import { useDebouncedCallback } from 'use-debounce'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -17,9 +17,11 @@ import { ColumnManager } from './ColumnManager'
 import { type IWorkBoard, type IWorkBoardCell, type IWorkBoardColumn } from '@/types/WorkBoard'
 import { DialogConfirm } from '../ui/alertComponent'
 import { SettingWorkBoards } from './SettingWorkBoards'
+import { ColumnStatisticsModal } from './ColumnStatisticsModal'
 
 interface EditableTableProps {
   workBoard: IWorkBoard | null
+  sheetId?: number
   onSave: (data: {
     rows: number
     columns: number
@@ -40,6 +42,7 @@ interface EditableTableProps {
 
 export const EditableTable: React.FC<EditableTableProps> = ({
   workBoard,
+  sheetId,
   onSave,
   isSaving = false,
   isFetching = false,
@@ -62,6 +65,9 @@ export const EditableTable: React.FC<EditableTableProps> = ({
   const [openConfirm, setOpenConfirm] = useState(false)
   const [rowIndex, setRowIndex] = useState(-1)
   const [showSetting, setShowSetting] = useState(false)
+  const [statisticsColumn, setStatisticsColumn] = useState<{ name: string; index: number } | null>(
+    null
+  )
 
   // Store state in ref for reliable access in debounced callbacks
   const stateRef = useRef({
@@ -147,10 +153,14 @@ export const EditableTable: React.FC<EditableTableProps> = ({
 
   // Internal Save Logic
   const handleSaveInternal = useCallback(
-    (overrideColumns?: IWorkBoardColumn[], overrideCells?: Map<string, string>) => {
+    (
+      overrideColumns?: IWorkBoardColumn[],
+      overrideCells?: Map<string, string>,
+      overrideRows?: number
+    ) => {
       const currentCells = overrideCells || stateRef.current.cells
       const currentColumns = overrideColumns || stateRef.current.columnHeaders
-      const currentRows = stateRef.current.rows
+      const currentRows = overrideRows !== undefined ? overrideRows : stateRef.current.rows
       const currentOriginalColumns = stateRef.current.originalColumns
       const currentWorkBoard = stateRef.current.workBoard
 
@@ -293,20 +303,24 @@ export const EditableTable: React.FC<EditableTableProps> = ({
     }
 
     if (rows > 0) {
-      setRows((prev: any) => prev - 1)
-      setCells((prev) => {
-        const newMap = new Map()
-        prev.forEach((value, key) => {
-          const [r] = key.split('-').map(Number)
-          if (r < rowIndex) {
-            newMap.set(key, value)
-          } else if (r > rowIndex) {
-            const [col] = key.split('-').map(Number)
-            newMap.set(`${r - 1}-${col}`, value)
-          }
-        })
-        return newMap
+      const newRowCount = rows - 1
+      setRows(newRowCount)
+
+      const newCellsMap = new Map<string, string>()
+      cells.forEach((value, key) => {
+        const [r] = key.split('-').map(Number)
+        if (r < rowIndex) {
+          newCellsMap.set(key, value)
+        } else if (r > rowIndex) {
+          const [col] = key.split('-').map(Number)
+          newCellsMap.set(`${r - 1}-${col}`, value)
+        }
       })
+
+      setCells(newCellsMap)
+
+      // Save immediately with new state
+      handleSaveInternal(undefined, newCellsMap, newRowCount)
     }
   }
 
@@ -497,6 +511,20 @@ export const EditableTable: React.FC<EditableTableProps> = ({
                                   {col.label}
                                 </span>
                               </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                onClick={() => {
+                                  setStatisticsColumn({
+                                    name: col.name || col.label,
+                                    index: colIndex,
+                                  })
+                                }}
+                                title="Thống kê cột"
+                              >
+                                <BarChart3 className="h-3 w-3 text-gray-900 dark:text-gray-900" />
+                              </Button>
                             </div>
                           )}
                         </TableHead>
@@ -650,6 +678,16 @@ export const EditableTable: React.FC<EditableTableProps> = ({
         description="Hành động này không thể hoàn tác."
       />
       <SettingWorkBoards open={showSetting} onOpenChange={setShowSetting as any} />
+      {sheetId && statisticsColumn && (
+        <ColumnStatisticsModal
+          open={!!statisticsColumn}
+          onOpenChange={(open) => {
+            if (!open) setStatisticsColumn(null)
+          }}
+          sheetId={sheetId}
+          columnName={statisticsColumn.name}
+        />
+      )}
     </div>
   )
 }

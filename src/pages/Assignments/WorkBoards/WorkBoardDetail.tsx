@@ -375,6 +375,7 @@ export const WorkBoardDetail: React.FC = () => {
         <div className="min-w-full">
           <EditableTable
             workBoard={workBoard}
+            sheetId={sheetId}
             onSave={handleSave}
             isFetching={isLoading || isManualRefetching} // Only show loader on initial load OR manual refresh
             isSaving={

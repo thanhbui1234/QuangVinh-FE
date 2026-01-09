@@ -139,6 +139,9 @@ const WebLayout = ({ children }: Props) => {
     if (pathname.startsWith('/work-boards')) {
       return 'Bảng công việc'
     }
+    if (pathname.startsWith('/filter/work-boards')) {
+      return 'Bảng công việc'
+    }
     if (pathname.startsWith('/profile')) {
       return 'Cá nhân'
     }
@@ -214,6 +217,10 @@ const WebLayout = ({ children }: Props) => {
         {
           label: 'Bảng công việc',
           href: '/work-boards',
+        },
+        {
+          label: 'Phân loại bảng công việc',
+          href: '/filter/work-boards',
         },
       ],
     },
