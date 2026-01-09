@@ -53,10 +53,23 @@ export async function runOneSignalInit(): Promise<void> {
         isListenerAttached = true
         OneSignal.User.PushSubscription.addEventListener('change', async (ev: any) => {
           console.log('[OneSignal] PushSubscription.change:', ev?.current)
-
           const current = ev?.current
-          if (current?.id && current?.optedIn) {
-            await sendPlayerIdIfNeeded(current.id)
+          if (current?.optedIn) {
+            try {
+              // v16: id may not be immediately on the event, so also try getId()
+              const eventId = current.id
+              const getIdFn = OneSignal.User.PushSubscription.getId?.bind(
+                OneSignal.User.PushSubscription
+              )
+              const resolvedId = eventId || (getIdFn ? await getIdFn() : undefined)
+              if (resolvedId) {
+                await sendPlayerIdIfNeeded(resolvedId)
+              } else {
+                console.warn('[OneSignal] No subscription id found on change event')
+              }
+            } catch (error) {
+              console.error('[OneSignal] Error resolving playerId on change event', error)
+            }
           }
         })
       }
@@ -141,10 +154,21 @@ export async function setNotificationEnabled(enabled: boolean): Promise<boolean>
 
         await window.OneSignal.User.PushSubscription.optIn()
 
-        // Sync ID immediately if possible
-        const id = window.OneSignal.User.PushSubscription.id
-        if (id) {
-          await sendPlayerIdIfNeeded(id)
+        // Sync ID immediately if possible (v16: prefer async getId())
+        try {
+          const getIdFn = window.OneSignal.User.PushSubscription.getId?.bind(
+            window.OneSignal.User.PushSubscription
+          )
+          const id =
+            (getIdFn ? await getIdFn() : undefined) || window.OneSignal.User.PushSubscription.id
+
+          if (id) {
+            await sendPlayerIdIfNeeded(id)
+          } else {
+            console.warn('[OneSignal] No subscription id after optIn (immediate branch)')
+          }
+        } catch (error) {
+          console.error('[OneSignal] Failed to resolve subscription id after optIn', error)
         }
         return true
       } else {
@@ -178,9 +202,21 @@ export async function setNotificationEnabled(enabled: boolean): Promise<boolean>
 
           await OneSignal.User.PushSubscription.optIn()
 
-          const id = OneSignal.User.PushSubscription.id
-          if (id) {
-            await sendPlayerIdIfNeeded(id)
+          try {
+            const getIdFn = OneSignal.User.PushSubscription.getId?.bind(
+              OneSignal.User.PushSubscription
+            )
+            const id = (getIdFn ? await getIdFn() : undefined) || OneSignal.User.PushSubscription.id
+            if (id) {
+              await sendPlayerIdIfNeeded(id)
+            } else {
+              console.warn('[OneSignal] No subscription id after optIn (deferred branch)')
+            }
+          } catch (error) {
+            console.error(
+              '[OneSignal] Failed to resolve subscription id after optIn (deferred branch)',
+              error
+            )
           }
 
           resolve(true)
