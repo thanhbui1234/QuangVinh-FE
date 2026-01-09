@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
+import { DialogConfirm } from '../ui/alertComponent'
 import {
   Sheet,
   SheetContent,
@@ -55,6 +56,7 @@ export const ColumnManager: React.FC<ColumnManagerProps> = ({
   const [localColumns, setLocalColumns] = useState<IWorkBoardColumn[]>([])
   const [editingId, setEditingId] = useState<string | null>(null)
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
 
   useEffect(() => {
     if (open) {
@@ -79,7 +81,16 @@ export const ColumnManager: React.FC<ColumnManagerProps> = ({
   }
 
   const handleDeleteColumn = (id: string) => {
-    setLocalColumns(localColumns.filter((col) => col.id !== id))
+    setDeleteConfirmId(id)
+  }
+
+  const executeDeleteColumn = () => {
+    if (deleteConfirmId) {
+      const newColumns = localColumns.filter((col) => col.id !== deleteConfirmId)
+      setLocalColumns(newColumns)
+      onColumnsChange(newColumns)
+      setDeleteConfirmId(null)
+    }
   }
 
   const handleUpdateColumn = (id: string, updates: Partial<IWorkBoardColumn>) => {
@@ -193,6 +204,13 @@ export const ColumnManager: React.FC<ColumnManagerProps> = ({
           </Button>
         </div>
       </SheetContent>
+      <DialogConfirm
+        open={!!deleteConfirmId}
+        onOpenChange={(open) => !open && setDeleteConfirmId(null)}
+        onConfirm={executeDeleteColumn}
+        title="Bạn có chắc chắn muốn xóa cột này?"
+        description="Hành động này sẽ xóa cột và tất cả dữ liệu trong cột đó. Không thể hoàn tác."
+      />
     </Sheet>
   )
 }
