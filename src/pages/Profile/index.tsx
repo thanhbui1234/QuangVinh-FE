@@ -17,7 +17,10 @@ import { useUploadFile } from '@/hooks/useUploadFile'
 import { ProfileSchema, type ProfileFormData } from '@/schemas/profileSchema'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
-import { initOneSignal, checkSubscriptionStatus } from '@/service/onesignalService/initOnesignal'
+import {
+  getSubscriptionStatus,
+  setNotificationEnabled,
+} from '@/service/onesignalService/initOnesignal'
 import { PageBreadcrumb } from '@/components/common/PageBreadcrumb'
 import { PhotoProvider, PhotoView } from 'react-photo-view'
 
@@ -70,30 +73,19 @@ export const Profile = () => {
     if (typeof window === 'undefined') return
 
     const checkStatus = async () => {
-      try {
-        // First check browser notification permission
-        if ('Notification' in window) {
-          if (Notification.permission === 'denied') {
-            setIsNotificationsOn(false)
-            return
-          }
-        }
-
-        // Check OneSignal subscription status (will handle both OneSignal and browser permission)
-        const hasPermission = await checkSubscriptionStatus()
-        setIsNotificationsOn(hasPermission)
-      } catch (error) {
-        setIsNotificationsOn(false)
-      }
+      const isEnabled = await getSubscriptionStatus()
+      setIsNotificationsOn(isEnabled)
     }
 
-    // Check immediately and also after a delay to catch OneSignal if it loads later
+    // Check immediately and poll a few times just to be sure (SDK lazy load)
     checkStatus()
-    const timeoutId = setTimeout(() => {
-      checkStatus()
-    }, 1000)
+    const t1 = setTimeout(checkStatus, 1000)
+    const t2 = setTimeout(checkStatus, 3000)
 
-    return () => clearTimeout(timeoutId)
+    return () => {
+      clearTimeout(t1)
+      clearTimeout(t2)
+    }
   }, [])
 
   // Sync avatar preview only when user/profile ID or avatar URL changes
@@ -332,44 +324,21 @@ export const Profile = () => {
   }
 
   const handleToggleNotifications = async (checked: boolean) => {
-    if (!checked) {
-      setIsNotificationsOn(false)
-      toast.info('Bạn có thể bật lại thông báo bất cứ lúc nào.')
-      return
-    }
-
     setIsRequestingNotifications(true)
     try {
-      const success = await initOneSignal()
-      if (success) {
-        // Wait a bit more for subscription to be fully established
-        await new Promise((resolve) => setTimeout(resolve, 1500))
+      const success = await setNotificationEnabled(checked)
+      setIsNotificationsOn(success)
 
-        // Verify subscription status with retry
-        let isSubscribed = false
-        let retries = 3
-        while (retries > 0 && !isSubscribed) {
-          isSubscribed = await checkSubscriptionStatus()
-          if (!isSubscribed && retries > 1) {
-            await new Promise((resolve) => setTimeout(resolve, 500))
-          }
-          retries--
-        }
-
-        setIsNotificationsOn(isSubscribed)
-
-        if (isSubscribed) {
-          toast.success('Đã bật thông báo đẩy thành công')
-        } else {
-          toast.warning('Thông báo chưa được kích hoạt. Vui lòng thử lại.')
-        }
-      } else {
-        setIsNotificationsOn(false)
+      if (checked && success) {
+        toast.success('Đã bật thông báo')
+      } else if (!checked && !success) {
+        toast.info('Đã tắt thông báo')
       }
     } catch (error) {
-      console.error('initOneSignal error', error)
-      setIsNotificationsOn(false)
-      toast.error('Không thể khởi tạo thông báo. Vui lòng thử lại sau.')
+      console.error('Toggle notification error', error)
+      toast.error('Có lỗi xảy ra, vui lòng thử lại settings.')
+      // Revert state on error if needed, but here we just rely on the result
+      setIsNotificationsOn(!checked)
     } finally {
       setIsRequestingNotifications(false)
     }
