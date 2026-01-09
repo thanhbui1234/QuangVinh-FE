@@ -37,15 +37,26 @@ export async function runOneSignalInit(): Promise<void> {
           appId,
           allowLocalhostAsSecureOrigin: true,
           serviceWorkerPath: '/OneSignalSDKWorker.js',
-          // Prevent auto-prompting; we want to trigger it via UI toggle
+          // Prevent auto-prompting; we want to trigger it via UI toggle only
           promptOptions: {
             slidedown: {
               prompts: [],
             },
+            native: {
+              enabled: false, // Disable native browser prompt on init
+            },
           },
+          // Disable auto-register to prevent automatic permission request
+          autoRegister: false,
+          // Disable any automatic subscription prompts
+          welcomeNotification: {
+            disable: true,
+          },
+          // Disable automatic subscription on init
+          autoResubscribe: false,
         })
         isInitialized = true
-        console.log('[OneSignal] Initialized')
+        console.log('[OneSignal] Initialized (manual permission mode)')
       }
 
       // Add listener for subscription changes to sync with backend
