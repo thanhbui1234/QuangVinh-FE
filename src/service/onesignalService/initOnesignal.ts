@@ -90,6 +90,32 @@ async function sendPlayerIdIfNeeded(playerId: string) {
  * If not subscribed/permission not granted, it requests permission first.
  */
 export async function setNotificationEnabled(enabled: boolean): Promise<boolean> {
+  // First, always try to trigger the native Notification permission prompt
+  // as early as possible in the same user gesture (important for iOS PWA).
+  if (enabled && typeof window !== 'undefined' && 'Notification' in window) {
+    try {
+      const currentPermission = Notification.permission
+      console.log('[OneSignal] Native Notification.permission:', currentPermission)
+
+      if (currentPermission === 'denied') {
+        // Can't prompt again, caller should show instructions to user
+        console.warn('[OneSignal] Native permission is denied')
+        return false
+      }
+
+      if (currentPermission !== 'granted') {
+        // MUST be called directly inside the click/toggle handler call stack
+        const result = await Notification.requestPermission()
+        console.log('[OneSignal] Native Notification.requestPermission result:', result)
+        if (result !== 'granted') {
+          return false
+        }
+      }
+    } catch (e) {
+      console.error('[OneSignal] Native Notification permission error', e)
+    }
+  }
+
   // Try to use immediate instance if available (Critical for iOS PWA to preserve user gesture)
   if (window.OneSignal && window.OneSignal.Notifications) {
     try {
