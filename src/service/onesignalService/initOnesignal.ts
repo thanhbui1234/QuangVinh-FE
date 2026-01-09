@@ -1,6 +1,5 @@
 import { POST } from '@/core/api'
 import { API_ENDPOINT } from '@/common'
-import { toast } from 'sonner'
 
 declare global {
   interface Window {
@@ -91,26 +90,68 @@ async function sendPlayerIdIfNeeded(playerId: string) {
  * If not subscribed/permission not granted, it requests permission first.
  */
 export async function setNotificationEnabled(enabled: boolean): Promise<boolean> {
+  // Try to use immediate instance if available (Critical for iOS PWA to preserve user gesture)
+  if (window.OneSignal && window.OneSignal.Notifications) {
+    try {
+      if (enabled) {
+        const permission = window.OneSignal.Notifications.permission
+        console.log('[OneSignal] Current permission:', permission)
+
+        if (permission === 'denied') {
+          // If denied, we cannot request again. Just return false so UI can show instructions.
+          console.warn('[OneSignal] Permission is denied')
+          return false
+        }
+
+        if (permission !== 'granted') {
+          // This MUST be called directly in the click event stack
+          console.log('[OneSignal] Requesting permission...')
+          const granted = await window.OneSignal.Notifications.requestPermission()
+          console.log('[OneSignal] Permission result:', granted)
+          if (!granted) {
+            return false
+          }
+        }
+
+        await window.OneSignal.User.PushSubscription.optIn()
+
+        // Sync ID immediately if possible
+        const id = window.OneSignal.User.PushSubscription.id
+        if (id) {
+          await sendPlayerIdIfNeeded(id)
+        }
+        return true
+      } else {
+        await window.OneSignal.User.PushSubscription.optOut()
+        return false
+      }
+    } catch (e) {
+      console.error('[OneSignal] Immediate setNotificationEnabled error', e)
+    }
+  }
+
+  // Fallback to deferred queue (Might lose user gesture on some browsers/versions)
   return new Promise((resolve) => {
     ensureDeferred()
     window.OneSignalDeferred!.push(async (OneSignal: any) => {
       try {
         if (enabled) {
-          // 1. Check/Request Permission
           const permission = OneSignal.Notifications.permission
+          if (permission === 'denied') {
+            resolve(false)
+            return
+          }
+
           if (permission !== 'granted') {
             const granted = await OneSignal.Notifications.requestPermission()
             if (!granted) {
-              toast.error('Bạn cần cấp quyền thông báo trong cài đặt trình duyệt/thiết bị.')
               resolve(false)
               return
             }
           }
 
-          // 2. Opt In
           await OneSignal.User.PushSubscription.optIn()
 
-          // 3. Sync ID immediately if possible
           const id = OneSignal.User.PushSubscription.id
           if (id) {
             await sendPlayerIdIfNeeded(id)
@@ -118,12 +159,11 @@ export async function setNotificationEnabled(enabled: boolean): Promise<boolean>
 
           resolve(true)
         } else {
-          // Disable: Opt Out
           await OneSignal.User.PushSubscription.optOut()
           resolve(false)
         }
       } catch (e) {
-        console.error('[OneSignal] setNotificationEnabled error', e)
+        console.error('[OneSignal] Deferred setNotificationEnabled error', e)
         resolve(false)
       }
     })

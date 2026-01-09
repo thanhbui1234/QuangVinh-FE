@@ -333,6 +333,18 @@ export const Profile = () => {
         toast.success('Đã bật thông báo')
       } else if (!checked && !success) {
         toast.info('Đã tắt thông báo')
+        // Special handling if user wanted to turn ON but failed (likely denied or dismissed)
+      } else if (checked && !success) {
+        // Double check permission to give specific advice
+        // We can't easily check 'denied' synchronously here without importing more,
+        // but generally if it failed to turn ON, it's either denied or error.
+        if (Notification.permission === 'denied') {
+          toast.error(
+            'Thông báo bị chặn. Vui lòng vào Cài đặt thiết bị > Chọn ứng dụng này > Bật thông báo.'
+          )
+        } else {
+          toast.error('Không thể bật thông báo. Vui lòng thử lại.')
+        }
       }
     } catch (error) {
       console.error('Toggle notification error', error)
