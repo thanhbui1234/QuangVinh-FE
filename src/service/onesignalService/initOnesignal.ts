@@ -33,17 +33,22 @@ export async function runOneSignalInit(): Promise<void> {
   window.OneSignalDeferred!.push(async (OneSignal: any) => {
     try {
       if (!isInitialized) {
+        // Initialize OneSignal with all auto-prompt features disabled
         await OneSignal.init({
           appId,
           allowLocalhostAsSecureOrigin: true,
           serviceWorkerPath: '/OneSignalSDKWorker.js',
-          // Prevent auto-prompting; we want to trigger it via UI toggle only
+          // Completely disable all auto-prompting
           promptOptions: {
+            autoPrompt: false, // Disable automatic permission prompt
             slidedown: {
               prompts: [],
             },
             native: {
               enabled: false, // Disable native browser prompt on init
+            },
+            category: {
+              enabled: false,
             },
           },
           // Disable auto-register to prevent automatic permission request
@@ -54,9 +59,24 @@ export async function runOneSignalInit(): Promise<void> {
           },
           // Disable automatic subscription on init
           autoResubscribe: false,
+          // Disable automatic subscription prompts
+          notifyButton: {
+            enable: false,
+          },
+          // Prevent any automatic prompts
+          persistNotification: false,
         })
+
+        // Explicitly opt out on init to prevent any automatic subscription
+        try {
+          await OneSignal.User.PushSubscription.optOut()
+        } catch (e) {
+          // Ignore if already opted out or not ready
+          console.log('[OneSignal] Already opted out or not ready')
+        }
+
         isInitialized = true
-        console.log('[OneSignal] Initialized (manual permission mode)')
+        console.log('[OneSignal] Initialized (manual permission mode - no auto-prompt)')
       }
 
       // Add listener for subscription changes to sync with backend
