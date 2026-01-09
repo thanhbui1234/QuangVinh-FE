@@ -23,6 +23,7 @@ import {
 } from '@/service/onesignalService/initOnesignal'
 import { PageBreadcrumb } from '@/components/common/PageBreadcrumb'
 import { PhotoProvider, PhotoView } from 'react-photo-view'
+import { NotificationPermissionDialog } from '@/components/Profile/NotificationPermissionDialog'
 
 export const Profile = () => {
   const { id } = useParams()
@@ -48,6 +49,7 @@ export const Profile = () => {
   })
   const [isNotificationsOn, setIsNotificationsOn] = useState(false)
   const [isRequestingNotifications, setIsRequestingNotifications] = useState(false)
+  const [showPermissionDialog, setShowPermissionDialog] = useState(false)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const isUploadingRef = useRef(false)
 
@@ -324,20 +326,73 @@ export const Profile = () => {
   }
 
   const handleToggleNotifications = async (checked: boolean) => {
+    // Nếu user tắt thông báo, gọi trực tiếp
+    if (!checked) {
+      setIsRequestingNotifications(true)
+      try {
+        const success = await setNotificationEnabled(false)
+        setIsNotificationsOn(success)
+        if (!success) {
+          toast.info('Đã tắt thông báo')
+        }
+      } catch (error) {
+        console.error('Toggle notification error', error)
+        toast.error('Có lỗi xảy ra, vui lòng thử lại.')
+        setIsNotificationsOn(true)
+      } finally {
+        setIsRequestingNotifications(false)
+      }
+      return
+    }
+
+    // Nếu user bật thông báo, kiểm tra permission
+    const currentPermission = Notification.permission
+
+    // Nếu permission đã granted, gọi trực tiếp
+    if (currentPermission === 'granted') {
+      setIsRequestingNotifications(true)
+      try {
+        const success = await setNotificationEnabled(true)
+        setIsNotificationsOn(success)
+        if (success) {
+          toast.success('Đã bật thông báo')
+        } else {
+          toast.error('Không thể bật thông báo. Vui lòng thử lại.')
+        }
+      } catch (error) {
+        console.error('Toggle notification error', error)
+        toast.error('Có lỗi xảy ra, vui lòng thử lại.')
+        setIsNotificationsOn(false)
+      } finally {
+        setIsRequestingNotifications(false)
+      }
+      return
+    }
+
+    // Nếu permission bị denied, hiển thị thông báo lỗi
+    if (currentPermission === 'denied') {
+      toast.error(
+        'Thông báo bị chặn. Vui lòng vào Cài đặt thiết bị > Chọn ứng dụng này > Bật thông báo.'
+      )
+      setIsNotificationsOn(false)
+      return
+    }
+
+    // Nếu permission là 'default' (chưa được hỏi), hiển thị popup custom
+    setShowPermissionDialog(true)
+    // Tạm thời không cập nhật switch state, đợi user chọn trong dialog
+  }
+
+  const handleAllowNotification = async () => {
     setIsRequestingNotifications(true)
     try {
-      const success = await setNotificationEnabled(checked)
+      const success = await setNotificationEnabled(true)
       setIsNotificationsOn(success)
 
-      if (checked && success) {
+      if (success) {
         toast.success('Đã bật thông báo')
-      } else if (!checked && !success) {
-        toast.info('Đã tắt thông báo')
-        // Special handling if user wanted to turn ON but failed (likely denied or dismissed)
-      } else if (checked && !success) {
-        // Double check permission to give specific advice
-        // We can't easily check 'denied' synchronously here without importing more,
-        // but generally if it failed to turn ON, it's either denied or error.
+      } else {
+        // Kiểm tra lại permission sau khi request
         if (Notification.permission === 'denied') {
           toast.error(
             'Thông báo bị chặn. Vui lòng vào Cài đặt thiết bị > Chọn ứng dụng này > Bật thông báo.'
@@ -345,15 +400,20 @@ export const Profile = () => {
         } else {
           toast.error('Không thể bật thông báo. Vui lòng thử lại.')
         }
+        setIsNotificationsOn(false)
       }
     } catch (error) {
-      console.error('Toggle notification error', error)
-      toast.error('Có lỗi xảy ra, vui lòng thử lại settings.')
-      // Revert state on error if needed, but here we just rely on the result
-      setIsNotificationsOn(!checked)
+      console.error('Enable notification error', error)
+      toast.error('Có lỗi xảy ra, vui lòng thử lại.')
+      setIsNotificationsOn(false)
     } finally {
       setIsRequestingNotifications(false)
     }
+  }
+
+  const handleDenyNotification = () => {
+    setIsNotificationsOn(false)
+    // Không cần làm gì thêm, chỉ đóng dialog
   }
 
   const isUploading = uploadFileMutation.isPending
@@ -481,6 +541,14 @@ export const Profile = () => {
           </div>
         )}
       </div>
+
+      {/* Custom Notification Permission Dialog */}
+      <NotificationPermissionDialog
+        open={showPermissionDialog}
+        onOpenChange={setShowPermissionDialog}
+        onAllow={handleAllowNotification}
+        onDeny={handleDenyNotification}
+      />
     </div>
   )
 }
