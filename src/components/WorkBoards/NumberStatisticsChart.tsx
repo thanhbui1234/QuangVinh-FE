@@ -12,19 +12,19 @@ export const NumberStatisticsChart: React.FC<NumberStatisticsChartProps> = ({ da
   const maxValue = Math.max(data.max, Math.abs(data.min))
   const chartData = [
     {
-      name: 'Min',
+      name: 'Nhỏ nhất',
       value: data.min,
       fill: '#ef4444',
       displayValue: data.min,
     },
     {
-      name: 'Avg',
+      name: 'Trung bình',
       value: data.avg,
       fill: '#3b82f6',
       displayValue: data.avg,
     },
     {
-      name: 'Max',
+      name: 'Lớn nhất',
       value: data.max,
       fill: '#10b981',
       displayValue: data.max,

@@ -83,6 +83,8 @@ export const API_ENDPOINT = {
   REMOVE_COLUMN: '/api/sheet-info/remove-column',
   GET_STATISTICS_BY_COLUMN_WORKBOARD: '/api/sheet-info/stats-by-column',
   SEARCH_WORKBOARD: '/api/sheet-info/name-search',
+  DELETE_WORKBOARD: '/api/sheet-info/remove',
+  UPDATE_NAME_WORKBOARD: '/api/sheet-info/update-name',
   // Row
   CREATE_SHEET_ROW: '/api/sheet-row/create-sheet-row',
   UPDATE_SHEET_ROW: '/api/sheet-row/upsert-cell-row',
@@ -97,4 +99,6 @@ export const API_ENDPOINT = {
   DELETE_COLLECTION: '/api/sheet-collection/remove',
   GET_COLLECTION_DETAIL: '/api/sheet-collection/get-by-id',
   SEARCH_COLLECTION: '/api/sheet-collection/name-search',
+  ADD_SHEET_TO_COLLECTION: '/api/sheet-info/update-collection',
+  DELETE_SHEET_FROM_COLLECTION: '/api/sheet-collection/remove',
 }

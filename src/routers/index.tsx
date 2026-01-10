@@ -15,6 +15,7 @@ import { DetailTask } from '@/pages/Assignments/DetailTask/DetailTask'
 import { WorkBoardDetail } from '@/pages/Assignments/WorkBoards/WorkBoardDetail'
 import { WorkBoardsList } from '@/pages/Assignments/WorkBoards/WorkBoardsList'
 import { FilterWorkboard } from '@/pages/Assignments/FilerWorkboard'
+import { CollectionDetail } from '@/pages/Assignments/CollectionDetail'
 const router = createBrowserRouter([
   {
     path: '/',
@@ -111,6 +112,16 @@ const router = createBrowserRouter([
       {
         index: true,
         element: <FilterWorkboard />,
+      },
+    ],
+  },
+  {
+    path: '/collection/:id',
+    element: <PrivateRoute children={<ResponsiveLayout />} />,
+    children: [
+      {
+        index: true,
+        element: <CollectionDetail />,
       },
     ],
   },

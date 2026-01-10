@@ -11,11 +11,12 @@ import { useRemoveSheetRow } from '@/hooks/workBoards/useRemoveSheetRow'
 // import { useGetSheetRowList } from '@/hooks/workBoards/useGetSheetRowList'
 import { EditableTable } from '@/components/WorkBoards/EditableTable'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Settings } from 'lucide-react'
 import type { IWorkBoardCell, IWorkBoardColumn } from '@/types/WorkBoard'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { queryClient } from '@/lib/queryClient'
 import { workBoardsKey } from '@/constants/assignments/assignment'
+import { SettingWorkBoards } from '@/components/WorkBoards/SettingWorkBoards'
 
 export const WorkBoardDetail: React.FC = () => {
   const { id } = useParams()
@@ -23,6 +24,7 @@ export const WorkBoardDetail: React.FC = () => {
   const sheetId = id ? Number(id) : undefined
   const { workBoard, isFetching, isLoading, error, refetchAndClearCache } =
     useGetWorkBoardDetail(sheetId)
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const { addColumnMutation } = useAddColumn({ suppressInvalidation: true })
   const { updateColumnMutation } = useUpdateColumn({ suppressInvalidation: true })
   const { removeColumnMutation } = useRemoveColumn({ suppressInvalidation: true })
@@ -358,18 +360,37 @@ export const WorkBoardDetail: React.FC = () => {
 
   return (
     <div className="p-4 space-y-4">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => navigate('/work-boards')}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Quay lại
-        </Button>
-        <div>
-          <h1 className="text-2xl font-semibold">{workBoard.name}</h1>
-          {workBoard.description && (
-            <p className="text-muted-foreground mt-1">{workBoard.description}</p>
-          )}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="sm" onClick={() => navigate('/work-boards')}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Quay lại
+          </Button>
+          <div>
+            <h1 className="text-2xl font-semibold flex items-center gap-2">
+              {workBoard.name}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-slate-400 hover:text-slate-600"
+                onClick={() => setIsSettingsOpen(true)}
+              >
+                <Settings className="h-4 w-4" />
+              </Button>
+            </h1>
+            {workBoard.description && (
+              <p className="text-muted-foreground mt-1">{workBoard.description}</p>
+            )}
+          </div>
         </div>
       </div>
+
+      <SettingWorkBoards
+        open={isSettingsOpen}
+        onOpenChange={setIsSettingsOpen}
+        sheetId={sheetId}
+        currentName={workBoard.name}
+      />
 
       <div ref={containerRef} className="w-full overflow-x-auto" style={{ maxWidth }}>
         <div className="min-w-full">
