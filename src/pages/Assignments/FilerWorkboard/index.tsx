@@ -11,13 +11,14 @@ import { useCreateColection } from '@/hooks/colection/useCreatColection'
 import { useUpdateColection } from '@/hooks/colection/useUpdateColection'
 import { useDeleteColection } from '@/hooks/colection/useDeleteColection'
 import type { ICollectionResponse } from '@/types/Collection'
+import { useNavigate } from 'react-router-dom'
 
 export const FilterWorkboard = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingCollection, setEditingCollection] = useState<ICollectionResponse | null>(null)
   const [deleteId, setDeleteId] = useState<number | null>(null)
-
+  const navigate = useNavigate()
   // API Hooks
   const { colections, isLoading } = useGetColections()
   const { createColectionMutation } = useCreateColection()
@@ -122,7 +123,7 @@ export const FilterWorkboard = () => {
                 }}
                 onDelete={(id) => setDeleteId(id)}
                 onClick={() => {
-                  // Navigate logic can be added here
+                  navigate(`/collection/${collection.id}`)
                 }}
               />
             ))}

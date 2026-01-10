@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
-import { Plus, Trash2, Settings2, RefreshCw, Settings, BarChart3 } from 'lucide-react'
+import { Plus, Trash2, Settings2, RefreshCw, BarChart3 } from 'lucide-react'
 import { useDebouncedCallback } from 'use-debounce'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -413,9 +413,6 @@ export const EditableTable: React.FC<EditableTableProps> = ({
             <RefreshCw className="h-4 w-4 mr-1" />
             Tải lại
           </Button>
-          <Button onClick={() => setShowSetting(true)} variant="outline" size="sm">
-            <Settings className="w-4 h-4" />
-          </Button>
         </div>
         <div className="text-sm text-muted-foreground">{isSaving ? 'Đang lưu...' : 'Đã lưu'}</div>
       </div>
@@ -511,20 +508,33 @@ export const EditableTable: React.FC<EditableTableProps> = ({
                                   {col.label}
                                 </span>
                               </div>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                                onClick={() => {
-                                  setStatisticsColumn({
-                                    name: col.name || col.label,
-                                    index: colIndex,
-                                  })
-                                }}
-                                title="Thống kê cột"
-                              >
-                                <BarChart3 className="h-3 w-3 text-gray-900 dark:text-gray-900" />
-                              </Button>
+                              {/* Only show statistics button if column has data */}
+                              {(() => {
+                                // Check if this column has any data
+                                const hasData = Array.from({ length: rows }).some((_, rowIdx) => {
+                                  const cellValue = getCellValue(rowIdx, colIndex)
+                                  return cellValue && cellValue.trim() !== ''
+                                })
+
+                                if (!hasData) return null
+
+                                return (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    onClick={() => {
+                                      setStatisticsColumn({
+                                        name: col.name || col.label,
+                                        index: colIndex,
+                                      })
+                                    }}
+                                    title="Thống kê cột"
+                                  >
+                                    <BarChart3 className="h-3 w-3 text-gray-900 dark:text-gray-900" />
+                                  </Button>
+                                )
+                              })()}
                             </div>
                           )}
                         </TableHead>
@@ -677,7 +687,14 @@ export const EditableTable: React.FC<EditableTableProps> = ({
         title="Bạn có chắc chắn muốn xóa hàng này?"
         description="Hành động này không thể hoàn tác."
       />
-      <SettingWorkBoards open={showSetting} onOpenChange={setShowSetting as any} />
+      {sheetId && (
+        <SettingWorkBoards
+          sheetId={sheetId}
+          currentName={workBoard?.name || ''}
+          open={showSetting}
+          onOpenChange={setShowSetting}
+        />
+      )}
       {sheetId && statisticsColumn && (
         <ColumnStatisticsModal
           open={!!statisticsColumn}

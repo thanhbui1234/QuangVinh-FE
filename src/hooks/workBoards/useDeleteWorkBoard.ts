@@ -1,20 +1,25 @@
 import { useMutation } from '@tanstack/react-query'
 import SonnerToaster from '@/components/ui/toaster'
-import { workBoardsKey } from '@/constants/assignments/assignment'
+import { workBoardKey } from '@/constants/workboard/workboard'
 import { queryClient } from '@/lib/queryClient'
-import { mockWorkBoardsService } from '@/services/workBoards/mockWorkBoardsService'
+import { POST } from '@/core/api'
+import { API_ENDPOINT } from '@/common/apiEndpoint'
 
-export const useDeleteWorkBoard = () => {
+interface UseDeleteWorkBoardParams {
+  sheetId: any
+}
+export const useDeleteWorkBoard = (params: UseDeleteWorkBoardParams) => {
   const deleteWorkBoardMutation = useMutation({
-    mutationFn: async (id: number) => {
-      return await mockWorkBoardsService.delete(id)
+    mutationFn: async () => {
+      await POST(API_ENDPOINT.DELETE_WORKBOARD, params)
     },
-    onSuccess: (response) => {
-      queryClient.invalidateQueries({ queryKey: [workBoardsKey.getAll] })
+    onSuccess: () => {
+      // Invalidate all queries related to workboards (lists, details)
+      queryClient.refetchQueries({ queryKey: workBoardKey.all })
       SonnerToaster({
         type: 'success',
         message: 'Xóa bảng công việc thành công',
-        description: response.message || 'Bảng công việc đã được xóa thành công',
+        description: 'Bảng công việc đã được xóa thành công',
       })
     },
   })
