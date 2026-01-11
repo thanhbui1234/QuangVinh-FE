@@ -80,6 +80,7 @@ export const API_ENDPOINT = {
   GET_SHEET_DETAIL: '/api/sheet-info/get-detail',
   ADD_COLUMN: '/api/sheet-info/add-column',
   UPDATE_COLUMN: '/api/sheet-info/update-column',
+  UPDATE_COLUMNS: '/api/sheet-info/update-columns',
   REMOVE_COLUMN: '/api/sheet-info/remove-column',
   GET_STATISTICS_BY_COLUMN_WORKBOARD: '/api/sheet-info/stats-by-column',
   SEARCH_WORKBOARD: '/api/sheet-info/name-search',

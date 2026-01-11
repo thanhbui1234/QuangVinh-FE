@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router'
 import { useGetWorkBoardDetail } from '@/hooks/workBoards/useGetWorkBoardDetail'
 import { useAddColumn } from '@/hooks/workBoards/useAddColumn'
-import { useUpdateColumn } from '@/hooks/workBoards/useUpdateColumn'
+
 import { useRemoveColumn } from '@/hooks/workBoards/useRemoveColumn'
+import { useUpdateColumns } from '@/hooks/workBoards/useUpdateColumns'
 import { useCreateSheetRow } from '@/hooks/workBoards/useCreateSheetRow'
 import { useUpdateSheetRowCell } from '@/hooks/workBoards/useUpdateSheetRowCell'
 import { useRemoveSheetRow } from '@/hooks/workBoards/useRemoveSheetRow'
@@ -26,7 +27,7 @@ export const WorkBoardDetail: React.FC = () => {
     useGetWorkBoardDetail(sheetId)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const { addColumnMutation } = useAddColumn({ suppressInvalidation: true })
-  const { updateColumnMutation } = useUpdateColumn({ suppressInvalidation: true })
+  const { updateColumnsMutation } = useUpdateColumns({ suppressInvalidation: true })
   const { removeColumnMutation } = useRemoveColumn({ suppressInvalidation: true })
   const { createSheetRowMutation } = useCreateSheetRow()
   const { updateSheetRowCellMutation } = useUpdateSheetRowCell()
@@ -148,37 +149,25 @@ export const WorkBoardDetail: React.FC = () => {
           )
         }
 
-        // Update modified columns
-        for (const { original, updated } of columnChanges.modified) {
-          const originalName = original.name || original.label
-          const updatedName = updated.name || updated.label
+        // Update all columns (Sync)
+        // Send the full list of columns to sync the state
+        const columnsPayload = data.columnHeaders.map((col, idx) => ({
+          name: col.name || col.label,
+          index: col.index ?? idx, // Use the column's index if available, otherwise its position in the array
+          color: col.color || '#FFFFFF',
+          required: col.required || false,
+          options: col.options || [],
+          type: col.type || 'text',
+        }))
 
-          const updatePayload: any = {
-            sheetId,
-            columnName: originalName,
-          }
-
-          if (updatedName && updatedName !== originalName) {
-            updatePayload.newColumnName = updatedName
-          }
-          if (updated.index !== undefined && updated.index !== original.index) {
-            updatePayload.newIndex = updated.index
-          }
-          if (updated.color && updated.color !== original.color) {
-            updatePayload.newColor = updated.color
-          }
-          if (updated.required !== undefined && updated.required !== original.required) {
-            updatePayload.newRequired = updated.required
-          }
-          const originalOptionsStr = JSON.stringify(original.options || [])
-          const updatedOptionsStr = JSON.stringify(updated.options || [])
-          if (updatedOptionsStr !== originalOptionsStr) {
-            updatePayload.newOptions = updated.options || []
-          }
-
-          if (Object.keys(updatePayload).length > 2) {
-            promises.push(updateColumnMutation.mutateAsync(updatePayload))
-          }
+        if (columnsPayload.length > 0) {
+          promises.push(
+            updateColumnsMutation.mutateAsync({
+              sheetId,
+              version: 1, // Assuming versioning is handled or 1 is a default
+              columns: columnsPayload,
+            })
+          )
         }
 
         // Remove deleted columns

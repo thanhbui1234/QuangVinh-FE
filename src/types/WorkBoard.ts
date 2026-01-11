@@ -148,6 +148,24 @@ export interface IRemoveColumnResponse {
   result: boolean
 }
 
+export interface IUpdateColumnsRequest {
+  sheetId: number
+  version?: number
+  columns: Array<{
+    name: string
+    index: number
+    color: string
+    required: boolean
+    options: string[]
+    type?: string
+  }>
+}
+
+export interface IUpdateColumnsResponse {
+  sheetId: number
+  result: boolean
+}
+
 // Sheet Row API Types
 export interface ICreateSheetRowRequest {
   sheetId: number

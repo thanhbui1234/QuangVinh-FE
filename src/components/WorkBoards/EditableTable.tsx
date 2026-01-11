@@ -516,7 +516,7 @@ export const EditableTable: React.FC<EditableTableProps> = ({
                                   return cellValue && cellValue.trim() !== ''
                                 })
 
-                                if (!hasData) return null
+                                if (!hasData || col.type === 'text') return null
 
                                 return (
                                   <Button
