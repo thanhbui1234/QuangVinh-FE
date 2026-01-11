@@ -5,37 +5,34 @@ import { API_ENDPOINT } from '@/common'
 import { colectionWorkBoardsKey } from '@/constants/assignments/assignment'
 import { queryClient } from '@/lib/queryClient'
 
-interface ICreateColection {
-  sheetId: number
-  collectionId: number
-}
-export const useAddSheetCollection = (id: number) => {
-  const addSheetCollectionMutation = useMutation({
-    mutationFn: async (payload: ICreateColection) => {
+export const useDeleteWorkBoardCollection = (collectionId: number) => {
+  const deleteWorkBoardCollectionMutation = useMutation({
+    mutationFn: async (id: number) => {
       const response = await POST(API_ENDPOINT.ADD_SHEET_TO_COLLECTION, {
-        ...payload,
-        sheetSize: 25,
+        sheetId: id,
+        status: 0,
+        collectionId: 0,
       })
       return response
     },
     onSuccess: (respones) => {
       queryClient.invalidateQueries({
-        queryKey: [colectionWorkBoardsKey.detail(id.toString()), { collectionId: id }],
+        queryKey: [colectionWorkBoardsKey.detail(collectionId.toString())],
       })
       SonnerToaster({
         type: 'success',
-        message: 'Thêm sheet vào collection thành công',
+        message: 'Xóa thành công',
         description: respones.message,
       })
     },
-    onError: () => {
+    onError: (error) => {
       SonnerToaster({
         type: 'error',
-        message: 'Bảng công việc đã tồn tại trong bộ sưu tập',
-        description: 'Hãy chọn bảng công việc khác',
+        message: 'Xóa thất bại',
+        description: error instanceof Error ? error.message : 'Đã xảy ra lỗi khi xóa',
       })
     },
   })
 
-  return { addSheetCollectionMutation }
+  return { deleteWorkBoardCollectionMutation }
 }

@@ -18,13 +18,14 @@ import { useIsMobile } from '@/hooks/use-mobile'
 import { queryClient } from '@/lib/queryClient'
 import { workBoardsKey } from '@/constants/assignments/assignment'
 import { SettingWorkBoards } from '@/components/WorkBoards/SettingWorkBoards'
-
+import useCheckRole from '@/hooks/useCheckRole'
 export const WorkBoardDetail: React.FC = () => {
   const { id } = useParams()
   const navigate = useNavigate()
   const sheetId = id ? Number(id) : undefined
   const { workBoard, isFetching, isLoading, error, refetchAndClearCache } =
     useGetWorkBoardDetail(sheetId)
+  const hasPermission = useCheckRole()
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const { addColumnMutation } = useAddColumn({ suppressInvalidation: true })
   const { updateColumnsMutation } = useUpdateColumns({ suppressInvalidation: true })
@@ -358,14 +359,16 @@ export const WorkBoardDetail: React.FC = () => {
           <div>
             <h1 className="text-2xl font-semibold flex items-center gap-2">
               {workBoard.name}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-slate-400 hover:text-slate-600"
-                onClick={() => setIsSettingsOpen(true)}
-              >
-                <Settings className="h-4 w-4" />
-              </Button>
+              {hasPermission && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-slate-400 hover:text-slate-600"
+                  onClick={() => setIsSettingsOpen(true)}
+                >
+                  <Settings className="h-4 w-4" />
+                </Button>
+              )}
             </h1>
             {workBoard.description && (
               <p className="text-muted-foreground mt-1">{workBoard.description}</p>

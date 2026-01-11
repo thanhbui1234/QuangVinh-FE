@@ -6,13 +6,13 @@ import { colectionWorkBoardsKey } from '@/constants/assignments/assignment'
 import { queryClient } from '@/lib/queryClient'
 
 interface IUpdateColection {
-  id: number
+  collectionId: number
   name?: string
   desc?: string
   status?: number
 }
 
-export const useUpdateColection = () => {
+export const useUpdateColection = (collectionId?: number) => {
   const updateColectionMutation = useMutation({
     mutationFn: async (payload: IUpdateColection) => {
       const response = await POST(API_ENDPOINT.UPDATE_COLLECTION, payload)
@@ -20,6 +20,11 @@ export const useUpdateColection = () => {
     },
     onSuccess: (respones) => {
       queryClient.invalidateQueries({ queryKey: [colectionWorkBoardsKey.getAll] })
+      if (collectionId) {
+        queryClient.invalidateQueries({
+          queryKey: [colectionWorkBoardsKey.detail(collectionId.toString())],
+        })
+      }
       SonnerToaster({
         type: 'success',
         message: 'Cập nhật thành công',

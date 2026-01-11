@@ -19,15 +19,19 @@ import { AddSheetModal } from './components/AddSheetModal'
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 import { vi } from 'date-fns/locale'
-// import { useDeleteWorkBoard } from '@/hooks/workBoards/useDeleteWorkBoard'
+import { useDeleteWorkBoardCollection } from '@/hooks/colection/useDeleteWorkBoardCollection'
+import useCheckRole from '@/hooks/useCheckRole'
+import { CollectionSettingsModal } from './components/CollectionSettingsModal'
 
 export const CollectionDetail = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const collectionId = Number(id)
-  // const { deleteWorkBoardMutation, isPending } = useDeleteWorkBoard(collectionId)
+  const { hasPermission } = useCheckRole()
+  const { deleteWorkBoardCollectionMutation } = useDeleteWorkBoardCollection(collectionId)
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false)
 
   // Hooks
   const { collectionDetail, isFetching: isFetchingDetail } = useGetDetailColection(collectionId)
@@ -59,15 +63,11 @@ export const CollectionDetail = () => {
     }
   }
 
-  // const handleRemoveSheet = (e: React.MouseEvent) => {
-  // e.stopPropagation()
-  // Optional: Add confirmation dialog here
-
-  // deleteWorkBoardMutation.mutate({
-  //   sheetId,
-  //   status: 0,
-  // })
-  // }
+  const handleRemoveSheet = (e: React.MouseEvent, sheetId: number) => {
+    e.stopPropagation()
+    console.log(sheetId)
+    deleteWorkBoardCollectionMutation.mutate(sheetId)
+  }
 
   if (!id) return null
 
@@ -110,10 +110,17 @@ export const CollectionDetail = () => {
                   >
                     {getStatusText(collectionDetail?.status || 1)}
                   </Badge>
-                  <Button variant="ghost" size="sm" className="ml-2">
-                    <Settings className="w-4 h-4 mr-1" />
-                    Cài đặt
-                  </Button>
+                  {hasPermission && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="ml-2"
+                      onClick={() => setIsSettingsModalOpen(true)}
+                    >
+                      <Settings className="w-4 h-4 mr-1" />
+                      Cài đặt
+                    </Button>
+                  )}
                 </div>
                 <p className="text-slate-500 dark:text-slate-400 max-w-2xl">
                   {collectionDetail?.description || 'Chưa có mô tả'}
@@ -183,7 +190,7 @@ export const CollectionDetail = () => {
                         variant="destructive"
                         size="icon"
                         className="h-8 w-8 shadow-sm"
-                        // onClick={(e) => handleRemoveSheet(e, sheet.id)}
+                        onClick={(e) => handleRemoveSheet(e, sheet.id)}
                         disabled={isFetchingDetail}
                       >
                         {isFetchingDetail ? (
@@ -242,6 +249,12 @@ export const CollectionDetail = () => {
         open={isAddModalOpen}
         onOpenChange={setIsAddModalOpen}
         collectionId={collectionId}
+      />
+
+      <CollectionSettingsModal
+        open={isSettingsModalOpen}
+        onOpenChange={setIsSettingsModalOpen}
+        initialData={collectionDetail}
       />
     </div>
   )

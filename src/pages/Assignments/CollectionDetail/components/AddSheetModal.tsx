@@ -25,7 +25,7 @@ export const AddSheetModal = ({ open, onOpenChange, collectionId }: AddSheetModa
     size: 20,
   })
 
-  const { addSheetCollectionMutation } = useAddSheetCollection()
+  const { addSheetCollectionMutation } = useAddSheetCollection(collectionId)
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const { scrollTop, clientHeight, scrollHeight } = e.currentTarget

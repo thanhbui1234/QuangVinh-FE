@@ -10,6 +10,7 @@ import {
 import { Button } from '@/components/ui/button'
 import type { ICollectionResponse } from '@/types/Collection'
 import { cn } from '@/lib/utils'
+import useCheckRole from '@/hooks/useCheckRole'
 
 interface CollectionCardProps {
   collection: ICollectionResponse
@@ -24,6 +25,7 @@ export const CollectionCard: React.FC<CollectionCardProps> = ({
   onDelete,
   onClick,
 }) => {
+  const hasPermission = useCheckRole()
   return (
     <motion.div
       layout
@@ -60,40 +62,41 @@ export const CollectionCard: React.FC<CollectionCardProps> = ({
             <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400">
               <Folder className="h-6 w-6 fill-current" />
             </div>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity -mr-2 -mt-2"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onEdit(collection)
-                  }}
-                >
-                  <Edit className="mr-2 h-4 w-4" />
-                  Chỉnh sửa
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="text-destructive focus:text-destructive"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onDelete(collection.id)
-                  }}
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Xóa
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {hasPermission && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity -mr-2 -mt-2"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onEdit(collection)
+                    }}
+                  >
+                    <Edit className="mr-2 h-4 w-4" />
+                    Chỉnh sửa
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="text-destructive focus:text-destructive"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onDelete(collection.id)
+                    }}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Xóa
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
 
           <div className="space-y-1 flex-1">
