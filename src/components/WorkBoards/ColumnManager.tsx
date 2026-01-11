@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 import type { IWorkBoardColumn } from '@/types/WorkBoard'
+import SonnerToaster from '@/components/ui/toaster'
 
 interface ColumnManagerProps {
   open: boolean
@@ -140,6 +141,24 @@ export const ColumnManager: React.FC<ColumnManagerProps> = ({
   }
 
   const handleSave = () => {
+    // Validate select columns
+    const invalidColumns = localColumns.filter(
+      (col) => col.type === 'select' && (!col.options || col.options.length === 0)
+    )
+
+    if (invalidColumns.length > 0) {
+      invalidColumns.forEach((col) => {
+        SonnerToaster({
+          type: 'error',
+          message: 'Lỗi xác thực',
+          description: `Vui lòng thêm ít nhất một tùy chọn cho cột: ${col.label}`,
+        })
+        // Highlight the first invalid column by setting it as editing
+        setEditingId(col.id)
+      })
+      return
+    }
+
     onColumnsChange(localColumns)
     onOpenChange(false)
   }
