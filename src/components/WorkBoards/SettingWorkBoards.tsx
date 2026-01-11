@@ -112,7 +112,7 @@ export const SettingWorkBoards = ({
           {/* Delete Section */}
           <div className="space-y-3">
             <div className="rounded-lg border border-red-100 dark:border-red-900/30 bg-red-50 dark:bg-red-900/10 p-4">
-              <div className="flex items-start justify-between">
+              <div className="flex items-center justify-between gap-5">
                 <div>
                   <h4 className="text-sm font-semibold text-red-900 dark:text-red-400 mb-1">
                     Xóa bảng công việc

@@ -25,6 +25,7 @@ import { useUpdateColection } from '@/hooks/colection/useUpdateColection'
 import { useDeleteColection } from '@/hooks/colection/useDeleteColection'
 import { AlertCircle } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { DialogConfirm } from '@/components/ui/alertComponent'
 
 const formSchema = z.object({
   name: z.string().min(1, 'Tên không được để trống'),
@@ -48,6 +49,7 @@ export const CollectionSettingsModal: React.FC<CollectionSettingsModalProps> = (
   const hasNavigate = true
   const { updateColectionMutation } = useUpdateColection(initialData?.id)
   const { deleteColectionMutation } = useDeleteColection(hasNavigate)
+  const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false)
 
   const {
     register,
@@ -98,6 +100,7 @@ export const CollectionSettingsModal: React.FC<CollectionSettingsModalProps> = (
     deleteColectionMutation.mutate(initialData?.id, {
       onSuccess: () => {
         onOpenChange(false)
+        setShowDeleteConfirm(false)
       },
     })
   }
@@ -112,8 +115,12 @@ export const CollectionSettingsModal: React.FC<CollectionSettingsModalProps> = (
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="general">Thông tin chung</TabsTrigger>
-            <TabsTrigger value="danger">Xoá bộ sưu tập</TabsTrigger>
+            <TabsTrigger className="w-ful" value="general">
+              Thông tin chung
+            </TabsTrigger>
+            <TabsTrigger className="w-full" value="danger">
+              Xoá bộ sưu tập
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="general" className="space-y-4 py-4">
@@ -177,7 +184,7 @@ export const CollectionSettingsModal: React.FC<CollectionSettingsModalProps> = (
             <div className="flex justify-end pt-4">
               <Button
                 variant="destructive"
-                onClick={onDelete}
+                onClick={() => setShowDeleteConfirm(true)}
                 disabled={deleteColectionMutation.isPending}
               >
                 {deleteColectionMutation.isPending ? 'Đang xóa...' : 'Xóa bộ sưu tập'}
@@ -186,6 +193,13 @@ export const CollectionSettingsModal: React.FC<CollectionSettingsModalProps> = (
           </TabsContent>
         </Tabs>
       </DialogContent>
+      <DialogConfirm
+        open={showDeleteConfirm}
+        onOpenChange={setShowDeleteConfirm}
+        onConfirm={onDelete}
+        title="Bạn có chắc chắn muốn xóa bộ sưu tập này?"
+        description="Hành động này sẽ xóa vĩnh viễn bộ sưu tập và tất cả bảng trong đó. Không thể hoàn tác."
+      />
     </Dialog>
   )
 }

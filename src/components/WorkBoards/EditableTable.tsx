@@ -65,9 +65,12 @@ export const EditableTable: React.FC<EditableTableProps> = ({
   const [openConfirm, setOpenConfirm] = useState(false)
   const [rowIndex, setRowIndex] = useState(-1)
   const [showSetting, setShowSetting] = useState(false)
-  const [statisticsColumn, setStatisticsColumn] = useState<{ name: string; index: number } | null>(
-    null
-  )
+  const [statisticsColumn, setStatisticsColumn] = useState<{
+    name: string
+    index: number
+    type: string
+    values: string[]
+  } | null>(null)
 
   // Store state in ref for reliable access in debounced callbacks
   const stateRef = useRef({
@@ -524,9 +527,16 @@ export const EditableTable: React.FC<EditableTableProps> = ({
                                     size="sm"
                                     className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
                                     onClick={() => {
+                                      // Collect values for this column
+                                      const values = Array.from({ length: rows }).map((_, rowIdx) =>
+                                        getCellValue(rowIdx, colIndex)
+                                      )
+
                                       setStatisticsColumn({
                                         name: col.name || col.label,
                                         index: colIndex,
+                                        type: col.type || 'text',
+                                        values,
                                       })
                                     }}
                                     title="Thống kê cột"

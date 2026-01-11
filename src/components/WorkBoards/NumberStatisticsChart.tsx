@@ -134,19 +134,31 @@ export const NumberStatisticsChart: React.FC<NumberStatisticsChartProps> = ({ da
   )
 }
 
-const StatCard = ({ icon, label, value, full, color = 'blue' }: any) => (
-  <div
-    className={`relative overflow-hidden rounded-xl bg-gradient-to-br from-${color}-500 to-${color}-600 p-5 text-white shadow-lg`}
-  >
-    <div className="absolute top-0 right-0 -mt-4 -mr-4 h-20 w-20 rounded-full bg-white/10" />
-    <div className="relative">
-      {React.cloneElement(icon, { className: 'h-5 w-5 mb-2 opacity-90' })}
-      <p className="text-xs font-medium opacity-75 uppercase tracking-wide">{label}</p>
-      <p className="text-3xl font-bold mt-1">{value}</p>
-      {full && value !== full && <p className="text-xs opacity-75 mt-1">{full}</p>}
+const StatCard = ({ icon, label, value, full, color = 'blue' }: any) => {
+  const colorMap: Record<string, string> = {
+    blue: 'from-blue-500 to-blue-600',
+    red: 'from-red-500 to-red-600',
+    cyan: 'from-cyan-500 to-cyan-600',
+    green: 'from-green-500 to-green-600',
+    purple: 'from-purple-500 to-purple-600',
+  }
+
+  const gradientClass = colorMap[color] || colorMap.blue
+
+  return (
+    <div
+      className={`relative overflow-hidden rounded-xl bg-gradient-to-br ${gradientClass} p-5 text-white shadow-lg`}
+    >
+      <div className="absolute top-0 right-0 -mt-4 -mr-4 h-20 w-20 rounded-full bg-white/10" />
+      <div className="relative">
+        {React.cloneElement(icon, { className: 'h-5 w-5 mb-2 opacity-90' })}
+        <p className="text-xs font-medium opacity-75 uppercase tracking-wide">{label}</p>
+        <p className="text-3xl font-bold mt-1">{value}</p>
+        {full && value !== full && <p className="text-xs opacity-75 mt-1">{full}</p>}
+      </div>
     </div>
-  </div>
-)
+  )
+}
 
 const InsightCard = ({ label, value, detail }: any) => (
   <div className="rounded-lg border bg-card p-5 shadow-sm">

@@ -161,7 +161,10 @@ export const WorkBoardDetail: React.FC = () => {
           type: col.type || 'text',
         }))
 
-        if (columnsPayload.length > 0) {
+        if (
+          columnsPayload.length > 0 &&
+          (columnChanges.added.length > 0 || columnChanges.modified.length > 0)
+        ) {
           promises.push(
             updateColumnsMutation.mutateAsync({
               sheetId,
@@ -270,6 +273,37 @@ export const WorkBoardDetail: React.FC = () => {
                 rowId,
                 columnName,
                 value: cell.value,
+              })
+
+              // Manually update cache to reflect the change
+              // This prevents subsequent saves from re-sending this change
+              queryClient.setQueryData([workBoardsKey.detail(sheetId)], (oldData: any) => {
+                if (!oldData || !oldData.workBoard) return oldData
+
+                const newWorkBoard = { ...oldData.workBoard }
+                const newCells = [...(newWorkBoard.cells || [])]
+
+                const existingCellIndex = newCells.findIndex(
+                  (c) => c.rowIndex === cell.rowIndex && c.columnIndex === cell.columnIndex
+                )
+
+                if (existingCellIndex !== -1) {
+                  // Update existing cell
+                  newCells[existingCellIndex] = {
+                    ...newCells[existingCellIndex],
+                    value: cell.value,
+                  }
+                } else {
+                  // Add new cell (shouldn't happen often if flow is correct, but safe to add)
+                  newCells.push({
+                    rowIndex: cell.rowIndex,
+                    columnIndex: cell.columnIndex,
+                    value: cell.value,
+                  })
+                }
+
+                newWorkBoard.cells = newCells
+                return { ...oldData, workBoard: newWorkBoard }
               })
             } catch (error) {
               console.error(`Error updating cell:`, error)

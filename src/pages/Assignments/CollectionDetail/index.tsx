@@ -21,6 +21,7 @@ import { format } from 'date-fns'
 import { vi } from 'date-fns/locale'
 import { useDeleteWorkBoardCollection } from '@/hooks/colection/useDeleteWorkBoardCollection'
 import useCheckRole from '@/hooks/useCheckRole'
+import { DialogConfirm } from '@/components/ui/alertComponent'
 import { CollectionSettingsModal } from './components/CollectionSettingsModal'
 
 export const CollectionDetail = () => {
@@ -32,6 +33,7 @@ export const CollectionDetail = () => {
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false)
+  const [deleteSheetId, setDeleteSheetId] = useState<number | null>(null)
 
   // Hooks
   const { collectionDetail, isFetching: isFetchingDetail } = useGetDetailColection(collectionId)
@@ -65,8 +67,17 @@ export const CollectionDetail = () => {
 
   const handleRemoveSheet = (e: React.MouseEvent, sheetId: number) => {
     e.stopPropagation()
-    console.log(sheetId)
-    deleteWorkBoardCollectionMutation.mutate(sheetId)
+    setDeleteSheetId(sheetId)
+  }
+
+  const confirmRemoveSheet = () => {
+    if (deleteSheetId) {
+      deleteWorkBoardCollectionMutation.mutate(deleteSheetId, {
+        onSuccess: () => {
+          setDeleteSheetId(null)
+        },
+      })
+    }
   }
 
   if (!id) return null
@@ -244,6 +255,14 @@ export const CollectionDetail = () => {
           )}
         </div>
       </div>
+
+      <DialogConfirm
+        open={!!deleteSheetId}
+        onOpenChange={(open) => !open && setDeleteSheetId(null)}
+        onConfirm={confirmRemoveSheet}
+        title="Bạn có chắc chắn muốn xóa bảng khỏi bộ sưu tập?"
+        description="Bảng sẽ bị xóa khỏi bộ sưu tập này nhưng vẫn tồn tại trong hệ thống."
+      />
 
       <AddSheetModal
         open={isAddModalOpen}

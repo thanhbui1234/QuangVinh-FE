@@ -5,12 +5,15 @@ import { BarChart3, AlertCircle } from 'lucide-react'
 import { GroupStatisticsChart } from './GroupStatisticsChart'
 import { NumberStatisticsChart } from './NumberStatisticsChart'
 import type { ColumnStatisticsResponse } from '@/types/ColumnStatistics'
+import { calculateGroupStatistics, calculateNumberStatistics } from '@/utils/statisticsUtils'
 
 interface ColumnStatisticsModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   sheetId: number
   columnName: string
+  localValues?: string[]
+  columnType?: string
 }
 
 export const ColumnStatisticsModal: React.FC<ColumnStatisticsModalProps> = ({
@@ -18,14 +21,40 @@ export const ColumnStatisticsModal: React.FC<ColumnStatisticsModalProps> = ({
   onOpenChange,
   sheetId,
   columnName,
+  localValues,
+  columnType,
 }) => {
   const { data, isLoading, error } = useStatisticsWorkBoard({
     sheetId,
     columnName,
-    enabled: open,
+    enabled: open && !localValues, // Only fetch if we don't have local data
   })
 
-  const statsData = data as ColumnStatisticsResponse | undefined
+  // Determine stats data source
+  let statsData: ColumnStatisticsResponse | undefined
+
+  if (localValues && columnType) {
+    if (columnType === 'number') {
+      statsData = {
+        sheetId,
+        columnName,
+        template: calculateNumberStatistics(localValues),
+      }
+    } else {
+      // Default to group for text/select/others
+      statsData = {
+        sheetId,
+        columnName,
+        template: calculateGroupStatistics(localValues),
+      }
+    }
+  } else {
+    statsData = data as ColumnStatisticsResponse | undefined
+  }
+
+  // Determine loading/error states for local calculation
+  const showLoading = !localValues && isLoading
+  const showError = !localValues && error
 
   return (
     <>
@@ -65,19 +94,19 @@ export const ColumnStatisticsModal: React.FC<ColumnStatisticsModalProps> = ({
           </DialogHeader>
 
           <div className="py-4">
-            {isLoading ? (
+            {showLoading ? (
               <div className="flex flex-col items-center justify-center py-12">
                 <div className="w-12 h-12 border-4 border-gray-200 border-t-slate-900 rounded-full animate-spin" />
                 <p className="text-muted-foreground font-medium mt-4">
                   Đang tải dữ liệu thống kê...
                 </p>
               </div>
-            ) : error ? (
+            ) : showError ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <AlertCircle className="h-12 w-12 text-destructive mb-4" />
                 <p className="text-destructive font-medium">Không thể tải dữ liệu thống kê</p>
                 <p className="text-sm text-muted-foreground mt-2">
-                  {error instanceof Error ? error.message : 'Đã xảy ra lỗi khi tải dữ liệu'}
+                  {showError instanceof Error ? showError.message : 'Đã xảy ra lỗi khi tải dữ liệu'}
                 </p>
               </div>
             ) : !statsData?.template ? (
