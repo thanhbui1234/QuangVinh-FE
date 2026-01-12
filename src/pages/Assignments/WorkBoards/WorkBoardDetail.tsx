@@ -33,6 +33,8 @@ export const WorkBoardDetail: React.FC = () => {
   const [maxWidth, setMaxWidth] = useState<string>('100%')
   // Track pending row creations to prevent duplicates
   const pendingRowCreations = useRef<Set<number>>(new Set())
+  // Track in-flight cell updates to prevent redundant calls
+  const pendingUpdates = useRef<Set<string>>(new Set())
   // Calculate max width based on sidebar/tabbar
   useEffect(() => {
     const calculateMaxWidth = () => {
@@ -115,6 +117,7 @@ export const WorkBoardDetail: React.FC = () => {
     columns: number
     columnHeaders: IWorkBoardColumn[]
     cells: IWorkBoardCell[]
+    cellChanges?: IWorkBoardCell[]
     columnChanges?: {
       added: IWorkBoardColumn[]
       modified: Array<{ original: IWorkBoardColumn; updated: IWorkBoardColumn }>
@@ -167,19 +170,33 @@ export const WorkBoardDetail: React.FC = () => {
       }
 
       // 2. Process Cell Changes
-      const originalCellsMap = new Map<string, string>()
-      if (workBoard?.cells) {
-        workBoard.cells.forEach((cell) => {
+      let changedCells: IWorkBoardCell[] = []
+
+      if (data.cellChanges && data.cellChanges.length > 0) {
+        // Use the explicit delta provided by the table
+        // Filter out changes that are already in-flight
+        changedCells = data.cellChanges.filter((cell) => {
+          const updateKey = `cell-${cell.rowIndex}-${cell.columnIndex}-${cell.value}`
+          return !pendingUpdates.current.has(updateKey)
+        })
+      } else if (!data.cellChanges) {
+        // Only fall back to manual diffing if cellChanges is explicitly undefined (not just empty)
+        // This is a safety measure for unexpected states
+        const originalCellsMap = new Map<string, string>()
+        if (workBoard?.cells) {
+          workBoard.cells.forEach((cell) => {
+            const key = `${cell.rowIndex}-${cell.columnIndex}`
+            originalCellsMap.set(key, cell.value)
+          })
+        }
+
+        changedCells = data.cells.filter((cell) => {
           const key = `${cell.rowIndex}-${cell.columnIndex}`
-          originalCellsMap.set(key, cell.value)
+          const originalValue = originalCellsMap.get(key) || ''
+          const updateKey = `cell-${cell.rowIndex}-${cell.columnIndex}-${cell.value}`
+          return cell.value !== originalValue && !pendingUpdates.current.has(updateKey)
         })
       }
-
-      const changedCells = data.cells.filter((cell) => {
-        const key = `${cell.rowIndex}-${cell.columnIndex}`
-        const originalValue = originalCellsMap.get(key) || ''
-        return cell.value !== originalValue
-      })
 
       if (changedCells.length > 0) {
         // Group cells by rowIndex
@@ -230,44 +247,36 @@ export const WorkBoardDetail: React.FC = () => {
             continue
           }
 
-          // Row exists, update each cell
-          for (const cell of cells) {
+          // Row exists, update cells concurrently
+          const updatePromises = cells.map(async (cell) => {
             const columnName =
               effectiveColumnHeaders[cell.columnIndex]?.name ||
               effectiveColumnHeaders[cell.columnIndex]?.label
 
-            if (!columnName) {
-              console.warn(`No column name for columnIndex ${cell.columnIndex}, skipping`)
-              continue
-            }
+            if (!columnName) return
+
+            const updateKey = `cell-${cell.rowIndex}-${cell.columnIndex}-${cell.value}`
 
             try {
+              pendingUpdates.current.add(updateKey)
               await updateSheetRowCellMutation.mutateAsync({
                 rowId,
                 columnName,
                 value: cell.value,
               })
 
-              // Manually update cache to reflect the change
-              // This prevents subsequent saves from re-sending this change
+              // Optimistically update cache to satisfy future diffs
               queryClient.setQueryData([workBoardsKey.detail(sheetId)], (oldData: any) => {
                 if (!oldData || !oldData.workBoard) return oldData
-
                 const newWorkBoard = { ...oldData.workBoard }
                 const newCells = [...(newWorkBoard.cells || [])]
-
-                const existingCellIndex = newCells.findIndex(
+                const idx = newCells.findIndex(
                   (c) => c.rowIndex === cell.rowIndex && c.columnIndex === cell.columnIndex
                 )
 
-                if (existingCellIndex !== -1) {
-                  // Update existing cell
-                  newCells[existingCellIndex] = {
-                    ...newCells[existingCellIndex],
-                    value: cell.value,
-                  }
+                if (idx !== -1) {
+                  newCells[idx] = { ...newCells[idx], value: cell.value }
                 } else {
-                  // Add new cell (shouldn't happen often if flow is correct, but safe to add)
                   newCells.push({
                     rowIndex: cell.rowIndex,
                     columnIndex: cell.columnIndex,
@@ -280,8 +289,14 @@ export const WorkBoardDetail: React.FC = () => {
               })
             } catch (error) {
               console.error(`Error updating cell:`, error)
+            } finally {
+              // Note: We might want to keep it in pending for a short while to avoid race conditions
+              // with the inevitable refetch, but clearing it here is standard.
+              setTimeout(() => pendingUpdates.current.delete(updateKey), 2000)
             }
-          }
+          })
+
+          await Promise.all(updatePromises)
         }
       }
     } catch (error) {
@@ -321,13 +336,38 @@ export const WorkBoardDetail: React.FC = () => {
     }
   }
 
+  const handleCreateRow = async () => {
+    if (!sheetId) return
+    try {
+      await createSheetRowMutation.mutateAsync({
+        sheetId,
+        rowData: {},
+        color: '#FFFFFF',
+      })
+    } catch (error) {
+      console.error('Error creating row:', error)
+    }
+  }
+
   // Only show loader if we don't have the workBoard data yet
   if (!workBoard && isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-gray-200 border-t-slate-900 rounded-full animate-spin" />
-          <p className="text-muted-foreground font-medium">Đang tải bảng công việc...</p>
+      <div className="flex items-center justify-center min-h-screen bg-slate-50/50">
+        <div className="flex flex-col items-center gap-8 p-12 bg-white/60 backdrop-blur-2xl rounded-[3rem] shadow-2xl shadow-slate-200/50 border border-white">
+          <div className="relative">
+            <div className="w-20 h-20 border-4 border-slate-100 border-t-primary rounded-full animate-spin" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-10 h-10 bg-primary/10 rounded-2xl flex items-center justify-center animate-pulse">
+                <Settings className="h-6 w-6 text-primary" />
+              </div>
+            </div>
+          </div>
+          <div className="space-y-2 text-center">
+            <h3 className="text-xl font-black text-slate-800 tracking-tight">Vui lòng đợi</h3>
+            <p className="text-slate-400 font-medium text-sm px-4">
+              Đang chuẩn bị không gian làm việc của bạn...
+            </p>
+          </div>
         </div>
       </div>
     )
@@ -335,15 +375,23 @@ export const WorkBoardDetail: React.FC = () => {
 
   if (!workBoard && !isFetching && !isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <p className="text-muted-foreground font-medium mb-2">Không tìm thấy bảng công việc</p>
-          {error && (
-            <p className="text-sm text-red-500 mb-4">
-              {error instanceof Error ? error.message : 'Đã xảy ra lỗi khi tải dữ liệu'}
-            </p>
-          )}
-          <Button onClick={() => navigate('/work-boards')} variant="outline">
+      <div className="flex items-center justify-center min-h-screen bg-slate-50/50">
+        <div className="text-center p-12 bg-white/60 backdrop-blur-2xl rounded-[3rem] shadow-2xl shadow-slate-200/50 border border-white max-w-md mx-4">
+          <div className="bg-slate-100 w-20 h-20 rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-inner ring-1 ring-slate-200">
+            <ArrowLeft className="h-10 w-10 text-slate-400" />
+          </div>
+          <h3 className="text-2xl font-black text-slate-800 mb-3 tracking-tight">
+            Không tìm thấy dữ liệu
+          </h3>
+          <p className="text-slate-400 font-medium text-sm mb-10 leading-relaxed">
+            {error instanceof Error
+              ? error.message
+              : 'Dữ liệu không tồn tại hoặc bạn không có quyền truy cập.'}
+          </p>
+          <Button
+            onClick={() => navigate('/work-boards')}
+            className="rounded-2xl h-14 px-8 w-full shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all font-bold tracking-tight"
+          >
             Quay lại danh sách
           </Button>
         </div>
@@ -356,31 +404,44 @@ export const WorkBoardDetail: React.FC = () => {
   }
 
   return (
-    <div className="p-4 space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/work-boards')}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Quay lại
+    <div className="min-h-screen bg-slate-50/50 p-4 md:p-8 space-y-8 animate-in fade-in duration-700">
+      {/* Premium Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white/60 backdrop-blur-xl p-6 rounded-3xl border border-white shadow-2xl shadow-slate-200/50 ring-1 ring-slate-200/20">
+        <div className="flex items-center gap-6">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate('/work-boards')}
+            className="h-12 w-12 rounded-2xl bg-white shadow-sm border border-slate-100 hover:bg-primary/5 hover:text-primary transition-all group shrink-0"
+          >
+            <ArrowLeft className="h-5 w-5 group-hover:-translate-x-1 transition-transform" />
           </Button>
-          <div>
-            <h1 className="text-2xl font-semibold flex items-center gap-2">
-              {workBoard.name}
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl font-black tracking-tight text-slate-800">
+                {workBoard.name}
+              </h1>
               {hasPermission && (
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-slate-400 hover:text-slate-600"
+                  className="h-10 w-10 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all"
                   onClick={() => setIsSettingsOpen(true)}
                 >
-                  <Settings className="h-4 w-4" />
+                  <Settings className="h-5 w-5" />
                 </Button>
               )}
-            </h1>
+            </div>
             {workBoard.description && (
-              <p className="text-muted-foreground mt-1">{workBoard.description}</p>
+              <p className="text-sm font-medium text-slate-400 max-w-2xl leading-relaxed">
+                {workBoard.description}
+              </p>
             )}
           </div>
+        </div>
+
+        <div className="flex items-center gap-3 self-end md:self-center">
+          {/* Action buttons could go here */}
         </div>
       </div>
 
@@ -391,23 +452,23 @@ export const WorkBoardDetail: React.FC = () => {
         currentName={workBoard.name}
       />
 
-      <div ref={containerRef} className="w-full overflow-x-auto" style={{ maxWidth }}>
-        <div className="min-w-full">
+      <div ref={containerRef} className="w-full relative" style={{ maxWidth }}>
+        <div className="rounded-3xl overflow-hidden ring-1 ring-slate-200/50">
           <EditableTable
             workBoard={workBoard}
             sheetId={sheetId}
             onSave={handleSave}
-            isFetching={isLoading || isManualRefetching} // Only show loader on initial load OR manual refresh
+            isFetching={isLoading || isManualRefetching}
             isSaving={
               createSheetRowMutation.isPending ||
               updateSheetRowCellMutation.isPending ||
               removeSheetRowMutation.isPending ||
-              (isFetching && !isLoading && !isManualRefetching) // Show "Saving..." during background refetch if not initial/manual
+              (isFetching && !isLoading && !isManualRefetching)
             }
             onRefresh={handleRefreshSheet}
-            // Passing undefined for onUnsavedChangesChange as we auto-save
             onUnsavedChangesChange={undefined}
             onDeleteRow={handleDeleteRow}
+            onCreateRow={handleCreateRow}
           />
         </div>
       </div>

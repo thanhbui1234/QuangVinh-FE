@@ -23,9 +23,14 @@ const mapSheetInfoToWorkBoard = (sheetInfo: ISheetInfo): IWorkBoard => {
       ? sheetInfo.rows
       : []
 
-  // IMPORTANT: Sort rows by createdTime (oldest first) to ensure consistent rowIndex mapping
+  // IMPORTANT: Sort rows by createdTime (oldest first) and then by ID to ensure stable rowIndex mapping
   // This ensures rowIndex 0 = oldest row, rowIndex 1 = second oldest, etc.
-  rows = [...rows].sort((a, b) => a.createdTime - b.createdTime)
+  rows = [...rows].sort((a, b) => {
+    if (a.createdTime !== b.createdTime) {
+      return a.createdTime - b.createdTime
+    }
+    return a.id - b.id
+  })
 
   // Map columns to columnHeaders
   const columnHeaders = columns
@@ -42,43 +47,29 @@ const mapSheetInfoToWorkBoard = (sheetInfo: ISheetInfo): IWorkBoard => {
       options: col.options || [],
     }))
 
-  // Filter rows that have at least one value
-  const rowsWithData = rows.filter((row: ISheetRow) => {
-    const rowData = row.rowData || {}
-    // Check if row has at least one non-empty value
-    return columns.some((col) => {
-      const value = rowData[col.name]
-      return value != null && String(value).trim() !== ''
-    })
-  })
-
-  // Map rows to cells (only rows with data)
+  // Map rows to cells (all rows from API)
   const cells: Array<{ rowIndex: number; columnIndex: number; value: string }> = []
+  const rowIdMap: Record<number, number> = {}
 
-  rowsWithData.forEach((row: ISheetRow, newRowIndex: number) => {
+  rows.forEach((row: ISheetRow, rowIndex: number) => {
+    rowIdMap[rowIndex] = row.id
     const rowData = row.rowData || {}
     columns.forEach((col, colIdx) => {
       const value = rowData[col.name]
-      // Only include cell if it has a value
-      if (value != null && String(value).trim() !== '') {
+      // Include cell if it has a value (including empty string)
+      if (value != null) {
         cells.push({
-          rowIndex: newRowIndex,
+          rowIndex,
           columnIndex: colIdx,
-          value: String(value).trim(),
+          value: String(value),
         })
       }
     })
   })
 
-  // Calculate rows: use actual rows with data length, but ensure minimum is 1
-  const totalRows = Math.max(1, rowsWithData.length)
+  // Calculate rows: use actual rows count from DB, but ensure minimum is 1
+  const totalRows = Math.max(1, rows.length)
   const totalColumns = columns.length
-
-  // Create rowIdMap: map rowIndex to actual row ID from backend
-  const rowIdMap: Record<number, number> = {}
-  rowsWithData.forEach((row: ISheetRow, newRowIndex: number) => {
-    rowIdMap[newRowIndex] = row.id
-  })
 
   return {
     id: sheetInfo.id,

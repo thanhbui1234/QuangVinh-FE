@@ -1,18 +1,12 @@
 import React, { useState, useEffect } from 'react'
-import { GripVertical, Plus, Trash2, Settings2, X, Check } from 'lucide-react'
+import { Plus, Trash2, Settings2, X, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 import { DialogConfirm } from '../ui/alertComponent'
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/ui/sheet'
 import {
   Select,
   SelectContent,
@@ -178,62 +172,94 @@ export const ColumnManager: React.FC<ColumnManagerProps> = ({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle className="flex items-center gap-2">
-            <Settings2 className="h-5 w-5" />
-            Quản lý cột
-          </SheetTitle>
-          <SheetDescription>
-            Thêm, xóa, chỉnh sửa và sắp xếp các cột trong bảng của bạn
-          </SheetDescription>
-        </SheetHeader>
-
-        <div className="mt-6 space-y-4">
-          {/* Add Column Button */}
-          <Button onClick={handleAddColumn} className="w-full" variant="outline">
-            <Plus className="h-4 w-4 mr-2" />
-            Thêm cột mới
-          </Button>
-
-          {/* Columns List */}
-          <div className="space-y-3">
-            {localColumns.map((column, index) => (
-              <ColumnCard
-                key={column.id}
-                column={column}
-                isEditing={editingId === column.id}
-                onEdit={() => setEditingId(column.id)}
-                onCancelEdit={() => setEditingId(null)}
-                onUpdate={(updates) => handleUpdateColumn(column.id, updates)}
-                onDelete={() => handleDeleteColumn(column.id)}
-                onAddOption={(option) => handleAddOption(column.id, option)}
-                onRemoveOption={(optionIndex) => handleRemoveOption(column.id, optionIndex)}
-                onDragStart={() => handleDragStart(index)}
-                onDragOver={(e) => handleDragOver(e, index)}
-                onDragEnd={handleDragEnd}
-                isDragging={draggedIndex === index}
-              />
-            ))}
+      <SheetContent
+        side="right"
+        className="w-full sm:max-w-xl p-0 overflow-hidden border-l border-slate-200 shadow-2xl bg-slate-50/95 backdrop-blur-xl"
+      >
+        <div className="flex flex-col h-full">
+          {/* Custom Header */}
+          <div className="p-8 pb-6 bg-white/50 border-b border-slate-200">
+            <div className="flex items-center gap-4 mb-2">
+              <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center">
+                <Settings2 className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <SheetTitle className="text-2xl font-black text-slate-800 tracking-tight">
+                  Quản lý cột
+                </SheetTitle>
+                <SheetDescription className="text-slate-400 font-medium">
+                  Tùy chỉnh cấu trúc và định dạng dữ liệu cho bảng
+                </SheetDescription>
+              </div>
+            </div>
           </div>
 
-          {localColumns.length === 0 && (
-            <div className="text-center py-12 text-muted-foreground">
-              <p>Chưa có cột nào</p>
-              <p className="text-sm mt-1">Nhấn "Thêm cột mới" để bắt đầu</p>
-            </div>
-          )}
-        </div>
+          <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
+            {/* Add Column Button */}
+            <Button
+              onClick={handleAddColumn}
+              className="w-full h-14 rounded-2xl bg-white border-2 border-dashed border-slate-200 text-slate-500 hover:border-primary hover:text-primary hover:bg-primary/5 transition-all gap-2 font-bold shadow-sm"
+              variant="ghost"
+            >
+              <Plus className="h-5 w-5" />
+              Thêm cột dữ liệu mới
+            </Button>
 
-        {/* Footer Actions */}
-        <div className="sticky bottom-0 left-0 right-0 bg-background border-t pt-4 mt-6 flex gap-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
-            Hủy
-          </Button>
-          <Button onClick={handleSave} className="flex-1">
-            <Check className="h-4 w-4 mr-2" />
-            Áp dụng thay đổi
-          </Button>
+            {/* Columns List */}
+            <div className="space-y-4">
+              {localColumns.map((column, index) => (
+                <ColumnCard
+                  key={column.id}
+                  column={column}
+                  isEditing={editingId === column.id}
+                  onEdit={() => setEditingId(column.id)}
+                  onCancelEdit={() => setEditingId(null)}
+                  onUpdate={(updates: Partial<IWorkBoardColumn>) =>
+                    handleUpdateColumn(column.id, updates)
+                  }
+                  onDelete={() => handleDeleteColumn(column.id)}
+                  onAddOption={(option: string) => handleAddOption(column.id, option)}
+                  onRemoveOption={(optionIndex: number) =>
+                    handleRemoveOption(column.id, optionIndex)
+                  }
+                  onDragStart={() => handleDragStart(index)}
+                  onDragOver={(e: React.DragEvent) => handleDragOver(e, index)}
+                  onDragEnd={handleDragEnd}
+                  isDragging={draggedIndex === index}
+                  onSetEditingId={setEditingId}
+                />
+              ))}
+            </div>
+
+            {localColumns.length === 0 && (
+              <div className="text-center py-20 animate-in fade-in zoom-in duration-500">
+                <div className="w-20 h-20 bg-slate-100 rounded-[2.5rem] flex items-center justify-center mx-auto mb-6 shadow-inner ring-1 ring-slate-200">
+                  <Plus className="h-10 w-10 text-slate-300" />
+                </div>
+                <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">
+                  Danh sách trống
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Footer Actions */}
+          <div className="p-8 bg-white border-t border-slate-200 flex gap-3 shadow-[0_-10px_20px_rgba(0,0,0,0.02)]">
+            <Button
+              variant="ghost"
+              onClick={() => onOpenChange(false)}
+              className="px-8 h-12 rounded-xl font-bold text-slate-500 hover:bg-slate-50"
+            >
+              Hủy bỏ
+            </Button>
+            <Button
+              onClick={handleSave}
+              className="flex-1 h-12 rounded-xl font-black tracking-tight shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all"
+            >
+              <Check className="h-5 w-5 mr-2" />
+              Cập nhật cấu trúc
+            </Button>
+          </div>
         </div>
       </SheetContent>
       <DialogConfirm
@@ -262,7 +288,7 @@ interface ColumnCardProps {
   isDragging: boolean
 }
 
-const ColumnCard: React.FC<ColumnCardProps> = ({
+const ColumnCard: React.FC<ColumnCardProps & { onSetEditingId: (id: string | null) => void }> = ({
   column,
   isEditing,
   onEdit,
@@ -275,6 +301,7 @@ const ColumnCard: React.FC<ColumnCardProps> = ({
   onDragOver,
   onDragEnd,
   isDragging,
+  onSetEditingId,
 }) => {
   const [optionInput, setOptionInput] = useState('')
 
@@ -285,6 +312,8 @@ const ColumnCard: React.FC<ColumnCardProps> = ({
     }
   }
 
+  const columnTypeLabel = COLUMN_TYPES.find((t) => t.value === column.type) || COLUMN_TYPES[0]
+
   return (
     <div
       draggable
@@ -292,126 +321,170 @@ const ColumnCard: React.FC<ColumnCardProps> = ({
       onDragOver={onDragOver}
       onDragEnd={onDragEnd}
       className={cn(
-        'border rounded-lg p-4 bg-card transition-all',
-        isDragging && 'opacity-50 scale-95',
-        !isDragging && 'hover:shadow-md'
+        'group/card rounded-3xl bg-white border border-slate-200 shadow-sm transition-all duration-300 relative overflow-hidden',
+        isDragging && 'opacity-30 scale-95 blur-sm',
+        !isDragging && 'hover:shadow-xl hover:shadow-slate-200/50 hover:-translate-y-1',
+        isEditing && 'ring-2 ring-primary ring-inset shadow-2xl z-20'
       )}
-      style={{ borderLeftColor: column.color, borderLeftWidth: '4px' }}
     >
-      {/* Header */}
-      <div className="flex items-start gap-3">
-        <div className="cursor-move mt-1">
-          <GripVertical className="h-5 w-5 text-muted-foreground" />
+      <div
+        className="absolute top-0 left-0 w-1.5 h-full transition-all group-hover/card:w-2"
+        style={{ backgroundColor: column.color || '#FFFFFF' }}
+      />
+
+      <div className="p-5 flex gap-4">
+        {/* Drag Handle */}
+        <div className="flex flex-col items-center gap-1 cursor-grab active:cursor-grabbing opacity-30 group-hover/card:opacity-100 transition-opacity pt-1.5">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="w-1 h-1 rounded-full bg-slate-400" />
+          ))}
         </div>
 
-        <div className="flex-1 space-y-3">
-          {/* Column Name */}
-          <div className="flex items-center gap-2">
-            <Input
-              value={column.label}
-              onChange={(e) => onUpdate({ label: e.target.value, name: e.target.value })}
-              className="font-medium"
-              placeholder="Tên cột"
-            />
-            {!isEditing ? (
-              <Button variant="ghost" size="sm" onClick={onEdit}>
-                <Settings2 className="h-4 w-4" />
+        <div className="flex-1 space-y-4">
+          {/* Main Info */}
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <Input
+                value={column.label}
+                onChange={(e) => onUpdate({ label: e.target.value, name: e.target.value })}
+                className="h-10 border-transparent bg-transparent hover:bg-slate-50 focus:bg-white focus:border-slate-200 rounded-xl font-black text-slate-800 text-lg p-0 px-2 transition-all truncate"
+                placeholder="Tên cột..."
+              />
+              <div className="flex items-center gap-2 mt-1 px-2">
+                <Badge
+                  variant="secondary"
+                  className="bg-slate-100 text-slate-500 font-bold text-[10px] uppercase tracking-wider rounded-lg border-none"
+                >
+                  {columnTypeLabel.icon} {columnTypeLabel.label}
+                </Badge>
+                {column.required && (
+                  <Badge className="bg-amber-50 text-amber-600 font-bold text-[10px] uppercase tracking-wider rounded-lg border-amber-100">
+                    Bắt buộc
+                  </Badge>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1 shrink-0">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={isEditing ? onCancelEdit : onEdit}
+                className={cn(
+                  'h-10 w-10 rounded-xl transition-all',
+                  isEditing
+                    ? 'bg-primary/10 text-primary hover:bg-primary/20'
+                    : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'
+                )}
+              >
+                {isEditing ? <Check className="h-5 w-5" /> : <Settings2 className="h-5 w-5" />}
               </Button>
-            ) : (
-              <Button variant="ghost" size="sm" onClick={onCancelEdit}>
-                <X className="h-4 w-4" />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onDelete}
+                className="h-10 w-10 rounded-xl text-slate-300 hover:text-destructive hover:bg-destructive/10 transition-all"
+              >
+                <Trash2 className="h-5 w-5" />
               </Button>
-            )}
-            <Button variant="ghost" size="sm" onClick={onDelete} className="text-destructive">
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            </div>
           </div>
 
-          {/* Expanded Settings */}
+          {/* Settings Section */}
           {isEditing && (
-            <div className="space-y-4 pt-2 border-t">
-              {/* Type Selection */}
-              <div className="space-y-2">
-                <Label>Kiểu dữ liệu</Label>
-                <Select
-                  value={column.type || 'text'}
-                  onValueChange={(value) => onUpdate({ type: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {COLUMN_TYPES.map((type) => (
-                      <SelectItem key={type.value} value={type.value}>
-                        <span className="flex items-center gap-2">
-                          <span>{type.icon}</span>
-                          <span>{type.label}</span>
-                        </span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            <div className="space-y-6 pt-6 border-t border-slate-100 animate-in slide-in-from-top-4 duration-500 pb-2">
+              <div className="grid grid-cols-2 gap-6">
+                {/* Type */}
+                <div className="space-y-2.5">
+                  <Label className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">
+                    Kiểu dữ liệu
+                  </Label>
+                  <Select
+                    value={column.type || 'text'}
+                    onValueChange={(value) => onUpdate({ type: value })}
+                  >
+                    <SelectTrigger className="rounded-xl border-slate-200 h-11 font-bold text-slate-700 bg-slate-50/50">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-2xl border-slate-100 shadow-2xl">
+                      {COLUMN_TYPES.map((type) => (
+                        <SelectItem
+                          key={type.value}
+                          value={type.value}
+                          className="rounded-xl m-1 font-bold"
+                        >
+                          <span className="flex items-center gap-3">
+                            <span className="text-lg">{type.icon}</span>
+                            <span>{type.label}</span>
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Validation */}
+                <div className="space-y-4">
+                  <Label className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 block mb-4">
+                    Ràng buộc
+                  </Label>
+                  <div className="flex items-center justify-between bg-slate-50/50 p-3 rounded-xl border border-slate-200">
+                    <span className="text-sm font-bold text-slate-600">Bắt buộc nhập</span>
+                    <Switch
+                      checked={column.required || false}
+                      onCheckedChange={(checked) => onUpdate({ required: checked })}
+                      className="data-[state=checked]:bg-primary"
+                    />
+                  </div>
+                </div>
               </div>
 
-              {/* Color Selection */}
-              <div className="space-y-2">
-                <Label>Màu sắc</Label>
-                <div className="grid grid-cols-4 gap-2">
+              {/* Color */}
+              <div className="space-y-3">
+                <Label className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">
+                  Bảng màu sắc
+                </Label>
+                <div className="flex flex-wrap gap-2.5">
                   {COLOR_PRESETS.map((preset) => (
                     <button
                       key={preset.value}
                       onClick={() => onUpdate({ color: preset.value })}
                       className={cn(
-                        'h-10 rounded-md border-2 transition-all hover:scale-105',
+                        'h-9 w-9 rounded-xl border-2 transition-all hover:scale-110 shadow-sm border-white',
                         column.color === preset.value
-                          ? 'border-primary ring-2 ring-primary/20'
-                          : 'border-transparent'
+                          ? 'ring-2 ring-primary ring-offset-2'
+                          : 'ring-1 ring-slate-100'
                       )}
                       style={{ backgroundColor: preset.value }}
                       title={preset.name}
                     />
                   ))}
-                </div>
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="color"
-                    value={column.color || '#FFFFFF'}
-                    onChange={(e) => onUpdate({ color: e.target.value })}
-                    className="h-10 w-20 cursor-pointer"
-                  />
-                  <Input
-                    type="text"
-                    value={column.color || '#FFFFFF'}
-                    onChange={(e) => onUpdate({ color: e.target.value })}
-                    placeholder="#FFFFFF"
-                    className="flex-1"
-                  />
+                  <div className="relative group">
+                    <Input
+                      type="color"
+                      value={column.color || '#FFFFFF'}
+                      onChange={(e) => onUpdate({ color: e.target.value })}
+                      className="h-9 w-9 p-0 border-none rounded-xl cursor-pointer ring-1 ring-slate-200"
+                    />
+                  </div>
                 </div>
               </div>
 
-              {/* Required Toggle */}
-              <div className="flex items-center justify-between">
-                <Label>Bắt buộc</Label>
-                <div className="flex items-center gap-2">
-                  <Switch
-                    checked={column.required || false}
-                    onCheckedChange={(checked) => onUpdate({ required: checked })}
-                  />
-                  <span className="text-sm text-muted-foreground">
-                    {column.required ? 'Có' : 'Không'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Options (for select type) */}
+              {/* Options */}
               {column.type === 'select' && (
-                <div className="space-y-2">
-                  <Label>Tùy chọn</Label>
+                <div className="space-y-3 bg-slate-50/50 p-4 rounded-2xl border border-slate-200">
+                  <Label className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">
+                    Danh sách lựa chọn
+                  </Label>
                   <div className="flex gap-2">
                     <Input
                       value={optionInput}
-                      onChange={(e) => setOptionInput(e.target.value)}
-                      placeholder="Nhập tùy chọn..."
+                      onChange={(e) => {
+                        onSetEditingId(column.id)
+                        setOptionInput(e.target.value)
+                      }}
+                      placeholder="Nhập giá trị mới..."
+                      className="h-10 border-slate-200 rounded-xl font-bold text-slate-700 focus:ring-4 focus:ring-primary/10 transition-all px-4"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                           e.preventDefault()
@@ -419,48 +492,37 @@ const ColumnCard: React.FC<ColumnCardProps> = ({
                         }
                       }}
                     />
-                    <Button onClick={handleAddOption} size="sm" type="button">
-                      <Plus className="h-4 w-4" />
+                    <Button
+                      onClick={handleAddOption}
+                      size="icon"
+                      className="h-10 w-10 rounded-xl shadow-lg shadow-primary/20"
+                    >
+                      <Plus className="h-5 w-5" />
                     </Button>
                   </div>
                   <div className="flex flex-wrap gap-2 mt-2">
                     {column.options?.map((option, idx) => (
-                      <Badge key={idx} variant="secondary" className="gap-1">
+                      <Badge
+                        key={idx}
+                        variant="secondary"
+                        className="pl-3 pr-1 py-1 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl gap-2 shadow-sm"
+                      >
                         {option}
                         <button
                           onClick={() => onRemoveOption(idx)}
-                          className="ml-1 hover:text-destructive"
+                          className="h-5 w-5 rounded-lg flex items-center justify-center hover:bg-destructive/10 hover:text-destructive transition-colors"
                         >
-                          <X className="h-3 w-3" />
+                          <X className="h-3.5 w-3.5" />
                         </button>
                       </Badge>
                     ))}
                   </div>
                   {(!column.options || column.options.length === 0) && (
-                    <p className="text-xs text-muted-foreground">
-                      Chưa có tùy chọn nào. Thêm tùy chọn để người dùng có thể chọn.
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tight text-center py-2">
+                      Vui lòng thêm ít nhất một giá trị
                     </p>
                   )}
                 </div>
-              )}
-            </div>
-          )}
-
-          {/* Compact Info when not editing */}
-          {!isEditing && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Badge variant="outline" className="text-xs">
-                {COLUMN_TYPES.find((t) => t.value === column.type)?.label || 'Văn bản'}
-              </Badge>
-              {column.required && (
-                <Badge variant="secondary" className="text-xs">
-                  Bắt buộc
-                </Badge>
-              )}
-              {column.type === 'select' && column.options && column.options.length > 0 && (
-                <Badge variant="secondary" className="text-xs">
-                  {column.options.length} tùy chọn
-                </Badge>
               )}
             </div>
           )}
