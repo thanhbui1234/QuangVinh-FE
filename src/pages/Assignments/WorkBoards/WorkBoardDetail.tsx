@@ -327,11 +327,46 @@ export const WorkBoardDetail: React.FC = () => {
     const rowId = workBoard.rowIdMap?.[rowIndex]
     if (rowId) {
       try {
+        // 🔥 Optimistic update: Update cache immediately
+        queryClient.setQueryData([...workBoardsKey.detail(sheetId), 50], (oldData: any) => {
+          if (!oldData || !oldData.workBoard) return oldData
+          const newWorkBoard = { ...oldData.workBoard }
+
+          // 1. Decrease row count
+          newWorkBoard.rows = Math.max(0, newWorkBoard.rows - 1)
+
+          // 2. Shift rowIdMap
+          const newRowIdMap: Record<number, number> = {}
+          Object.entries(newWorkBoard.rowIdMap || {}).forEach(([idx, id]) => {
+            const rIdx = Number(idx)
+            if (rIdx < rowIndex) {
+              newRowIdMap[rIdx] = Number(id)
+            } else if (rIdx > rowIndex) {
+              newRowIdMap[rIdx - 1] = Number(id)
+            }
+          })
+          newWorkBoard.rowIdMap = newRowIdMap
+
+          // 3. Filter and shift cells
+          newWorkBoard.cells = (newWorkBoard.cells || [])
+            .filter((cell: IWorkBoardCell) => cell.rowIndex !== rowIndex)
+            .map((cell: IWorkBoardCell) => {
+              if (cell.rowIndex > rowIndex) {
+                return { ...cell, rowIndex: cell.rowIndex - 1 }
+              }
+              return cell
+            })
+
+          return { ...oldData, workBoard: newWorkBoard }
+        })
+
         await removeSheetRowMutation.mutateAsync({ rowId })
-        // Invalidate queries to refresh the board
+        // Still invalidate to ensure we are in sync with server
         queryClient.invalidateQueries({ queryKey: workBoardsKey.detail(sheetId) })
       } catch (error) {
         console.error('Error deleting row:', error)
+        // Revert on error
+        await refetchAndClearCache()
       }
     }
   }
@@ -456,12 +491,12 @@ export const WorkBoardDetail: React.FC = () => {
             workBoard={workBoard}
             sheetId={sheetId}
             onSave={handleSave}
-            isFetching={isLoading || isManualRefetching}
+            isInitialLoading={isLoading}
+            isFetching={isFetching || isManualRefetching}
             isSaving={
               createSheetRowMutation.isPending ||
               updateSheetRowCellMutation.isPending ||
-              removeSheetRowMutation.isPending ||
-              (isFetching && !isLoading && !isManualRefetching)
+              removeSheetRowMutation.isPending
             }
             onRefresh={handleRefreshSheet}
             onUnsavedChangesChange={undefined}

@@ -88,7 +88,7 @@ const mapSheetInfoToWorkBoard = (sheetInfo: ISheetInfo): IWorkBoard => {
 export const useGetWorkBoardDetail = (id: number | undefined, rowSize: number = 50) => {
   const queryClient = useQueryClient()
 
-  const queryKey = [workBoardsKey.detail(id || 0), rowSize]
+  const queryKey = [...workBoardsKey.detail(id || 0), rowSize]
 
   const { data, isFetching, error, refetch } = useQuery({
     queryKey,
