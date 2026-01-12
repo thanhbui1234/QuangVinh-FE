@@ -352,19 +352,19 @@ export const WorkBoardDetail: React.FC = () => {
   // Only show loader if we don't have the workBoard data yet
   if (!workBoard && isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-50/50">
-        <div className="flex flex-col items-center gap-8 p-12 bg-white/60 backdrop-blur-2xl rounded-[3rem] shadow-2xl shadow-slate-200/50 border border-white">
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="flex flex-col items-center gap-6 p-10 bg-card rounded-[2.5rem] border border-border shadow-2xl">
           <div className="relative">
-            <div className="w-20 h-20 border-4 border-slate-100 border-t-primary rounded-full animate-spin" />
+            <div className="w-16 h-16 border-3 border-muted border-t-primary rounded-full animate-spin" />
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-10 h-10 bg-primary/10 rounded-2xl flex items-center justify-center animate-pulse">
-                <Settings className="h-6 w-6 text-primary" />
+              <div className="w-8 h-8 flex items-center justify-center animate-pulse">
+                <Settings className="h-5 w-5 text-primary" />
               </div>
             </div>
           </div>
-          <div className="space-y-2 text-center">
-            <h3 className="text-xl font-black text-slate-800 tracking-tight">Vui lòng đợi</h3>
-            <p className="text-slate-400 font-medium text-sm px-4">
+          <div className="space-y-1 text-center">
+            <h3 className="text-xl font-bold text-foreground tracking-tight">Vui lòng đợi</h3>
+            <p className="text-muted-foreground font-medium text-xs px-4">
               Đang chuẩn bị không gian làm việc của bạn...
             </p>
           </div>
@@ -375,22 +375,22 @@ export const WorkBoardDetail: React.FC = () => {
 
   if (!workBoard && !isFetching && !isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-50/50">
-        <div className="text-center p-12 bg-white/60 backdrop-blur-2xl rounded-[3rem] shadow-2xl shadow-slate-200/50 border border-white max-w-md mx-4">
-          <div className="bg-slate-100 w-20 h-20 rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-inner ring-1 ring-slate-200">
-            <ArrowLeft className="h-10 w-10 text-slate-400" />
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="text-center p-10 bg-card rounded-[2.5rem] border border-border shadow-2xl max-w-sm mx-4">
+          <div className="bg-muted w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <ArrowLeft className="h-8 w-8 text-muted-foreground/30" />
           </div>
-          <h3 className="text-2xl font-black text-slate-800 mb-3 tracking-tight">
+          <h3 className="text-xl font-bold text-foreground mb-2 tracking-tight">
             Không tìm thấy dữ liệu
           </h3>
-          <p className="text-slate-400 font-medium text-sm mb-10 leading-relaxed">
+          <p className="text-muted-foreground font-medium text-xs mb-8 leading-relaxed">
             {error instanceof Error
               ? error.message
               : 'Dữ liệu không tồn tại hoặc bạn không có quyền truy cập.'}
           </p>
           <Button
             onClick={() => navigate('/work-boards')}
-            className="rounded-2xl h-14 px-8 w-full shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all font-bold tracking-tight"
+            className="rounded-xl h-12 px-8 w-full font-bold tracking-tight shadow-sm"
           >
             Quay lại danh sách
           </Button>
@@ -404,43 +404,41 @@ export const WorkBoardDetail: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50/50 p-4 md:p-8 space-y-8 animate-in fade-in duration-700">
-      {/* Premium Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white/60 backdrop-blur-xl p-6 rounded-3xl border border-white shadow-2xl shadow-slate-200/50 ring-1 ring-slate-200/20">
-        <div className="flex items-center gap-6">
+    <div className="min-h-screen bg-background/95 p-4 md:p-6 space-y-4 animate-in fade-in duration-700">
+      {/* Compressed & Softened Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card/50 p-4 rounded-2xl border border-border/40 shadow-sm">
+        <div className="flex items-center gap-4">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => navigate('/work-boards')}
-            className="h-12 w-12 rounded-2xl bg-white shadow-sm border border-slate-100 hover:bg-primary/5 hover:text-primary transition-all group shrink-0"
+            className="h-10 w-10 rounded-xl bg-background/50 shadow-sm border border-border/40 hover:bg-muted transition-all group shrink-0"
           >
-            <ArrowLeft className="h-5 w-5 group-hover:-translate-x-1 transition-transform" />
+            <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
           </Button>
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-black tracking-tight text-slate-800">
-                {workBoard.name}
-              </h1>
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-bold tracking-tight">{workBoard.name}</h1>
               {hasPermission && (
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-10 w-10 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all"
+                  className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
                   onClick={() => setIsSettingsOpen(true)}
                 >
-                  <Settings className="h-5 w-5" />
+                  <Settings className="h-4 w-4" />
                 </Button>
               )}
             </div>
             {workBoard.description && (
-              <p className="text-sm font-medium text-slate-400 max-w-2xl leading-relaxed">
+              <p className="text-xs font-medium text-muted-foreground max-w-2xl leading-relaxed line-clamp-1">
                 {workBoard.description}
               </p>
             )}
           </div>
         </div>
 
-        <div className="flex items-center gap-3 self-end md:self-center">
+        <div className="flex items-center gap-2 self-end md:self-center">
           {/* Action buttons could go here */}
         </div>
       </div>
@@ -453,7 +451,7 @@ export const WorkBoardDetail: React.FC = () => {
       />
 
       <div ref={containerRef} className="w-full relative" style={{ maxWidth }}>
-        <div className="rounded-3xl overflow-hidden ring-1 ring-slate-200/50">
+        <div className="rounded-2xl overflow-hidden border border-border/40 bg-card/30">
           <EditableTable
             workBoard={workBoard}
             sheetId={sheetId}

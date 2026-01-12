@@ -85,11 +85,11 @@ export const ColumnStatisticsModal: React.FC<ColumnStatisticsModalProps> = ({
         }
       `}</style>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto custom-scrollbar border-border bg-background shadow-2xl rounded-3xl">
-          <DialogHeader className="border-b border-border/50 pb-4">
-            <DialogTitle className="flex items-center gap-3 text-2xl font-bold tracking-tight">
-              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                <BarChart3 className="h-5 w-5 text-primary" />
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto custom-scrollbar border-border/20 bg-background/95 backdrop-blur-md shadow-2xl rounded-3xl">
+          <DialogHeader className="border-b border-border/20 pb-4">
+            <DialogTitle className="flex items-center gap-3 text-2xl font-bold tracking-tight text-foreground/90">
+              <div className="h-10 w-10 rounded-xl bg-primary/5 flex items-center justify-center">
+                <BarChart3 className="h-5 w-5 text-primary/60" />
               </div>
               Thống kê: {columnName}
             </DialogTitle>

@@ -175,11 +175,11 @@ export const WorkBoardsList: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-4 md:p-8 space-y-8 animate-in fade-in duration-500">
+    <div className="min-h-screen bg-background/95 text-foreground/90 p-4 md:p-8 space-y-6 animate-in fade-in duration-500">
       <PageBreadcrumb />
 
-      {/* Modern Header */}
-      <div className="bg-card p-6 md:p-8 rounded-3xl border border-border shadow-sm">
+      {/* Modern & Soft Header */}
+      <div className="bg-card/40 p-6 md:p-8 rounded-3xl border border-border/20 shadow-sm backdrop-blur-sm">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="space-y-1">
             <h1 className="text-3xl font-bold tracking-tight">Bảng công việc</h1>
@@ -195,9 +195,9 @@ export const WorkBoardsList: React.FC = () => {
                 value={searchText}
                 onChange={(e) => handleSearchChange(e.target.value)}
                 onFocus={() => searchResults.length > 0 && setShowSearchDropdown(true)}
-                className="h-11 pl-11 pr-4 rounded-xl border-border bg-muted/30 focus:bg-background focus:ring-2 focus:ring-primary/20 transition-all font-medium"
+                className="h-11 pl-11 pr-4 rounded-xl border-border/20 bg-muted/20 focus:bg-background focus:ring-1 focus:ring-primary/10 transition-all font-medium"
               />
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/60 group-focus-within:text-primary/60 transition-colors">
                 <Plus className="h-4 w-4 rotate-45" />
               </div>
 
@@ -286,7 +286,7 @@ export const WorkBoardsList: React.FC = () => {
           {workBoards.map((board) => (
             <Card
               key={board.id}
-              className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-sm transition-all duration-300 hover:shadow-md hover:border-primary/40 cursor-pointer relative"
+              className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border/20 bg-card/40 p-6 shadow-sm transition-all duration-300 hover:shadow-md hover:border-primary/20 cursor-pointer relative backdrop-blur-sm"
               onClick={() => navigate(`/work-boards/${board.id}`)}
             >
               <div className="flex items-start justify-between gap-3 mb-6">

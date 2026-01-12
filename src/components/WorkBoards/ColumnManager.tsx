@@ -174,11 +174,11 @@ export const ColumnManager: React.FC<ColumnManagerProps> = ({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="w-full sm:max-w-xl p-0 overflow-hidden border-l border-border shadow-2xl bg-background"
+        className="w-full sm:max-w-xl p-0 overflow-hidden border-l border-border/20 shadow-2xl bg-background/95 backdrop-blur-md"
       >
         <div className="flex flex-col h-full">
-          {/* Custom Header */}
-          <div className="p-8 pb-6 bg-card border-b border-border">
+          {/* Custom & Softened Header */}
+          <div className="p-8 pb-6 bg-card/30 border-b border-border/20">
             <div className="flex items-center gap-4 mb-2">
               <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center">
                 <Settings2 className="h-6 w-6 text-primary" />
@@ -196,7 +196,7 @@ export const ColumnManager: React.FC<ColumnManagerProps> = ({
             {/* Add Column Button */}
             <Button
               onClick={handleAddColumn}
-              className="w-full h-14 rounded-2xl bg-card border-2 border-dashed border-border text-muted-foreground hover:border-primary hover:text-primary hover:bg-primary/5 transition-all gap-2 font-bold shadow-sm"
+              className="w-full h-14 rounded-2xl bg-card/20 border-2 border-dashed border-border/20 text-muted-foreground/60 hover:border-primary/40 hover:text-primary/60 hover:bg-primary/5 transition-all gap-2 font-bold shadow-sm"
               variant="ghost"
             >
               <Plus className="h-5 w-5" />
@@ -242,7 +242,7 @@ export const ColumnManager: React.FC<ColumnManagerProps> = ({
           </div>
 
           {/* Footer Actions */}
-          <div className="p-8 bg-card border-t border-border flex gap-3 shadow-md">
+          <div className="p-8 bg-card/30 border-t border-border/20 flex gap-3 shadow-md">
             <Button
               variant="ghost"
               onClick={() => onOpenChange(false)}
@@ -319,10 +319,10 @@ const ColumnCard: React.FC<ColumnCardProps & { onSetEditingId: (id: string | nul
       onDragOver={onDragOver}
       onDragEnd={onDragEnd}
       className={cn(
-        'group/card rounded-2xl bg-card border border-border shadow-sm transition-all duration-200 relative overflow-hidden',
+        'group/card rounded-2xl bg-card/30 border border-border/20 shadow-sm transition-all duration-200 relative overflow-hidden',
         isDragging && 'opacity-30 scale-95 blur-sm',
-        !isDragging && 'hover:shadow-md hover:border-primary/40',
-        isEditing && 'ring-2 ring-primary ring-inset z-20'
+        !isDragging && 'hover:shadow-md hover:border-primary/20',
+        isEditing && 'ring-1 ring-primary/40 ring-inset z-20'
       )}
     >
       <div
