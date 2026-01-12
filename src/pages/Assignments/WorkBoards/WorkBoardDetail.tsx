@@ -29,7 +29,6 @@ export const WorkBoardDetail: React.FC = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const { addColumnMutation } = useAddColumn({ suppressInvalidation: true })
   const { updateColumnsMutation } = useUpdateColumns({ suppressInvalidation: true })
-  const { removeColumnMutation } = useRemoveColumn({ suppressInvalidation: true })
   const { createSheetRowMutation } = useCreateSheetRow()
   const { updateSheetRowCellMutation } = useUpdateSheetRowCell()
   const { removeSheetRowMutation } = useRemoveSheetRow()
