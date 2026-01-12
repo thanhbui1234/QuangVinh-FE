@@ -404,7 +404,7 @@ export const WorkBoardDetail: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#fafafa] dark:bg-[#0c0c0e] p-4 md:p-6 space-y-4 animate-in fade-in duration-700">
+    <div className="min-h-screen bg-[#f5f5f7] dark:bg-[#0c0c0e] p-4 md:p-6 space-y-4 animate-in fade-in duration-700">
       {/* Compressed & Softened Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/40 dark:bg-card/30 p-4 rounded-2xl border border-border/10 dark:border-border/20 shadow-sm backdrop-blur-md">
         <div className="flex items-center gap-4">

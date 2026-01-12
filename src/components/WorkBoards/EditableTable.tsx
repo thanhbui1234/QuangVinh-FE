@@ -542,9 +542,9 @@ export const EditableTable: React.FC<EditableTableProps> = ({
                     return (
                       <React.Fragment key={col.id}>
                         <TableHead
-                          style={!isDefaultColor ? { backgroundColor: `${columnColor}12` } : {}}
+                          style={!isDefaultColor ? { backgroundColor: `${columnColor}40` } : {}}
                           className={cn(
-                            'min-w-[200px] h-10 p-0 whitespace-nowrap border-b border-border/15 sticky top-0 z-20 bg-muted/10 backdrop-blur-sm hover:bg-muted/20 transition-colors'
+                            'min-w-[200px] h-10 p-0 whitespace-nowrap border-b border-border/15 sticky top-0 z-20 bg-muted/10 backdrop-blur-sm hover:bg-muted/30 transition-colors'
                           )}
                         >
                           {editingCell?.row === -1 && editingCell?.col === colIndex ? (
@@ -668,12 +668,12 @@ export const EditableTable: React.FC<EditableTableProps> = ({
                       return (
                         <TableCell
                           key={colIndex}
-                          style={!isDefaultColor ? { backgroundColor: `${columnColor}08` } : {}}
+                          style={!isDefaultColor ? { backgroundColor: `${columnColor}30` } : {}}
                           className={cn(
                             'min-w-[200px] p-0 whitespace-nowrap border-r border-border/10 transition-all group/cell',
                             isEditing
                               ? 'ring-1 ring-primary/40 ring-inset z-50 bg-background shadow-md'
-                              : 'hover:bg-muted/10'
+                              : 'hover:bg-muted/15'
                           )}
                         >
                           {columnType === 'select' && hasOptions ? (
@@ -718,7 +718,7 @@ export const EditableTable: React.FC<EditableTableProps> = ({
                               {cellValue ? (
                                 <span className="truncate">{cellValue}</span>
                               ) : (
-                                <span className="text-muted-foreground/15 text-[9px] font-bold uppercase tracking-widest opacity-0 group-hover/cell:opacity-100 transition-all">
+                                <span className="text-muted-foreground/60 text-[9px] font-bold uppercase tracking-widest opacity-0 group-hover/cell:opacity-100 transition-all">
                                   Trống
                                 </span>
                               )}
@@ -727,33 +727,6 @@ export const EditableTable: React.FC<EditableTableProps> = ({
                         </TableCell>
                       )
                     })}
-                    {/* Subtle Insertion Point */}
-                    <div className="absolute -bottom-1 left-16 right-0 h-2 opacity-0 group-hover/row:opacity-100 items-center justify-center flex pointer-events-none z-40 transition-all">
-                      <Button
-                        variant="outline"
-                        className="h-6 w-24 bg-background shadow-md border border-border rounded-full pointer-events-auto hover:bg-primary hover:text-primary-foreground transition-all scale-90 hover:scale-100 flex items-center gap-2 font-bold text-[9px] uppercase tracking-tighter"
-                        onClick={() => {
-                          handleAddRow()
-                          setTimeout(() => {
-                            setCells((prev) => {
-                              const newMap = new Map()
-                              prev.forEach((value, key) => {
-                                const [r, c] = key.split('-').map(Number)
-                                if (r > rowIndex) {
-                                  newMap.set(`${r + 1}-${c}`, value)
-                                } else {
-                                  newMap.set(key, value)
-                                }
-                              })
-                              return newMap
-                            })
-                          }, 0)
-                        }}
-                      >
-                        <Plus className="h-3 w-3" />
-                        Chèn hàng
-                      </Button>
-                    </div>
                   </TableRow>
                 ))}
                 {/* Last row add button */}

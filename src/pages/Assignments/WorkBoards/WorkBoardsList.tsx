@@ -175,7 +175,7 @@ export const WorkBoardsList: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background/95 text-foreground/90 p-4 md:p-8 space-y-6 animate-in fade-in duration-500">
+    <div className="min-h-screen bg-[#f5f5f7] dark:bg-[#0c0c0e] text-foreground/90 p-4 md:p-8 space-y-6 animate-in fade-in duration-500">
       <PageBreadcrumb />
 
       {/* Modern & Soft Header */}
