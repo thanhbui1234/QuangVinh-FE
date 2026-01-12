@@ -536,12 +536,15 @@ export const EditableTable: React.FC<EditableTableProps> = ({
                   </TableHead>
                   {columnHeaders.map((col, colIndex) => {
                     const columnColor = col.color || '#FFFFFF'
+                    const isDefaultColor =
+                      columnColor === '#FFFFFF' || columnColor.toLowerCase() === 'transparent'
 
                     return (
                       <React.Fragment key={col.id}>
                         <TableHead
+                          style={!isDefaultColor ? { backgroundColor: `${columnColor}12` } : {}}
                           className={cn(
-                            'min-w-[200px] h-10 p-0 whitespace-nowrap border-b border-border/30 sticky top-0 z-20 bg-muted/20 backdrop-blur-sm hover:bg-muted/40 transition-colors'
+                            'min-w-[200px] h-10 p-0 whitespace-nowrap border-b border-border/15 sticky top-0 z-20 bg-muted/10 backdrop-blur-sm hover:bg-muted/20 transition-colors'
                           )}
                         >
                           {editingCell?.row === -1 && editingCell?.col === colIndex ? (
@@ -579,7 +582,7 @@ export const EditableTable: React.FC<EditableTableProps> = ({
                                   className="w-2.5 h-2.5 rounded-full shrink-0 border border-background shadow-sm"
                                   style={{ backgroundColor: columnColor }}
                                 />
-                                <span className="font-bold text-foreground truncate tracking-tight uppercase text-[11px]">
+                                <span className="font-bold text-foreground/80 truncate tracking-tight uppercase text-[10px]">
                                   {col.label}
                                 </span>
                               </div>
@@ -630,12 +633,12 @@ export const EditableTable: React.FC<EditableTableProps> = ({
                     key={rowIndex}
                     className="group/row hover:bg-muted/20 transition-all duration-200 relative border-b border-border/20"
                   >
-                    <TableCell className="w-16 h-10 bg-muted/10 sticky left-0 z-10 border-r border-border/30 text-center font-bold text-muted-foreground/70 px-0 leading-none">
-                      <div className="flex flex-col items-center justify-center relative min-h-[48px]">
-                        <span className="group-hover/row:opacity-0 transition-opacity text-[11px]">
+                    <TableCell className="w-16 h-10 bg-[#f8f8f8] dark:bg-[#151518] sticky left-0 z-10 border-r border-border/20 text-center font-bold text-muted-foreground/50 px-0 leading-none backdrop-blur-sm">
+                      <div className="flex flex-col items-center justify-center relative min-h-[40px]">
+                        <span className="group-hover/row:opacity-0 transition-opacity text-[10px]">
                           {rowIndex + 1}
                         </span>
-                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/row:opacity-100 transition-opacity bg-muted/80">
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/row:opacity-100 transition-opacity bg-muted/95 backdrop-blur-md">
                           <Button
                             variant="ghost"
                             size="icon"
@@ -658,14 +661,19 @@ export const EditableTable: React.FC<EditableTableProps> = ({
                       const hasOptions = column?.options && column.options.length > 0
                       const columnType = column?.type || 'text'
 
+                      const columnColor = column.color || '#FFFFFF'
+                      const isDefaultColor =
+                        columnColor === '#FFFFFF' || columnColor.toLowerCase() === 'transparent'
+
                       return (
                         <TableCell
                           key={colIndex}
+                          style={!isDefaultColor ? { backgroundColor: `${columnColor}08` } : {}}
                           className={cn(
-                            'min-w-[200px] p-0 whitespace-nowrap border-r border-border/20 transition-all group/cell',
+                            'min-w-[200px] p-0 whitespace-nowrap border-r border-border/10 transition-all group/cell',
                             isEditing
-                              ? 'ring-1 ring-primary/50 ring-inset z-50 bg-background shadow-md'
-                              : ''
+                              ? 'ring-1 ring-primary/40 ring-inset z-50 bg-background shadow-md'
+                              : 'hover:bg-muted/10'
                           )}
                         >
                           {columnType === 'select' && hasOptions ? (
@@ -675,10 +683,10 @@ export const EditableTable: React.FC<EditableTableProps> = ({
                                 setCellValue(rowIndex, colIndex, value)
                               }}
                             >
-                              <SelectTrigger className="border-0 focus:ring-0 h-12 w-full px-4 rounded-none shadow-none bg-transparent hover:bg-muted/50 transition-colors font-semibold text-foreground">
+                              <SelectTrigger className="border-0 focus:ring-0 h-10 w-full px-4 rounded-none shadow-none bg-transparent hover:bg-muted/20 transition-colors font-medium text-foreground/80">
                                 <SelectValue placeholder="Chọn..." />
                               </SelectTrigger>
-                              <SelectContent className="rounded-xl border-border shadow-2xl bg-popover">
+                              <SelectContent className="rounded-xl border-border/20 shadow-2xl bg-popover/90 backdrop-blur-xl">
                                 {column.options?.map((option, idx) => (
                                   <SelectItem
                                     key={idx}
@@ -699,18 +707,18 @@ export const EditableTable: React.FC<EditableTableProps> = ({
                                 onChange={(e) => setEditingValue(e.target.value)}
                                 onBlur={handleCellBlur}
                                 onKeyDown={handleCellKeyDown}
-                                className="border-0 focus-visible:ring-0 h-10 w-full p-0 bg-transparent font-semibold text-foreground selection:bg-primary/20"
+                                className="border-0 focus-visible:ring-0 h-9 w-full p-0 bg-transparent font-medium text-foreground selection:bg-primary/20"
                               />
                             </div>
                           ) : (
                             <div
-                              className="px-4 h-10 flex items-center cursor-pointer group-hover/cell:bg-muted/20 transition-all font-semibold text-foreground/90 relative overflow-hidden"
+                              className="px-4 h-10 flex items-center cursor-pointer transition-all font-medium text-foreground/80 relative overflow-hidden"
                               onClick={() => handleCellClick(rowIndex, colIndex)}
                             >
                               {cellValue ? (
                                 <span className="truncate">{cellValue}</span>
                               ) : (
-                                <span className="text-muted-foreground/20 text-[10px] font-bold uppercase tracking-widest opacity-0 group-hover/cell:opacity-100 transition-all group-hover/cell:translate-x-1">
+                                <span className="text-muted-foreground/15 text-[9px] font-bold uppercase tracking-widest opacity-0 group-hover/cell:opacity-100 transition-all">
                                   Trống
                                 </span>
                               )}

@@ -404,9 +404,9 @@ export const WorkBoardDetail: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background/95 p-4 md:p-6 space-y-4 animate-in fade-in duration-700">
+    <div className="min-h-screen bg-[#fafafa] dark:bg-[#0c0c0e] p-4 md:p-6 space-y-4 animate-in fade-in duration-700">
       {/* Compressed & Softened Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card/50 p-4 rounded-2xl border border-border/40 shadow-sm">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/40 dark:bg-card/30 p-4 rounded-2xl border border-border/10 dark:border-border/20 shadow-sm backdrop-blur-md">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
@@ -451,7 +451,7 @@ export const WorkBoardDetail: React.FC = () => {
       />
 
       <div ref={containerRef} className="w-full relative" style={{ maxWidth }}>
-        <div className="rounded-2xl overflow-hidden border border-border/40 bg-card/30">
+        <div className="rounded-2cl overflow-hidden border border-border/15 dark:border-border/20 bg-white/40 dark:bg-card/20 backdrop-blur-sm">
           <EditableTable
             workBoard={workBoard}
             sheetId={sheetId}
