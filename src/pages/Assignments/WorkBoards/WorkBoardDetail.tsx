@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router'
 import { useGetWorkBoardDetail } from '@/hooks/workBoards/useGetWorkBoardDetail'
 import { useAddColumn } from '@/hooks/workBoards/useAddColumn'
 
-import { useRemoveColumn } from '@/hooks/workBoards/useRemoveColumn'
 import { useUpdateColumns } from '@/hooks/workBoards/useUpdateColumns'
 import { useCreateSheetRow } from '@/hooks/workBoards/useCreateSheetRow'
 import { useUpdateSheetRowCell } from '@/hooks/workBoards/useUpdateSheetRowCell'
