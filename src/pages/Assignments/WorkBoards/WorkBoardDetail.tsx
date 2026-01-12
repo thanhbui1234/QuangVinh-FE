@@ -161,25 +161,12 @@ export const WorkBoardDetail: React.FC = () => {
           type: col.type || 'text',
         }))
 
-        if (
-          columnsPayload.length > 0 &&
-          (columnChanges.added.length > 0 || columnChanges.modified.length > 0)
-        ) {
+        if (columnsPayload.length > 0) {
           promises.push(
             updateColumnsMutation.mutateAsync({
               sheetId,
               version: 1, // Assuming versioning is handled or 1 is a default
               columns: columnsPayload,
-            })
-          )
-        }
-
-        // Remove deleted columns
-        for (const deletedColumn of columnChanges.deleted) {
-          promises.push(
-            removeColumnMutation.mutateAsync({
-              sheetId,
-              columnName: deletedColumn.name || deletedColumn.label,
             })
           )
         }
