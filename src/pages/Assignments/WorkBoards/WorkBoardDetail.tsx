@@ -127,14 +127,23 @@ export const WorkBoardDetail: React.FC = () => {
       // 1. Process Column Changes if any
       if (data.columnChanges) {
         // Send the full list of columns to sync the state
-        const columnsPayload = data.columnHeaders.map((col, idx) => ({
-          name: col.name || col.label,
-          index: col.index ?? idx,
-          color: col.color || '#FFFFFF',
-          required: col.required || false,
-          options: col.options || [],
-          type: col.type || 'text',
-        }))
+        const columnsPayload = data.columnHeaders.map((col, idx) => {
+          const mod = data.columnChanges?.modified.find((m) => m.updated.id === col.id)
+          const currentName = col.name || col.label
+          const originalName = mod ? mod.original.name || mod.original.label : undefined
+
+          return {
+            name: currentName,
+            index: col.index ?? idx,
+            color: col.color || '#FFFFFF',
+            required: col.required || false,
+            options: col.options || [],
+            type: col.type || 'text',
+            ...(mod && originalName && originalName !== currentName
+              ? { oldName: originalName }
+              : {}),
+          }
+        })
 
         if (columnsPayload.length > 0) {
           try {

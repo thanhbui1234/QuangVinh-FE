@@ -158,6 +158,7 @@ export interface IUpdateColumnsRequest {
     required: boolean
     options: string[]
     type?: string
+    oldName?: string
   }>
 }
 
