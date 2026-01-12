@@ -174,20 +174,18 @@ export const ColumnManager: React.FC<ColumnManagerProps> = ({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="w-full sm:max-w-xl p-0 overflow-hidden border-l border-slate-200 shadow-2xl bg-slate-50/95 backdrop-blur-xl"
+        className="w-full sm:max-w-xl p-0 overflow-hidden border-l border-border shadow-2xl bg-background"
       >
         <div className="flex flex-col h-full">
           {/* Custom Header */}
-          <div className="p-8 pb-6 bg-white/50 border-b border-slate-200">
+          <div className="p-8 pb-6 bg-card border-b border-border">
             <div className="flex items-center gap-4 mb-2">
               <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center">
                 <Settings2 className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <SheetTitle className="text-2xl font-black text-slate-800 tracking-tight">
-                  Quản lý cột
-                </SheetTitle>
-                <SheetDescription className="text-slate-400 font-medium">
+                <SheetTitle className="text-2xl font-bold tracking-tight">Quản lý cột</SheetTitle>
+                <SheetDescription className="text-muted-foreground font-medium">
                   Tùy chỉnh cấu trúc và định dạng dữ liệu cho bảng
                 </SheetDescription>
               </div>
@@ -198,11 +196,11 @@ export const ColumnManager: React.FC<ColumnManagerProps> = ({
             {/* Add Column Button */}
             <Button
               onClick={handleAddColumn}
-              className="w-full h-14 rounded-2xl bg-white border-2 border-dashed border-slate-200 text-slate-500 hover:border-primary hover:text-primary hover:bg-primary/5 transition-all gap-2 font-bold shadow-sm"
+              className="w-full h-14 rounded-2xl bg-card border-2 border-dashed border-border text-muted-foreground hover:border-primary hover:text-primary hover:bg-primary/5 transition-all gap-2 font-bold shadow-sm"
               variant="ghost"
             >
               <Plus className="h-5 w-5" />
-              Thêm cột dữ liệu mới
+              Thêm cột mới
             </Button>
 
             {/* Columns List */}
@@ -233,10 +231,10 @@ export const ColumnManager: React.FC<ColumnManagerProps> = ({
 
             {localColumns.length === 0 && (
               <div className="text-center py-20 animate-in fade-in zoom-in duration-500">
-                <div className="w-20 h-20 bg-slate-100 rounded-[2.5rem] flex items-center justify-center mx-auto mb-6 shadow-inner ring-1 ring-slate-200">
-                  <Plus className="h-10 w-10 text-slate-300" />
+                <div className="w-16 h-16 bg-muted rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <Plus className="h-8 w-8 text-muted-foreground/30" />
                 </div>
-                <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">
+                <p className="text-muted-foreground font-bold uppercase tracking-widest text-[10px]">
                   Danh sách trống
                 </p>
               </div>
@@ -244,19 +242,19 @@ export const ColumnManager: React.FC<ColumnManagerProps> = ({
           </div>
 
           {/* Footer Actions */}
-          <div className="p-8 bg-white border-t border-slate-200 flex gap-3 shadow-[0_-10px_20px_rgba(0,0,0,0.02)]">
+          <div className="p-8 bg-card border-t border-border flex gap-3 shadow-md">
             <Button
               variant="ghost"
               onClick={() => onOpenChange(false)}
-              className="px-8 h-12 rounded-xl font-bold text-slate-500 hover:bg-slate-50"
+              className="px-8 h-12 rounded-xl font-bold text-muted-foreground hover:bg-muted"
             >
               Hủy bỏ
             </Button>
             <Button
               onClick={handleSave}
-              className="flex-1 h-12 rounded-xl font-black tracking-tight shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all"
+              className="flex-1 h-12 rounded-xl font-bold shadow-sm transition-all"
             >
-              <Check className="h-5 w-5 mr-2" />
+              <Check className="h-4 w-4 mr-2" />
               Cập nhật cấu trúc
             </Button>
           </div>
@@ -321,10 +319,10 @@ const ColumnCard: React.FC<ColumnCardProps & { onSetEditingId: (id: string | nul
       onDragOver={onDragOver}
       onDragEnd={onDragEnd}
       className={cn(
-        'group/card rounded-3xl bg-white border border-slate-200 shadow-sm transition-all duration-300 relative overflow-hidden',
+        'group/card rounded-2xl bg-card border border-border shadow-sm transition-all duration-200 relative overflow-hidden',
         isDragging && 'opacity-30 scale-95 blur-sm',
-        !isDragging && 'hover:shadow-xl hover:shadow-slate-200/50 hover:-translate-y-1',
-        isEditing && 'ring-2 ring-primary ring-inset shadow-2xl z-20'
+        !isDragging && 'hover:shadow-md hover:border-primary/40',
+        isEditing && 'ring-2 ring-primary ring-inset z-20'
       )}
     >
       <div
@@ -334,9 +332,9 @@ const ColumnCard: React.FC<ColumnCardProps & { onSetEditingId: (id: string | nul
 
       <div className="p-5 flex gap-4">
         {/* Drag Handle */}
-        <div className="flex flex-col items-center gap-1 cursor-grab active:cursor-grabbing opacity-30 group-hover/card:opacity-100 transition-opacity pt-1.5">
+        <div className="flex flex-col items-center gap-1 cursor-grab active:cursor-grabbing opacity-30 group-hover/card:opacity-100 transition-opacity pt-1.5 shrink-0">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="w-1 h-1 rounded-full bg-slate-400" />
+            <div key={i} className="w-1 h-1 rounded-full bg-muted-foreground/50" />
           ))}
         </div>
 
@@ -347,18 +345,18 @@ const ColumnCard: React.FC<ColumnCardProps & { onSetEditingId: (id: string | nul
               <Input
                 value={column.label}
                 onChange={(e) => onUpdate({ label: e.target.value, name: e.target.value })}
-                className="h-10 border-transparent bg-transparent hover:bg-slate-50 focus:bg-white focus:border-slate-200 rounded-xl font-black text-slate-800 text-lg p-0 px-2 transition-all truncate"
+                className="h-9 border-transparent bg-transparent hover:bg-muted/50 focus:bg-background focus:border-border rounded-lg font-bold text-foreground text-md p-0 px-2 transition-all truncate"
                 placeholder="Tên cột..."
               />
               <div className="flex items-center gap-2 mt-1 px-2">
                 <Badge
                   variant="secondary"
-                  className="bg-slate-100 text-slate-500 font-bold text-[10px] uppercase tracking-wider rounded-lg border-none"
+                  className="bg-muted text-muted-foreground font-bold text-[10px] uppercase tracking-wider rounded-md border-none"
                 >
                   {columnTypeLabel.icon} {columnTypeLabel.label}
                 </Badge>
                 {column.required && (
-                  <Badge className="bg-amber-50 text-amber-600 font-bold text-[10px] uppercase tracking-wider rounded-lg border-amber-100">
+                  <Badge className="bg-amber-500/10 text-amber-500 font-bold text-[10px] uppercase tracking-wider rounded-md border-none">
                     Bắt buộc
                   </Badge>
                 )}
@@ -371,50 +369,50 @@ const ColumnCard: React.FC<ColumnCardProps & { onSetEditingId: (id: string | nul
                 size="icon"
                 onClick={isEditing ? onCancelEdit : onEdit}
                 className={cn(
-                  'h-10 w-10 rounded-xl transition-all',
+                  'h-9 w-9 rounded-lg transition-all',
                   isEditing
                     ? 'bg-primary/10 text-primary hover:bg-primary/20'
-                    : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                 )}
               >
-                {isEditing ? <Check className="h-5 w-5" /> : <Settings2 className="h-5 w-5" />}
+                {isEditing ? <Check className="h-4 w-4" /> : <Settings2 className="h-4 w-4" />}
               </Button>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={onDelete}
-                className="h-10 w-10 rounded-xl text-slate-300 hover:text-destructive hover:bg-destructive/10 transition-all"
+                className="h-9 w-9 rounded-lg text-muted-foreground/40 hover:text-destructive hover:bg-destructive/10 transition-all"
               >
-                <Trash2 className="h-5 w-5" />
+                <Trash2 className="h-4 w-4" />
               </Button>
             </div>
           </div>
 
           {/* Settings Section */}
           {isEditing && (
-            <div className="space-y-6 pt-6 border-t border-slate-100 animate-in slide-in-from-top-4 duration-500 pb-2">
-              <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-6 pt-6 border-t border-border/50 animate-in slide-in-from-top-2 duration-300 pb-2">
+              <div className="grid grid-cols-2 gap-4">
                 {/* Type */}
-                <div className="space-y-2.5">
-                  <Label className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                     Kiểu dữ liệu
                   </Label>
                   <Select
                     value={column.type || 'text'}
                     onValueChange={(value) => onUpdate({ type: value })}
                   >
-                    <SelectTrigger className="rounded-xl border-slate-200 h-11 font-bold text-slate-700 bg-slate-50/50">
+                    <SelectTrigger className="rounded-lg border-border h-10 font-semibold bg-muted/30">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="rounded-2xl border-slate-100 shadow-2xl">
+                    <SelectContent className="rounded-xl border-border shadow-xl">
                       {COLUMN_TYPES.map((type) => (
                         <SelectItem
                           key={type.value}
                           value={type.value}
-                          className="rounded-xl m-1 font-bold"
+                          className="rounded-lg m-1 font-medium"
                         >
-                          <span className="flex items-center gap-3">
-                            <span className="text-lg">{type.icon}</span>
+                          <span className="flex items-center gap-2">
+                            <span>{type.icon}</span>
                             <span>{type.label}</span>
                           </span>
                         </SelectItem>
@@ -424,56 +422,48 @@ const ColumnCard: React.FC<ColumnCardProps & { onSetEditingId: (id: string | nul
                 </div>
 
                 {/* Validation */}
-                <div className="space-y-4">
-                  <Label className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 block mb-4">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                     Ràng buộc
                   </Label>
-                  <div className="flex items-center justify-between bg-slate-50/50 p-3 rounded-xl border border-slate-200">
-                    <span className="text-sm font-bold text-slate-600">Bắt buộc nhập</span>
+                  <div className="flex items-center justify-between bg-muted/30 h-10 p-2.5 rounded-lg border border-border">
+                    <span className="text-xs font-semibold text-muted-foreground">Bắt buộc</span>
                     <Switch
                       checked={column.required || false}
                       onCheckedChange={(checked) => onUpdate({ required: checked })}
-                      className="data-[state=checked]:bg-primary"
+                      className="scale-90"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Color */}
-              <div className="space-y-3">
-                <Label className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">
-                  Bảng màu sắc
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                  Màu sắc định danh
                 </Label>
-                <div className="flex flex-wrap gap-2.5">
+                <div className="flex flex-wrap gap-2">
                   {COLOR_PRESETS.map((preset) => (
                     <button
                       key={preset.value}
                       onClick={() => onUpdate({ color: preset.value })}
                       className={cn(
-                        'h-9 w-9 rounded-xl border-2 transition-all hover:scale-110 shadow-sm border-white',
+                        'h-8 w-8 rounded-lg border transition-all hover:scale-110 shadow-sm border-background',
                         column.color === preset.value
                           ? 'ring-2 ring-primary ring-offset-2'
-                          : 'ring-1 ring-slate-100'
+                          : 'ring-1 ring-border'
                       )}
                       style={{ backgroundColor: preset.value }}
                       title={preset.name}
                     />
                   ))}
-                  <div className="relative group">
-                    <Input
-                      type="color"
-                      value={column.color || '#FFFFFF'}
-                      onChange={(e) => onUpdate({ color: e.target.value })}
-                      className="h-9 w-9 p-0 border-none rounded-xl cursor-pointer ring-1 ring-slate-200"
-                    />
-                  </div>
                 </div>
               </div>
 
               {/* Options */}
               {column.type === 'select' && (
-                <div className="space-y-3 bg-slate-50/50 p-4 rounded-2xl border border-slate-200">
-                  <Label className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">
+                <div className="space-y-3 bg-muted/30 p-4 rounded-xl border border-border">
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                     Danh sách lựa chọn
                   </Label>
                   <div className="flex gap-2">
@@ -483,8 +473,8 @@ const ColumnCard: React.FC<ColumnCardProps & { onSetEditingId: (id: string | nul
                         onSetEditingId(column.id)
                         setOptionInput(e.target.value)
                       }}
-                      placeholder="Nhập giá trị mới..."
-                      className="h-10 border-slate-200 rounded-xl font-bold text-slate-700 focus:ring-4 focus:ring-primary/10 transition-all px-4"
+                      placeholder="Nhập giá trị..."
+                      className="h-9 border-border rounded-lg font-semibold bg-background"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                           e.preventDefault()
@@ -492,12 +482,8 @@ const ColumnCard: React.FC<ColumnCardProps & { onSetEditingId: (id: string | nul
                         }
                       }}
                     />
-                    <Button
-                      onClick={handleAddOption}
-                      size="icon"
-                      className="h-10 w-10 rounded-xl shadow-lg shadow-primary/20"
-                    >
-                      <Plus className="h-5 w-5" />
+                    <Button onClick={handleAddOption} size="sm" className="h-9 w-9 rounded-lg">
+                      <Plus className="h-4 w-4" />
                     </Button>
                   </div>
                   <div className="flex flex-wrap gap-2 mt-2">
@@ -505,20 +491,20 @@ const ColumnCard: React.FC<ColumnCardProps & { onSetEditingId: (id: string | nul
                       <Badge
                         key={idx}
                         variant="secondary"
-                        className="pl-3 pr-1 py-1 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl gap-2 shadow-sm"
+                        className="pl-3 pr-1 py-1 bg-background border border-border text-foreground font-semibold rounded-lg gap-2"
                       >
                         {option}
                         <button
                           onClick={() => onRemoveOption(idx)}
-                          className="h-5 w-5 rounded-lg flex items-center justify-center hover:bg-destructive/10 hover:text-destructive transition-colors"
+                          className="h-5 w-5 rounded-md flex items-center justify-center hover:bg-destructive/10 hover:text-destructive transition-colors"
                         >
-                          <X className="h-3.5 w-3.5" />
+                          <X className="h-3 w-3" />
                         </button>
                       </Badge>
                     ))}
                   </div>
                   {(!column.options || column.options.length === 0) && (
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tight text-center py-2">
+                    <p className="text-[10px] text-muted-foreground font-bold tracking-tight text-center py-1">
                       Vui lòng thêm ít nhất một giá trị
                     </p>
                   )}

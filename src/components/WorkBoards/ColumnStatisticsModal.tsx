@@ -85,36 +85,44 @@ export const ColumnStatisticsModal: React.FC<ColumnStatisticsModalProps> = ({
         }
       `}</style>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto custom-scrollbar">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5" />
-              Thống kê cột: {columnName}
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto custom-scrollbar border-border bg-background shadow-2xl rounded-3xl">
+          <DialogHeader className="border-b border-border/50 pb-4">
+            <DialogTitle className="flex items-center gap-3 text-2xl font-bold tracking-tight">
+              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <BarChart3 className="h-5 w-5 text-primary" />
+              </div>
+              Thống kê: {columnName}
             </DialogTitle>
           </DialogHeader>
 
-          <div className="py-4">
+          <div className="py-6">
             {showLoading ? (
-              <div className="flex flex-col items-center justify-center py-12">
-                <div className="w-12 h-12 border-4 border-gray-200 border-t-slate-900 rounded-full animate-spin" />
-                <p className="text-muted-foreground font-medium mt-4">
-                  Đang tải dữ liệu thống kê...
+              <div className="flex flex-col items-center justify-center py-16 gap-4">
+                <div className="w-12 h-12 border-3 border-muted border-t-primary rounded-full animate-spin" />
+                <p className="text-muted-foreground font-bold uppercase tracking-widest text-[10px]">
+                  Đang tổng hợp dữ liệu...
                 </p>
               </div>
             ) : showError ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <AlertCircle className="h-12 w-12 text-destructive mb-4" />
-                <p className="text-destructive font-medium">Không thể tải dữ liệu thống kê</p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  {showError instanceof Error ? showError.message : 'Đã xảy ra lỗi khi tải dữ liệu'}
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="h-20 w-20 rounded-3xl bg-destructive/10 flex items-center justify-center mb-6">
+                  <AlertCircle className="h-10 w-10 text-destructive" />
+                </div>
+                <h3 className="text-lg font-bold mb-2">Không thể tải thống kê</h3>
+                <p className="text-muted-foreground text-sm max-w-xs">
+                  {showError instanceof Error
+                    ? showError.message
+                    : 'Đã xảy ra lỗi khi xử lý dữ liệu'}
                 </p>
               </div>
             ) : !statsData?.template ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <BarChart3 className="h-12 w-12 text-muted-foreground mb-4" />
-                <p className="text-muted-foreground font-medium">Không có dữ liệu thống kê</p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Cột này chưa có dữ liệu để hiển thị thống kê
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="h-20 w-20 rounded-3xl bg-muted flex items-center justify-center mb-6">
+                  <BarChart3 className="h-10 w-10 text-muted-foreground/30" />
+                </div>
+                <h3 className="text-lg font-bold mb-2">Chưa có dữ liệu</h3>
+                <p className="text-muted-foreground text-sm max-w-xs">
+                  Cột này hiện đang trống hoặc không có dữ liệu để phân tích
                 </p>
               </div>
             ) : statsData.template.type === 'group' ? (
@@ -122,11 +130,13 @@ export const ColumnStatisticsModal: React.FC<ColumnStatisticsModalProps> = ({
             ) : statsData.template.type === 'number' ? (
               <NumberStatisticsChart data={statsData.template} />
             ) : (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
-                <p className="text-muted-foreground font-medium">Loại dữ liệu không được hỗ trợ</p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Loại: {(statsData.template as any).type}
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="h-20 w-20 rounded-3xl bg-muted flex items-center justify-center mb-6">
+                  <AlertCircle className="h-10 w-10 text-muted-foreground/30" />
+                </div>
+                <h3 className="text-lg font-bold mb-2">Không hỗ trợ</h3>
+                <p className="text-muted-foreground text-sm">
+                  Kiểu dữ liệu: {(statsData.template as any).type}
                 </p>
               </div>
             )}

@@ -446,81 +446,75 @@ export const EditableTable: React.FC<EditableTableProps> = ({
   return (
     <div className="flex flex-col gap-4">
       {/* Toolbar */}
-      <div className="flex items-center justify-between flex-wrap gap-4 px-2 py-4 bg-white/40 backdrop-blur-md rounded-2xl border border-white/60 shadow-sm">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between flex-wrap gap-4 px-4 py-4 bg-card rounded-2xl border border-border shadow-sm">
+        <div className="flex items-center gap-2">
           <Button
             onClick={handleAddRow}
-            variant="ghost"
+            variant="outline"
             size="sm"
-            className="rounded-xl h-10 px-4 bg-white shadow-sm border border-slate-200 hover:bg-slate-50 hover:text-primary transition-all gap-2 font-semibold"
+            className="rounded-xl h-10 px-4 font-semibold shadow-sm transition-all flex items-center gap-2"
           >
             <Plus className="h-4 w-4" />
-            Thêm hàng
+            <span className="hidden sm:inline">Thêm hàng</span>
           </Button>
           <Button
             onClick={() => setShowColumnManager(true)}
-            variant="ghost"
+            variant="outline"
             size="sm"
-            className="rounded-xl h-10 px-4 bg-white shadow-sm border border-slate-200 hover:bg-slate-50 hover:text-primary transition-all gap-2 font-semibold"
+            className="rounded-xl h-10 px-4 font-semibold shadow-sm transition-all flex items-center gap-2"
           >
             <Settings2 className="h-4 w-4" />
-            Quản lý cột
+            <span className="hidden sm:inline">Quản lý cột</span>
           </Button>
           <Button
             onClick={onRefresh}
-            variant="ghost"
+            variant="outline"
             size="sm"
-            className="rounded-xl h-10 px-4 bg-white shadow-sm border border-slate-200 hover:bg-slate-50 hover:text-primary transition-all gap-2 font-semibold"
+            className="rounded-xl h-10 px-4 font-semibold shadow-sm transition-all flex items-center gap-2"
           >
             <RefreshCw className={cn('h-4 w-4', isFetching && 'animate-spin')} />
-            Tải lại
+            <span className="hidden sm:inline">Tải lại</span>
           </Button>
         </div>
-        <div className="flex items-center gap-3 px-4 h-10 bg-white/50 rounded-xl border border-white/60">
+        <div className="flex items-center gap-2.5 px-4 h-10 bg-muted/30 rounded-xl border border-border">
           <div
             className={cn(
               'h-2 w-2 rounded-full transition-all duration-500',
-              isSaving ? 'bg-amber-400 animate-pulse' : 'bg-emerald-500'
+              isSaving ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'
             )}
           />
-          <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-            {isSaving ? 'Đang lưu...' : 'Sẵn sàng'}
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+            {isSaving ? 'Đang lưu...' : 'Đã lưu'}
           </span>
         </div>
       </div>
 
-      {/* Table */}
       {/* Table Content */}
-      <Card className="overflow-hidden border-none shadow-2xl shadow-slate-200/50 rounded-[2rem] bg-white/50 backdrop-blur-sm">
+      <Card className="overflow-hidden border border-border shadow-md rounded-2xl bg-card">
         {isFetching ? (
           <div className="flex items-center justify-center h-80">
             <div className="flex flex-col items-center gap-6">
-              <div className="relative">
-                <div className="w-16 h-16 border-4 border-slate-100 border-t-primary rounded-full animate-spin" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <RefreshCw className="h-6 w-6 text-primary animate-pulse" />
-                </div>
-              </div>
-              <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">
+              <div className="w-12 h-12 border-3 border-muted border-t-primary rounded-full animate-spin" />
+              <p className="text-muted-foreground font-semibold uppercase tracking-widest text-[10px]">
                 Đang đồng bộ dữ liệu...
               </p>
             </div>
           </div>
         ) : columnHeaders.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-80 text-center p-12 bg-white/40">
-            <div className="bg-slate-100 p-6 rounded-[2rem] mb-6 shadow-inner ring-1 ring-slate-200">
-              <Settings2 className="h-10 w-10 text-slate-400" />
+          <div className="flex flex-col items-center justify-center h-80 text-center p-12">
+            <div className="bg-muted p-6 rounded-3xl mb-6 shadow-inner border border-border">
+              <Settings2 className="h-10 w-10 text-muted-foreground/40" />
             </div>
-            <h3 className="text-xl font-black text-slate-800 mb-2">Chưa có cột nào</h3>
-            <p className="text-slate-400 max-w-sm mb-8 text-sm font-medium">
+            <h3 className="text-xl font-bold mb-2">Chưa có cột nào</h3>
+            <p className="text-muted-foreground max-w-sm mb-8 text-sm font-medium">
               Khởi tạo cấu trúc bảng bằng cách thêm các cột dữ liệu đầu tiên.
             </p>
             <Button
               onClick={() => setShowColumnManager(true)}
-              className="rounded-2xl h-12 px-8 shadow-lg shadow-primary/20 hover:scale-105 transition-all"
+              className="rounded-xl h-11 px-8 shadow-sm font-bold"
             >
-              <Plus className="h-5 w-5 mr-2" />
-              Thiết lập cột ngay
+              <Plus className="h-4 w-4 mr-2" />
+              Thiết lập cột
             </Button>
           </div>
         ) : (
@@ -535,21 +529,19 @@ export const EditableTable: React.FC<EditableTableProps> = ({
             >
               <TableHeader className="sticky top-0 z-10">
                 <TableRow className="border-none hover:bg-transparent">
-                  <TableHead className="w-16 bg-slate-100/90 backdrop-blur-xl sticky left-0 z-30 border-r border-slate-200 font-black text-slate-500 text-center px-0">
-                    <div className="flex items-center justify-center">#</div>
+                  <TableHead className="w-16 bg-muted/80 backdrop-blur-md sticky left-0 z-30 border-r border-border font-bold text-muted-foreground text-center px-0">
+                    <div className="flex items-center justify-center text-[10px] tracking-widest">
+                      #
+                    </div>
                   </TableHead>
                   {columnHeaders.map((col, colIndex) => {
                     const columnColor = col.color || '#FFFFFF'
-                    const isVibrant =
-                      columnColor !== '#FFFFFF' &&
-                      !['#F8FAFC', '#F1F5F9', '#E2E8F0'].includes(columnColor.toUpperCase())
 
                     return (
                       <React.Fragment key={col.id}>
                         <TableHead
                           className={cn(
-                            'min-w-[200px] h-14 p-0 whitespace-nowrap transition-all border-b border-slate-200 sticky top-0 z-20 shadow-sm',
-                            isVibrant ? 'bg-white' : 'bg-slate-100/90 backdrop-blur-xl'
+                            'min-w-[200px] h-14 p-0 whitespace-nowrap border-b border-border sticky top-0 z-20 bg-muted/80 backdrop-blur-md hover:bg-muted transition-colors'
                           )}
                         >
                           {editingCell?.row === -1 && editingCell?.col === colIndex ? (
@@ -570,24 +562,24 @@ export const EditableTable: React.FC<EditableTableProps> = ({
                                     setEditingCell(null)
                                   }
                                 }}
-                                className="h-9 rounded-xl border-primary ring-4 ring-primary/20 shadow-sm font-bold text-slate-900"
+                                className="h-9 rounded-lg border-primary shadow-sm font-semibold text-foreground bg-background"
                               />
                             </div>
                           ) : (
                             <div
-                              className="group h-full flex items-center justify-between px-4 cursor-pointer hover:bg-white transition-all border-t-[5px]"
+                              className="group h-full flex items-center justify-between px-4 cursor-pointer hover:bg-background/50 transition-all border-t-[3px]"
                               style={{ borderTopColor: columnColor }}
                               onClick={() => {
                                 setEditingCell({ row: -1, col: colIndex })
                                 setEditingValue(col.label)
                               }}
                             >
-                              <div className="flex items-center gap-3 flex-1 overflow-hidden">
+                              <div className="flex items-center gap-2.5 flex-1 overflow-hidden">
                                 <div
-                                  className="w-3 h-3 rounded-full shadow-md shrink-0 border border-white"
+                                  className="w-2.5 h-2.5 rounded-full shrink-0 border border-background shadow-sm"
                                   style={{ backgroundColor: columnColor }}
                                 />
-                                <span className="font-extrabold text-slate-800 truncate tracking-tight uppercase text-[12px]">
+                                <span className="font-bold text-foreground truncate tracking-tight uppercase text-[11px]">
                                   {col.label}
                                 </span>
                               </div>
@@ -605,7 +597,7 @@ export const EditableTable: React.FC<EditableTableProps> = ({
                                     <Button
                                       variant="ghost"
                                       size="icon"
-                                      className="h-8 w-8 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-slate-100 hover:text-primary transition-all shrink-0"
+                                      className="h-7 w-7 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-muted hover:text-primary transition-all shrink-0"
                                       onClick={(e) => {
                                         e.stopPropagation()
                                         const values = Array.from({ length: rows }).map(
@@ -619,7 +611,7 @@ export const EditableTable: React.FC<EditableTableProps> = ({
                                         })
                                       }}
                                     >
-                                      <BarChart3 className="h-4 w-4" />
+                                      <BarChart3 className="h-3.5 w-3.5" />
                                     </Button>
                                   )
                                 })()}
@@ -636,24 +628,24 @@ export const EditableTable: React.FC<EditableTableProps> = ({
                 {Array.from({ length: rows }).map((_, rowIndex) => (
                   <TableRow
                     key={rowIndex}
-                    className="group/row hover:bg-white hover:shadow-2xl hover:z-10 transition-all duration-300 relative border-b border-slate-200/60"
+                    className="group/row hover:bg-muted/30 transition-all duration-200 relative border-b border-border/50"
                   >
-                    <TableCell className="w-16 bg-slate-100/40 backdrop-blur-sm sticky left-0 z-10 border-r border-slate-200 text-center font-black text-slate-500 px-0">
+                    <TableCell className="w-16 bg-muted/40 sticky left-0 z-10 border-r border-border text-center font-bold text-muted-foreground px-0">
                       <div className="flex flex-col items-center justify-center relative min-h-[48px]">
-                        <span className="group-hover/row:opacity-0 transition-opacity">
+                        <span className="group-hover/row:opacity-0 transition-opacity text-[11px]">
                           {rowIndex + 1}
                         </span>
-                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/row:opacity-100 transition-opacity bg-white/80">
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/row:opacity-100 transition-opacity bg-background/50 backdrop-blur-sm">
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 rounded-xl text-destructive hover:bg-destructive/10 hover:text-destructive transition-all border border-transparent hover:border-destructive/20"
+                            className="h-7 w-7 rounded-lg text-destructive hover:bg-destructive/10 hover:text-destructive transition-all"
                             onClick={() => {
                               setOpenConfirm(true)
                               setRowIndex(rowIndex)
                             }}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-3.5 w-3.5" />
                           </Button>
                         </div>
                       </div>
@@ -670,9 +662,9 @@ export const EditableTable: React.FC<EditableTableProps> = ({
                         <TableCell
                           key={colIndex}
                           className={cn(
-                            'min-w-[200px] p-0 whitespace-nowrap border-r border-slate-100 transition-all group/cell',
+                            'min-w-[200px] p-0 whitespace-nowrap border-r border-border/40 transition-all group/cell',
                             isEditing
-                              ? 'ring-2 ring-primary ring-inset z-50 bg-white shadow-xl'
+                              ? 'ring-2 ring-primary ring-inset z-50 bg-background shadow-lg'
                               : ''
                           )}
                         >
@@ -683,15 +675,15 @@ export const EditableTable: React.FC<EditableTableProps> = ({
                                 setCellValue(rowIndex, colIndex, value)
                               }}
                             >
-                              <SelectTrigger className="border-0 focus:ring-0 h-12 w-full px-4 rounded-none shadow-none bg-transparent hover:bg-slate-100/50 transition-colors font-bold text-slate-900">
+                              <SelectTrigger className="border-0 focus:ring-0 h-12 w-full px-4 rounded-none shadow-none bg-transparent hover:bg-muted/50 transition-colors font-semibold text-foreground">
                                 <SelectValue placeholder="Chọn..." />
                               </SelectTrigger>
-                              <SelectContent className="rounded-2xl border-slate-200 shadow-2xl">
+                              <SelectContent className="rounded-xl border-border shadow-2xl bg-popover">
                                 {column.options?.map((option, idx) => (
                                   <SelectItem
                                     key={idx}
                                     value={option}
-                                    className="rounded-xl m-1 font-semibold"
+                                    className="rounded-lg m-1 font-medium"
                                   >
                                     {option}
                                   </SelectItem>
@@ -699,7 +691,7 @@ export const EditableTable: React.FC<EditableTableProps> = ({
                               </SelectContent>
                             </Select>
                           ) : isEditing ? (
-                            <div className="relative h-full flex items-center px-4 bg-white z-30 shadow-2xl">
+                            <div className="relative h-full flex items-center px-4 bg-background z-30 shadow-inner">
                               <Input
                                 ref={inputRef}
                                 type={columnType === 'number' ? 'number' : 'text'}
@@ -707,20 +699,18 @@ export const EditableTable: React.FC<EditableTableProps> = ({
                                 onChange={(e) => setEditingValue(e.target.value)}
                                 onBlur={handleCellBlur}
                                 onKeyDown={handleCellKeyDown}
-                                className="border-0 focus-visible:ring-0 h-10 w-full p-0 bg-transparent font-bold text-slate-900 selection:bg-primary/30"
+                                className="border-0 focus-visible:ring-0 h-10 w-full p-0 bg-transparent font-semibold text-foreground selection:bg-primary/20"
                               />
                             </div>
                           ) : (
                             <div
-                              className="px-4 h-12 flex items-center cursor-pointer group-hover/cell:bg-slate-100/60 transition-all font-bold text-slate-900 relative overflow-hidden group/text"
+                              className="px-4 h-12 flex items-center cursor-pointer group-hover/cell:bg-muted/40 transition-all font-semibold text-foreground relative overflow-hidden"
                               onClick={() => handleCellClick(rowIndex, colIndex)}
                             >
                               {cellValue ? (
-                                <span className="truncate group-hover/text:translate-x-1 transition-transform">
-                                  {cellValue}
-                                </span>
+                                <span className="truncate">{cellValue}</span>
                               ) : (
-                                <span className="text-slate-300 text-[10px] font-black uppercase tracking-[0.2em] opacity-0 group-hover/cell:opacity-100 transition-all group-hover/cell:translate-x-1">
+                                <span className="text-muted-foreground/30 text-[10px] font-bold uppercase tracking-widest opacity-0 group-hover/cell:opacity-100 transition-all group-hover/cell:translate-x-1">
                                   Trống
                                 </span>
                               )}
@@ -732,8 +722,8 @@ export const EditableTable: React.FC<EditableTableProps> = ({
                     {/* Subtle Insertion Point */}
                     <div className="absolute -bottom-1 left-16 right-0 h-2 opacity-0 group-hover/row:opacity-100 items-center justify-center flex pointer-events-none z-40 transition-all">
                       <Button
-                        variant="ghost"
-                        className="h-6 w-24 bg-white shadow-lg border border-slate-100 rounded-full pointer-events-auto hover:bg-primary hover:text-white transition-all scale-75 hover:scale-100 flex items-center gap-2 font-bold text-[9px] uppercase tracking-tighter"
+                        variant="outline"
+                        className="h-6 w-24 bg-background shadow-md border border-border rounded-full pointer-events-auto hover:bg-primary hover:text-primary-foreground transition-all scale-90 hover:scale-100 flex items-center gap-2 font-bold text-[9px] uppercase tracking-tighter"
                         onClick={() => {
                           handleAddRow()
                           setTimeout(() => {
@@ -760,14 +750,14 @@ export const EditableTable: React.FC<EditableTableProps> = ({
                 ))}
                 {/* Last row add button */}
                 <TableRow className="border-none">
-                  <TableCell className="bg-slate-50/50 sticky left-0 z-10 p-0 h-16">
+                  <TableCell className="bg-muted/10 sticky left-0 z-10 p-0 h-16">
                     <Button
                       variant="ghost"
-                      className="w-full h-full rounded-none hover:bg-white hover:text-primary transition-all flex flex-col items-center justify-center gap-1 group"
+                      className="w-full h-full rounded-none hover:bg-muted/50 text-muted-foreground hover:text-primary transition-all flex flex-col items-center justify-center gap-1 group"
                       onClick={handleAddRow}
                     >
                       <Plus className="h-5 w-5 group-hover:scale-110 transition-transform" />
-                      <span className="text-[9px] uppercase font-black tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity">
+                      <span className="text-[9px] uppercase font-bold tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
                         Thêm mới
                       </span>
                     </Button>

@@ -153,20 +153,20 @@ export const WorkBoardsList: React.FC = () => {
 
   if (isInitialLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-50/50">
-        <div className="flex flex-col items-center gap-8 p-12 bg-white/60 backdrop-blur-2xl rounded-[3rem] shadow-2xl shadow-slate-200/50 border border-white">
+      <div className="flex items-center justify-center min-h-[60vh] bg-background">
+        <div className="flex flex-col items-center gap-6 p-12">
           <div className="relative">
-            <div className="w-20 h-20 border-4 border-slate-100 border-t-primary rounded-full animate-spin" />
+            <div className="w-16 h-16 border-4 border-muted border-t-primary rounded-full animate-spin" />
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-10 h-10 bg-primary/10 rounded-2xl flex items-center justify-center animate-pulse">
-                <Plus className="h-6 w-6 text-primary" />
+              <div className="w-8 h-8 flex items-center justify-center">
+                <Plus className="h-6 w-6 text-primary animate-pulse" />
               </div>
             </div>
           </div>
-          <div className="space-y-2 text-center">
-            <h3 className="text-xl font-black text-slate-800 tracking-tight">Vui lòng đợi</h3>
-            <p className="text-slate-400 font-medium text-sm px-4">
-              Đang chuẩn bị danh sách bảng công việc của bạn...
+          <div className="space-y-1 text-center">
+            <h3 className="text-xl font-bold tracking-tight text-foreground">Vui lòng đợi</h3>
+            <p className="text-muted-foreground text-sm font-medium">
+              Đang tải danh sách bảng công việc...
             </p>
           </div>
         </div>
@@ -175,64 +175,57 @@ export const WorkBoardsList: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50/50 p-4 md:p-8 space-y-8 animate-in fade-in duration-700">
+    <div className="min-h-screen bg-background text-foreground p-4 md:p-8 space-y-8 animate-in fade-in duration-500">
       <PageBreadcrumb />
 
-      {/* Premium Header */}
-      <div className="bg-white/60 backdrop-blur-xl p-8 rounded-[2.5rem] border border-white shadow-2xl shadow-slate-200/50 ring-1 ring-slate-200/20">
+      {/* Modern Header */}
+      <div className="bg-card p-6 md:p-8 rounded-3xl border border-border shadow-sm">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-          <div className="space-y-2">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-2xl bg-primary/10 flex items-center justify-center">
-                <Plus className="h-5 w-5 text-primary" />
-              </div>
-              <h1 className="text-3xl font-black text-slate-800 tracking-tight">Bảng công việc</h1>
-            </div>
-            <p className="text-slate-400 font-medium text-sm ml-13">
-              Quản lý và theo dõi tiến độ công việc của bạn một cách hiệu quả
+          <div className="space-y-1">
+            <h1 className="text-3xl font-bold tracking-tight">Bảng công việc</h1>
+            <p className="text-muted-foreground text-sm font-medium">
+              Quản lý và tổ chức các bảng dữ liệu của bạn chuyên nghiệp hơn
             </p>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3">
-            <div className="relative w-full sm:w-96 group">
+            <div className="relative w-full sm:w-80 group">
               <Input
-                placeholder="Tìm kiếm bảng công việc..."
+                placeholder="Tìm kiếm bảng..."
                 value={searchText}
                 onChange={(e) => handleSearchChange(e.target.value)}
                 onFocus={() => searchResults.length > 0 && setShowSearchDropdown(true)}
-                className="h-14 pl-12 pr-4 rounded-2xl border-transparent bg-slate-100/50 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary/20 transition-all font-bold text-slate-700 shadow-inner"
+                className="h-11 pl-11 pr-4 rounded-xl border-border bg-muted/30 focus:bg-background focus:ring-2 focus:ring-primary/20 transition-all font-medium"
               />
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors">
-                <Plus className="h-5 w-5 rotate-45" />
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors">
+                <Plus className="h-4 w-4 rotate-45" />
               </div>
 
               {/* Search Results Dropdown */}
               {showSearchDropdown && searchResults.length > 0 && (
-                <div className="absolute top-full mt-3 w-full bg-white/95 backdrop-blur-xl border border-slate-100 rounded-3xl shadow-2xl z-50 max-h-[400px] overflow-hidden animate-in slide-in-from-top-2 duration-300">
+                <div className="absolute top-full mt-2 w-full bg-popover border border-border rounded-2xl shadow-2xl z-50 max-h-[400px] overflow-hidden animate-in slide-in-from-top-2 duration-200">
                   {createSearchMutation.isPending ? (
-                    <div className="p-8 text-center flex flex-col items-center gap-3">
-                      <div className="w-8 h-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                    <div className="p-6 text-center flex flex-col items-center gap-2">
+                      <div className="w-5 h-5 border-2 border-muted border-t-primary rounded-full animate-spin" />
+                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
                         Đang tìm kiếm...
                       </p>
                     </div>
                   ) : (
-                    <ul className="p-2">
+                    <ul className="p-1">
                       {searchResults.map((board) => (
-                        <li key={board.id} className="mb-1 last:mb-0">
+                        <li key={board.id}>
                           <Link
                             to={`/work-boards/${board.id}`}
                             onClick={() => setShowSearchDropdown(false)}
-                            className="flex items-center gap-4 p-4 hover:bg-slate-50 rounded-2xl transition-all group/item"
+                            className="flex items-center gap-3 p-3 hover:bg-muted rounded-xl transition-colors group/item"
                           >
-                            <div className="h-10 w-10 rounded-xl bg-slate-100 flex items-center justify-center group-hover/item:bg-primary/10 transition-colors">
-                              <Plus className="h-4 w-4 text-slate-400 group-hover/item:text-primary" />
+                            <div className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center group-hover/item:bg-primary/20 transition-colors">
+                              <Plus className="h-4 w-4 text-muted-foreground group-hover/item:text-primary" />
                             </div>
                             <div>
-                              <p className="font-bold text-slate-800 tracking-tight">
-                                {board.sheetName}
-                              </p>
-                              <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">
+                              <p className="font-semibold text-sm">{board.sheetName}</p>
+                              <p className="text-[10px] text-muted-foreground font-mono">
                                 ID #{board.id}
                               </p>
                             </div>
@@ -256,10 +249,10 @@ export const WorkBoardsList: React.FC = () => {
             {isManagerPermission && (
               <Button
                 onClick={() => setIsCreateOpen(true)}
-                className="h-14 px-8 rounded-2xl font-black tracking-tight shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
+                className="h-11 px-6 rounded-xl font-bold shadow-sm transition-all"
               >
-                <Plus className="h-5 w-5 mr-2" />
-                Tạo bảng mới
+                <Plus className="h-4 w-4 mr-2" />
+                Thành bảng mới
               </Button>
             )}
           </div>
@@ -268,24 +261,22 @@ export const WorkBoardsList: React.FC = () => {
 
       {workBoards.length === 0 ? (
         <div className="flex items-center justify-center py-20">
-          <Card className="max-w-md w-full p-12 text-center bg-white/60 backdrop-blur-xl rounded-[3rem] border border-white shadow-2xl shadow-slate-200/50">
-            <div className="w-24 h-24 bg-slate-100 rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-inner ring-1 ring-slate-200">
-              <Plus className="h-12 w-12 text-slate-300" />
+          <Card className="max-w-md w-full p-12 text-center bg-card rounded-3xl border border-border shadow-md">
+            <div className="w-20 h-20 bg-muted rounded-2xl flex items-center justify-center mx-auto mb-8">
+              <Plus className="h-10 w-10 text-muted-foreground/30" />
             </div>
-            <h3 className="text-2xl font-black text-slate-800 mb-2 tracking-tight">
-              Chưa có bảng nào
-            </h3>
-            <p className="text-slate-400 font-medium text-sm mb-10 leading-relaxed px-4">
-              Bạn chưa có bảng công việc nào. Hãy tạo một không gian làm việc mới để bắt đầu.
+            <h3 className="text-2xl font-bold mb-2 tracking-tight">Chưa có bảng nào</h3>
+            <p className="text-muted-foreground text-sm mb-10 leading-relaxed px-4">
+              Hãy tạo một không gian làm việc mới để bắt đầu quản lý dữ liệu.
             </p>
             {isManagerPermission && (
               <Button
                 onClick={() => setIsCreateOpen(true)}
                 variant="outline"
-                className="w-full h-14 rounded-2xl border-2 border-dashed border-slate-200 font-black text-slate-500 hover:border-primary hover:text-primary hover:bg-primary/5 transition-all"
+                className="w-full h-12 rounded-xl border-2 border-dashed border-border font-bold hover:border-primary hover:text-primary transition-all"
               >
-                <Plus className="h-5 w-5 mr-2" />
-                Tạo bảng đầu tiên
+                <Plus className="h-4 w-4 mr-2" />
+                Khởi tạo bảng đầu tiên
               </Button>
             )}
           </Card>
@@ -295,40 +286,35 @@ export const WorkBoardsList: React.FC = () => {
           {workBoards.map((board) => (
             <Card
               key={board.id}
-              className="group flex h-full flex-col overflow-hidden rounded-[2.5rem] border border-white bg-white/60 backdrop-blur-xl p-8 shadow-xl shadow-slate-200/40 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-primary/10 cursor-pointer relative"
+              className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-sm transition-all duration-300 hover:shadow-md hover:border-primary/40 cursor-pointer relative"
               onClick={() => navigate(`/work-boards/${board.id}`)}
             >
-              <div className="absolute top-0 right-0 p-6 opacity-0 group-hover:opacity-100 transition-all group-hover:translate-x-1">
-                <div className="h-10 w-10 rounded-2xl bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/30">
-                  <Plus className="h-5 w-5 rotate-45" />
-                </div>
-              </div>
-
-              <div className="flex items-start justify-between gap-3 mb-8">
+              <div className="flex items-start justify-between gap-3 mb-6">
                 <div className="space-y-1">
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                     Work Board
                   </p>
-                  <h3 className="font-black text-xl text-slate-800 line-clamp-1 tracking-tight group-hover:text-primary transition-colors">
+                  <h3 className="font-bold text-xl line-clamp-1 group-hover:text-primary transition-colors">
                     {board.sheetName}
                   </h3>
                 </div>
+                <div className="h-10 w-10 rounded-xl bg-muted text-muted-foreground flex items-center justify-center group-hover:bg-primary/10 group-hover:text-primary transition-all">
+                  <Plus className="h-5 w-5" />
+                </div>
               </div>
 
-              <div className="mt-auto space-y-6">
+              <div className="mt-auto space-y-5">
                 <div className="flex items-center gap-3">
-                  <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-primary w-1/3 rounded-full group-hover:w-1/2 transition-all duration-1000" />
+                  <div className="flex-1 h-1 bg-muted rounded-full overflow-hidden">
+                    <div className="h-full bg-primary/40 w-1/4 rounded-full group-hover:w-full group-hover:bg-primary transition-all duration-700" />
                   </div>
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                    ID #{board.id}
-                  </span>
+                  <span className="text-[10px] font-mono text-muted-foreground">#{board.id}</span>
                 </div>
 
-                <div className="flex flex-col gap-4 border-t border-slate-100 pt-6">
-                  <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 uppercase tracking-tighter">
+                <div className="flex flex-col gap-3 border-t border-border pt-4">
+                  <div className="flex items-center justify-between text-[11px] font-medium text-muted-foreground uppercase tracking-widest">
                     <span>Cập nhật</span>
-                    <span className="text-slate-500">
+                    <span className="text-foreground font-semibold">
                       {formatDate(board.updatedTime || board.createdTime)}
                     </span>
                   </div>
@@ -345,11 +331,11 @@ export const WorkBoardsList: React.FC = () => {
             variant="outline"
             onClick={() => fetchNextPage()}
             disabled={isFetchingNextPage}
-            className="h-14 px-12 rounded-2xl border-2 font-black text-slate-500 hover:bg-white hover:border-primary hover:text-primary transition-all shadow-xl shadow-slate-200/50"
+            className="h-12 px-10 rounded-xl border-border bg-card font-bold text-muted-foreground hover:text-primary transition-all shadow-sm"
           >
             {isFetchingNextPage ? (
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-muted border-t-primary rounded-full animate-spin" />
                 Đang tải...
               </div>
             ) : (
