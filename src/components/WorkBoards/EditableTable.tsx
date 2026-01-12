@@ -18,6 +18,7 @@ import { type IWorkBoard, type IWorkBoardCell, type IWorkBoardColumn } from '@/t
 import { DialogConfirm } from '../ui/alertComponent'
 import { SettingWorkBoards } from './SettingWorkBoards'
 import { ColumnStatisticsModal } from './ColumnStatisticsModal'
+import SonnerToaster from '@/components/ui/toaster'
 
 interface EditableTableProps {
   workBoard: IWorkBoard | null
@@ -328,6 +329,20 @@ export const EditableTable: React.FC<EditableTableProps> = ({
   }
 
   const handleColumnHeaderChange = (colIndex: number, label: string) => {
+    // Check for duplicate names
+    const isDuplicate = columnHeaders.some(
+      (col, idx) => idx !== colIndex && (col.name || col.label) === label
+    )
+
+    if (isDuplicate) {
+      SonnerToaster({
+        type: 'error',
+        message: 'Trùng tên cột',
+        description: `Tên cột "${label}" đã tồn tại. Vui lòng chọn tên khác.`,
+      })
+      return
+    }
+
     const newHeaders = [...columnHeaders]
     newHeaders[colIndex] = {
       ...newHeaders[colIndex],

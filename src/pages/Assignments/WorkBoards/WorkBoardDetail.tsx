@@ -137,15 +137,23 @@ export const WorkBoardDetail: React.FC = () => {
         }))
 
         if (columnsPayload.length > 0) {
-          await updateColumnsMutation.mutateAsync({
-            sheetId,
-            version: 1,
-            columns: columnsPayload,
-          })
+          try {
+            await updateColumnsMutation.mutateAsync({
+              sheetId,
+              version: 1,
+              columns: columnsPayload,
+            })
 
-          // Invalidate queries once after column changes
-          queryClient.invalidateQueries({ queryKey: [workBoardsKey.detail(sheetId)] })
-          queryClient.invalidateQueries({ queryKey: [workBoardsKey.getAll] })
+            // Invalidate queries once after column changes
+            queryClient.invalidateQueries({ queryKey: [workBoardsKey.detail(sheetId)] })
+            queryClient.invalidateQueries({ queryKey: [workBoardsKey.getAll] })
+          } catch (error) {
+            console.error('❌ Error updating columns:', error)
+            // Revert changes by refetching
+            await refetchAndClearCache()
+            // Stop further processing as column state is invalid
+            return
+          }
         }
       }
 

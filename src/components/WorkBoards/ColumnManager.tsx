@@ -159,6 +159,19 @@ export const ColumnManager: React.FC<ColumnManagerProps> = ({
       return
     }
 
+    // Validate duplicate column names
+    const names = localColumns.map((col) => col.name || col.label)
+    const duplicateName = names.find((name, index) => names.indexOf(name) !== index)
+
+    if (duplicateName) {
+      SonnerToaster({
+        type: 'error',
+        message: 'Lỗi xác thực',
+        description: `Tên cột "${duplicateName}" bị trùng. Vui lòng sử dụng tên duy nhất cho mỗi cột.`,
+      })
+      return
+    }
+
     onColumnsChange(localColumns)
     onOpenChange(false)
   }
