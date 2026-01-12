@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router'
 import { useGetWorkBoardDetail } from '@/hooks/workBoards/useGetWorkBoardDetail'
-import { useAddColumn } from '@/hooks/workBoards/useAddColumn'
-
 import { useUpdateColumns } from '@/hooks/workBoards/useUpdateColumns'
 import { useCreateSheetRow } from '@/hooks/workBoards/useCreateSheetRow'
 import { useUpdateSheetRowCell } from '@/hooks/workBoards/useUpdateSheetRowCell'
@@ -26,7 +24,6 @@ export const WorkBoardDetail: React.FC = () => {
     useGetWorkBoardDetail(sheetId)
   const hasPermission = useCheckRole()
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
-  const { addColumnMutation } = useAddColumn({ suppressInvalidation: true })
   const { updateColumnsMutation } = useUpdateColumns({ suppressInvalidation: true })
   const { createSheetRowMutation } = useCreateSheetRow()
   const { updateSheetRowCellMutation } = useUpdateSheetRowCell()
@@ -129,30 +126,10 @@ export const WorkBoardDetail: React.FC = () => {
     try {
       // 1. Process Column Changes if any
       if (data.columnChanges) {
-        const { columnChanges } = data
-        const promises: Promise<any>[] = []
-
-        // Add new columns
-        for (const newColumn of columnChanges.added) {
-          const columnIndex = data.columnHeaders.findIndex((col) => col.id === newColumn.id)
-          promises.push(
-            addColumnMutation.mutateAsync({
-              sheetId,
-              name: newColumn.name || newColumn.label,
-              type: newColumn.type || 'text',
-              index: newColumn.index ?? columnIndex,
-              color: newColumn.color || '#FFFFFF',
-              required: newColumn.required || false,
-              options: newColumn.options || [],
-            })
-          )
-        }
-
-        // Update all columns (Sync)
         // Send the full list of columns to sync the state
         const columnsPayload = data.columnHeaders.map((col, idx) => ({
           name: col.name || col.label,
-          index: col.index ?? idx, // Use the column's index if available, otherwise its position in the array
+          index: col.index ?? idx,
           color: col.color || '#FFFFFF',
           required: col.required || false,
           options: col.options || [],
@@ -160,19 +137,13 @@ export const WorkBoardDetail: React.FC = () => {
         }))
 
         if (columnsPayload.length > 0) {
-          promises.push(
-            updateColumnsMutation.mutateAsync({
-              sheetId,
-              version: 1, // Assuming versioning is handled or 1 is a default
-              columns: columnsPayload,
-            })
-          )
-        }
+          await updateColumnsMutation.mutateAsync({
+            sheetId,
+            version: 1,
+            columns: columnsPayload,
+          })
 
-        // Wait for all column operations to complete
-        if (promises.length > 0) {
-          await Promise.all(promises)
-          // Invalidate queries once after all column changes
+          // Invalidate queries once after column changes
           queryClient.invalidateQueries({ queryKey: [workBoardsKey.detail(sheetId)] })
           queryClient.invalidateQueries({ queryKey: [workBoardsKey.getAll] })
         }

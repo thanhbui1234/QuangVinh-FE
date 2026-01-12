@@ -4,7 +4,7 @@ import { Plus } from 'lucide-react'
 import { useGetWorkBoards } from '@/hooks/workBoards/useGetWorkBoards'
 import { CreateWorkBoardModal } from '@/components/WorkBoards/CreateWorkBoardModal'
 import { useCreateWorkBoard } from '@/hooks/workBoards/useCreateWorkBoard'
-import { useAddColumn } from '@/hooks/workBoards/useAddColumn'
+import { useUpdateColumns } from '@/hooks/workBoards/useUpdateColumns'
 import { useCreateSheetRow } from '@/hooks/workBoards/useCreateSheetRow'
 import type { CreateSheetPayload } from '@/types/Sheet'
 import { Card } from '@/components/ui/card'
@@ -64,7 +64,7 @@ export const WorkBoardsList: React.FC = () => {
   const isInitialLoading = isFetching && workBoards.length === 0
 
   /* Hooks for seeding data */
-  const { addColumnMutation } = useAddColumn()
+  const { updateColumnsMutation } = useUpdateColumns()
 
   const { createSheetRowMutation } = useCreateSheetRow()
 
@@ -98,21 +98,26 @@ export const WorkBoardsList: React.FC = () => {
               const defaultCols = Array.from({ length: 6 }, (_, i) => `Cột ${i + 1}`)
               columnsToUse = defaultCols
 
-              // Create columns sequentially to ensure order? Or parallel?
-              // Sequential is safer for index.
-              for (let i = 0; i < defaultCols.length; i++) {
-                await addColumnMutation.mutateAsync({
-                  sheetId: validSheetId,
-                  name: defaultCols[i],
+              await updateColumnsMutation.mutateAsync({
+                sheetId: validSheetId,
+                version: 1,
+                columns: defaultCols.map((name, i) => ({
+                  name,
                   type: 'text',
-                  index: i + 1,
+                  index: i,
                   color: '#FFFFFF',
                   required: false,
                   options: [],
-                })
-              }
+                })),
+              })
             } else {
               columnsToUse = data.columns.map((c) => c.name)
+              // Also sync if custom columns provided?
+              // For simplicity, if columns are provided in 'data', they might already be handled by the BE on creation.
+              // But if they are not, we should sync them too.
+              // Looking at handleCreate, it seems 'data' is passed to createWorkBoardMutation.
+              // If createWorkBoardMutation already handles columns, then we don't need this step.
+              // However, the original code had this logic to add columns if they were NOT in data.
             }
 
             // 2. Create Default Rows (16 rows)
