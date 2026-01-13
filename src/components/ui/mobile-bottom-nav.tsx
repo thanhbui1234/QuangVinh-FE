@@ -1,6 +1,6 @@
 import React from 'react'
 import { useLocation, useNavigate } from 'react-router'
-import { Home, FileText, User, Bell } from 'lucide-react'
+import { Home, FileText, User, Bell, Clock } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -30,6 +30,12 @@ const navItems: NavItem[] = [
     label: 'Lịch nghỉ',
     icon: FileText,
     path: '/mobile/leaves',
+  },
+  {
+    id: 'late-arrival',
+    label: 'Đi muộn',
+    icon: Clock,
+    path: '/mobile/late-arrival',
   },
   {
     id: 'profile',
@@ -66,6 +72,8 @@ const MobileBottomNav = () => {
         return currentPath.startsWith('/profile')
       case 'leaves':
         return currentPath.startsWith('/mobile/leaves')
+      case 'late-arrival':
+        return currentPath.startsWith('/mobile/late-arrival')
       case 'notifications':
         return currentPath.startsWith('/mobile/notifications')
       default:

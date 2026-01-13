@@ -13,6 +13,7 @@ import {
 import { cn } from '@/lib/utils'
 import { useLocation, useNavigate } from 'react-router'
 import { ModeToggle } from '@/components/ui/modeToggle'
+import { AnimatePresence, motion } from 'framer-motion'
 
 type Props = {
   children?: ReactNode
@@ -85,6 +86,7 @@ const WebLayout = ({ children }: Props) => {
     // Special route mappings
     const specialRoutes: Record<string, string> = {
       '/personnel/positions': 'Vị trí',
+      '/personnel/late-arrival': 'Quản lý đi muộn',
       '/tasks': 'Chi tiết công việc',
       '/profile': 'Cá nhân',
     }
@@ -153,7 +155,12 @@ const WebLayout = ({ children }: Props) => {
     const path = location.pathname
 
     const submenuMapping: Record<string, string[]> = {
-      personnel: ['/personnel/list', '/personnel/leaves', '/personnel/positions'],
+      personnel: [
+        '/personnel/list',
+        '/personnel/leaves',
+        '/personnel/late-arrival',
+        '/personnel/positions',
+      ],
       documents: ['/documents/my', '/documents/shared'],
       assignments: ['/assignments', '/work-boards'],
     }
@@ -190,6 +197,11 @@ const WebLayout = ({ children }: Props) => {
         {
           label: 'Quản lý lịch nghỉ',
           href: '/personnel/leaves',
+          roles: [ROLE.MANAGER, ROLE.DIRECTOR, ROLE.WORKER],
+        },
+        {
+          label: 'Quản lý đi muộn',
+          href: '/personnel/late-arrival',
           roles: [ROLE.MANAGER, ROLE.DIRECTOR, ROLE.WORKER],
         },
         {
@@ -254,11 +266,16 @@ const WebLayout = ({ children }: Props) => {
 
   return (
     <div className="flex h-screen bg-background text-foreground">
-      <div
+      <motion.aside
         className={cn(
           'bg-card border-r border-border flex flex-col transition-all duration-300 ease-in-out',
           isCollapsed ? 'w-18' : 'w-80'
         )}
+        initial={false}
+        animate={{
+          boxShadow: isCollapsed ? 'none' : '0 10px 30px rgba(15,23,42,0.08)',
+        }}
+        transition={{ duration: 0.25, ease: 'easeOut' }}
       >
         <div className="p-6 border-b border-border">
           <div
@@ -278,8 +295,13 @@ const WebLayout = ({ children }: Props) => {
         </div>
 
         <nav className="flex-1 p-4 space-y-2">
-          {navigationItems.map((item: any) => (
-            <div key={item.id}>
+          {navigationItems.map((item: any, itemIndex: number) => (
+            <motion.div
+              key={item.id}
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.2, delay: itemIndex * 0.03, ease: 'easeOut' }}
+            >
               <Button
                 variant="ghost"
                 className={cn(
@@ -308,37 +330,50 @@ const WebLayout = ({ children }: Props) => {
                 )}
               </Button>
 
-              {item?.hasSubmenu && item?.subItems && !isCollapsed && expandedItems.has(item.id) && (
-                <div
-                  className="ml-8 mt-2 space-y-1 overflow-hidden"
-                  style={{
-                    animation: 'slideDown 0.3s ease-out',
-                  }}
-                >
-                  {item?.subItems?.map((subItem: any, index: number) => {
-                    const isSubItemActive = location.pathname === subItem.href
-                    return (
-                      <Button
-                        key={index}
-                        variant="ghost"
-                        className={cn(
-                          'w-full justify-start h-10 px-4 text-sm transition-all duration-200 ease-in-out transform hover:translate-x-1 hover:shadow-sm',
-                          isSubItemActive
-                            ? 'bg-accent text-accent-foreground font-medium shadow-sm'
-                            : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-                        )}
-                        onClick={() => handleSubItemNavigate(subItem.href)}
-                        style={{
-                          animation: `fadeIn 0.3s ease-out ${index * 0.05}s both`,
-                        }}
-                      >
-                        <span className="transition-colors duration-200">{subItem.label}</span>
-                      </Button>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
+              <AnimatePresence initial={false}>
+                {item?.hasSubmenu &&
+                  item?.subItems &&
+                  !isCollapsed &&
+                  expandedItems.has(item.id) && (
+                    <motion.div
+                      key={`${item.id}-submenu`}
+                      className="ml-8 mt-2 space-y-1 overflow-hidden"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.25, ease: 'easeOut' }}
+                    >
+                      {item?.subItems?.map((subItem: any, index: number) => {
+                        const isSubItemActive = location.pathname === subItem.href
+                        return (
+                          <motion.div
+                            key={subItem.href ?? index}
+                            initial={{ opacity: 0, x: -6 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -6 }}
+                            transition={{ duration: 0.2, delay: index * 0.03, ease: 'easeOut' }}
+                          >
+                            <Button
+                              variant="ghost"
+                              className={cn(
+                                'w-full justify-start h-10 px-4 text-sm transition-all duration-200 ease-in-out transform hover:translate-x-1 hover:shadow-sm',
+                                isSubItemActive
+                                  ? 'bg-accent text-accent-foreground font-medium shadow-sm'
+                                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                              )}
+                              onClick={() => handleSubItemNavigate(subItem.href)}
+                            >
+                              <span className="transition-colors duration-200">
+                                {subItem.label}
+                              </span>
+                            </Button>
+                          </motion.div>
+                        )
+                      })}
+                    </motion.div>
+                  )}
+              </AnimatePresence>
+            </motion.div>
           ))}
         </nav>
 
@@ -357,7 +392,7 @@ const WebLayout = ({ children }: Props) => {
             {!isCollapsed && <span className="ml-3">Thu gọn sidebar</span>}
           </Button>
         </div>
-      </div>
+      </motion.aside>
 
       <div className="flex-1 flex flex-col">
         <header className="bg-card border-b border-border px-6 py-4">

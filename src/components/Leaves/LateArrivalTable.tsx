@@ -2,7 +2,6 @@ import React from 'react'
 import { Card } from '@/components/ui/card.tsx'
 import {
   AlertCircle,
-  Briefcase,
   CheckCircle2,
   Clock,
   Eye,
@@ -10,7 +9,6 @@ import {
   Edit,
   Trash2,
   MoreVertical,
-  Calendar,
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -23,18 +21,10 @@ import { TableBase } from '@/components/base/DataTable'
 import { Badge } from '@/components/ui/badge.tsx'
 import { Button } from '@/components/ui/button.tsx'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar.tsx'
-import { formatDate } from '@/utils/CommonUtils.ts'
-import {
-  getLeaveIcon,
-  type LeavesListDataResponse,
-  MappingLeavesType,
-  mapDayOffType,
-  StatusLeaves,
-  DaysOffType,
-  LeavesType,
-} from '@/types/Leave.ts'
+import { format, parseISO } from 'date-fns'
+import { type LeavesListDataResponse, MappingLeavesType, StatusLeaves } from '@/types/Leave.ts'
 
-type LeavesTableProps = {
+type LateArrivalTableProps = {
   data: LeavesListDataResponse[]
   canApprove: boolean
   currentPage?: number
@@ -49,10 +39,20 @@ type LeavesTableProps = {
   onEdit?: (request: LeavesListDataResponse) => void
   onDelete?: (request: LeavesListDataResponse) => void
   canEditOrDelete?: (request: LeavesListDataResponse) => any
-  onOpenCalendar?: () => void
 }
 
-const LeavesTable: React.FC<LeavesTableProps> = (props) => {
+const getLateMinutes = (offFrom: string): number => {
+  if (!offFrom) return 0
+  const actual = parseISO(offFrom)
+  const scheduled = new Date(actual)
+  scheduled.setHours(7, 30, 0, 0)
+
+  const diffMs = actual.getTime() - scheduled.getTime()
+  const minutes = Math.round(diffMs / 60000)
+  return minutes > 0 ? minutes : 0
+}
+
+const LateArrivalTable: React.FC<LateArrivalTableProps> = (props) => {
   const {
     data,
     canApprove,
@@ -68,7 +68,6 @@ const LeavesTable: React.FC<LeavesTableProps> = (props) => {
     onEdit,
     onDelete,
     canEditOrDelete,
-    onOpenCalendar,
   } = props
 
   const columns = [
@@ -95,72 +94,35 @@ const LeavesTable: React.FC<LeavesTableProps> = (props) => {
       title: 'Loại nghỉ',
       dataIndex: 'absenceType',
       key: 'type',
+      render: (value: any) => (
+        <span>{MappingLeavesType[value as keyof typeof MappingLeavesType] || 'Đi muộn'}</span>
+      ),
+    },
+    {
+      title: 'Thời gian dự kiến đến',
+      dataIndex: 'offFrom',
+      key: 'expectedTime',
       sorter: true,
-      filterable: true,
-      filterType: 'select',
-      filterOptions: Object.entries(MappingLeavesType).map(([key, value]) => ({
-        label: value,
-        value: key,
-      })),
       render: (value: any) => {
-        const Icon = getLeaveIcon(value)
-        return (
-          <div className="flex items-center gap-2">
-            <Icon className="size-4 text-muted-foreground" />
-            <span>{MappingLeavesType[value as LeavesType] || 'N/A'}</span>
-          </div>
-        )
+        if (!value) return 'N/A'
+        const date = parseISO(value)
+        return format(date, 'HH:mm dd/MM/yyyy')
       },
     },
     {
-      title: 'Chế độ nghỉ',
-      dataIndex: 'dayOffType',
-      key: 'dayOffType',
-      sorter: true,
-      render: (value: number) => <span>{value ? mapDayOffType[value as DaysOffType] : 'N/A'}</span>,
-    },
-    {
-      title: 'Từ ngày',
+      title: 'Số phút đi muộn',
       dataIndex: 'offFrom',
-      key: 'startDate',
-      sorter: true,
-      filterable: true,
-      filterType: 'date',
-      render: (value: any) => formatDate(value),
-    },
-    {
-      title: 'Đến ngày',
-      dataIndex: 'offTo',
-      key: 'endDate',
-      sorter: true,
-      filterable: true,
-      filterType: 'date',
-      render: (value: any) => formatDate(value),
-    },
-    {
-      title: 'Số ngày',
-      dataIndex: 'dayOff',
-      key: 'days',
+      key: 'lateMinutes',
       sorter: true,
       render: (value: any) => {
+        const minutes = getLateMinutes(value)
         return (
           <div className="flex items-center gap-1.5">
             <Clock className="size-3.5 text-muted-foreground" />
-            <span className="font-medium">{value}</span>
+            <span className="font-medium">{minutes}</span>
           </div>
         )
       },
-    },
-    {
-      title: 'Lý do',
-      dataIndex: 'reason',
-      key: 'reason',
-      ellipsis: true,
-      render: (value: any) => (
-        <div className="max-w-[200px] truncate" title={value}>
-          {value}
-        </div>
-      ),
     },
     {
       title: 'Trạng thái',
@@ -272,49 +234,43 @@ const LeavesTable: React.FC<LeavesTableProps> = (props) => {
   ]
 
   return (
-    <>
-      <Card className="p-6 rounded-xl border-muted shadow-sm">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold flex items-center gap-2">
-            <Briefcase className="size-5" />
-            Danh sách đơn
-          </h2>
-          {onOpenCalendar && (
-            <Button variant="outline" size="sm" onClick={onOpenCalendar} className="gap-2">
-              <Calendar className="size-4" />
-              Xem lịch nghỉ phép tuần
-            </Button>
-          )}
-        </div>
+    <Card className="p-6 rounded-xl border-muted shadow-sm">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-lg font-semibold flex items-center gap-2">
+          <Clock className="size-5" />
+          Danh sách đơn đi muộn
+        </h2>
+      </div>
 
-        <TableBase
-          dataSource={data}
-          columns={columns as any}
-          loading={loading}
-          searchable={true}
-          searchPlaceholder="Tìm kiếm theo tên nhân viên, lý do..."
-          filterable={true}
-          columnVisibility={true}
-          rowKey="id"
-          pagination={{
-            showQuickJumper: false,
-            current: currentPage || 1,
-            pageSize: pageSize,
-            total: hasMore ? (total || data.length) + 1 : total || data.length,
-            showSizeChanger: true,
-            showTotal: (total, range) =>
-              `Hiển thị ${range[0]}-${range[1]} trong tổng số ${total} mục`,
-            pageSizeOptions: [5, 10, 20, 50],
-            onChange: onPageChange,
-            onShowSizeChange: onPageSizeChange ? (_, size) => onPageSizeChange(size) : undefined,
-          }}
-          size="middle"
-          bordered={true}
-          striped
-          emptyText="Chưa có đơn xin nghỉ nào"
-        />
-      </Card>
-    </>
+      <TableBase
+        dataSource={data}
+        columns={columns as any}
+        loading={loading}
+        searchable={true}
+        searchPlaceholder="Tìm kiếm theo tên nhân viên, lý do..."
+        filterable={true}
+        columnVisibility={true}
+        rowKey="id"
+        pagination={{
+          showQuickJumper: false,
+          current: currentPage || 1,
+          pageSize: pageSize,
+          total: hasMore ? (total || data.length) + 1 : total || data.length,
+          showSizeChanger: true,
+          showTotal: (t, range) => `Hiển thị ${range[0]}-${range[1]} trong tổng số ${t} mục`,
+          pageSizeOptions: [5, 10, 20, 50],
+          onChange: onPageChange,
+          onShowSizeChange: onPageSizeChange
+            ? (_: number, size: number) => onPageSizeChange(size)
+            : undefined,
+        }}
+        size="middle"
+        bordered={true}
+        striped
+        emptyText="Chưa có đơn đi muộn nào"
+      />
+    </Card>
   )
 }
-export default LeavesTable
+
+export default LateArrivalTable

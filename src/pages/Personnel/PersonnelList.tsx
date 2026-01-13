@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
+import { motion } from 'framer-motion'
 import { TableBase, type ColumnType } from '@/components/base/DataTable/TableBase'
 import { useGetAllUsers } from '@/hooks/personnel/useGetAllUsers'
 import { PersonnelUserCell } from '@/components/Personnel/PersonnelUserCell'
@@ -151,14 +152,25 @@ const PersonnelList = () => {
   ]
 
   return (
-    <div className="space-y-6 p-6">
-      <PageBreadcrumb />
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Danh sách nhân sự</h1>
-          <p className="text-muted-foreground mt-1">Quản lý thông tin nhân viên trong hệ thống</p>
+    <motion.div
+      className="space-y-6 p-6"
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25, ease: 'easeOut' }}
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2, delay: 0.05 }}
+      >
+        <PageBreadcrumb />
+        <div className="mt-2 flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Danh sách nhân sự</h1>
+            <p className="text-muted-foreground mt-1">Quản lý thông tin nhân viên trong hệ thống</p>
+          </div>
         </div>
-      </div>
+      </motion.div>
 
       <TableBase
         searchable={true}
@@ -249,7 +261,7 @@ const PersonnelList = () => {
           </div>
         </div>
       </CustomDialog>
-    </div>
+    </motion.div>
   )
 }
 

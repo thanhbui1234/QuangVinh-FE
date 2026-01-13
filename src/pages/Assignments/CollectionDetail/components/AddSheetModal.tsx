@@ -41,6 +41,7 @@ export const AddSheetModal = ({ open, onOpenChange, collectionId }: AddSheetModa
       {
         onSuccess: () => {
           // Success feedback handled by mutation hook (usually toast)
+          onOpenChange(false)
         },
       }
     )

@@ -14,6 +14,7 @@ import { formatDateRangeShort, getDayOfWeekShortLabel } from '@/utils/CommonUtil
 import { OverviewKpiSection } from '@/components/dashboard/OverviewKpiSection'
 import { ProjectProgressDay } from '@/components/dashboard/ProjectProgressDay'
 import { MyTasksList } from '@/components/dashboard/MyTasksList'
+import { motion } from 'framer-motion'
 
 export default function DashboardMobile() {
   const { isManagerPermission, isDirectorPermission } = useCheckRole()
@@ -41,7 +42,12 @@ export default function DashboardMobile() {
 
   return (
     <div className="flex h-dvh flex-col bg-background">
-      <div className="flex-1 space-y-4 overflow-auto p-3 pb-24">
+      <motion.div
+        className="flex-1 space-y-4 overflow-auto p-3 pb-24"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, ease: 'easeOut' }}
+      >
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground">Xin chào, chúc bạn một ngày hiệu quả!</p>
           {isDirectorPermission ? (
@@ -139,7 +145,7 @@ export default function DashboardMobile() {
         )}
 
         <MyTasksList limit={5} enabled={true} />
-      </div>
+      </motion.div>
 
       <MobileBottomNav />
     </div>

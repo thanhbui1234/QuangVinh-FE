@@ -21,6 +21,12 @@ type ViewDetailsSheetMobileProps = {
   onEdit?: (request: LeavesListDataResponse) => void
   onDelete?: (request: LeavesListDataResponse) => void
   canEditOrDelete?: (request: LeavesListDataResponse) => any
+  canApprove?: boolean
+  onActionClick?: (
+    id: number,
+    action: 'approve' | 'reject',
+    request: LeavesListDataResponse
+  ) => void
 }
 
 export default function ViewDetailsSheetMobile({
@@ -31,6 +37,8 @@ export default function ViewDetailsSheetMobile({
   onEdit,
   onDelete,
   canEditOrDelete,
+  canApprove,
+  onActionClick,
 }: ViewDetailsSheetMobileProps) {
   const getTimeLeaves = () => {
     if (!selectedRequest?.offFrom && !selectedRequest?.offTo) return null
@@ -150,38 +158,67 @@ export default function ViewDetailsSheetMobile({
             </div>
           </div>
 
-          {/* Action Buttons - Only show for pending requests and if user is the creator */}
-          {selectedRequest.status === StatusLeaves.PENDING &&
-            canEditOrDelete &&
-            canEditOrDelete(selectedRequest) && (
-              <div className="space-y-3">
-                {onEdit && (
-                  <Button
-                    onClick={() => {
-                      onEdit(selectedRequest)
-                      onOpenChange(false)
-                    }}
-                    className="w-full h-12 rounded-xl bg-blue-500 text-white text-sm font-semibold hover:bg-blue-600 transition-colors shadow-sm flex items-center justify-center gap-2"
-                  >
-                    <Edit className="size-4" />
-                    Sửa đơn
-                  </Button>
-                )}
+          {/* Action Buttons */}
+          <div className="space-y-3 pt-2">
+            {/* Creator Actions (Edit/Delete) */}
+            {selectedRequest.status === StatusLeaves.PENDING &&
+              canEditOrDelete &&
+              canEditOrDelete(selectedRequest) && (
+                <div className="grid grid-cols-2 gap-3">
+                  {onEdit && (
+                    <Button
+                      onClick={() => {
+                        onEdit(selectedRequest)
+                        onOpenChange(false)
+                      }}
+                      variant="outline"
+                      className="h-12 rounded-xl border-blue-200 text-blue-600 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-900/30 gap-2"
+                    >
+                      <Edit className="size-4" />
+                      Sửa đơn
+                    </Button>
+                  )}
 
-                {onDelete && (
-                  <Button
-                    variant="outline"
-                    className="w-full h-12 rounded-xl border-rose-200 text-rose-600 hover:bg-rose-50 dark:border-rose-800 dark:text-rose-400 dark:hover:bg-rose-900/30 flex items-center justify-center gap-2"
-                    onClick={() => {
-                      onDelete(selectedRequest)
-                    }}
-                  >
-                    <Trash2 className="size-4" />
-                    Xoá đơn
-                  </Button>
-                )}
+                  {onDelete && (
+                    <Button
+                      variant="outline"
+                      className="h-12 rounded-xl border-rose-200 text-rose-600 hover:bg-rose-50 dark:border-rose-800 dark:text-rose-400 dark:hover:bg-rose-900/30 gap-2"
+                      onClick={() => {
+                        onDelete(selectedRequest)
+                      }}
+                    >
+                      <Trash2 className="size-4" />
+                      Xoá đơn
+                    </Button>
+                  )}
+                </div>
+              )}
+
+            {/* Approver Actions (Approve/Reject) */}
+            {selectedRequest.status === StatusLeaves.PENDING && canApprove && (
+              <div className="grid grid-cols-2 gap-3">
+                <Button
+                  onClick={() => {
+                    onActionClick?.(selectedRequest.id, 'reject', selectedRequest)
+                    onOpenChange(false)
+                  }}
+                  variant="outline"
+                  className="h-12 rounded-xl border-rose-200 text-rose-600 hover:bg-rose-50 dark:border-rose-800 dark:text-rose-400 dark:hover:bg-rose-900/30 font-semibold"
+                >
+                  Từ chối
+                </Button>
+                <Button
+                  onClick={() => {
+                    onActionClick?.(selectedRequest.id, 'approve', selectedRequest)
+                    onOpenChange(false)
+                  }}
+                  className="h-12 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
+                >
+                  Duyệt đơn
+                </Button>
               </div>
             )}
+          </div>
         </div>
       ) : (
         <div className="flex items-center justify-center py-8">

@@ -26,6 +26,7 @@ import { MyTasksTable } from '@/components/dashboard/MyTasksTable'
 import { RecurringTasksTable } from '@/components/dashboard/RecurringTasksTable'
 import { Skeleton } from '@/components/ui/skeleton'
 import { PageBreadcrumb } from '@/components/common/PageBreadcrumb'
+import { motion } from 'framer-motion'
 
 export default function DashboardWeb() {
   const { isManagerPermission, isDirectorPermission } = useCheckRole()
@@ -63,7 +64,12 @@ export default function DashboardWeb() {
   }, [projectRatio])
 
   return (
-    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+    <motion.div
+      className="p-4 sm:p-6 space-y-4 sm:space-y-6"
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
+    >
       <PageBreadcrumb />
       <div className="flex items-center justify-between">
         <div>
@@ -198,6 +204,6 @@ export default function DashboardWeb() {
       ) : (
         <MyTasksTable limit={5} enabled={true} />
       )}
-    </div>
+    </motion.div>
   )
 }

@@ -15,6 +15,7 @@ import { Link } from 'react-router'
 import { ROLE } from '@/constants'
 import { useAuthStore } from '@/stores/authStore'
 import { z } from 'zod'
+import { motion } from 'framer-motion'
 
 // Helper function to get the highest role of current user
 const getHighestRole = (userRoles?: string[]): string | null => {
@@ -110,10 +111,19 @@ export const AddMember = () => {
   }
 
   return (
-    <div className="w-full h-full flex justify-center items-center px-10 py-10">
+    <motion.div
+      className="w-full h-full flex justify-center items-center px-10 py-10"
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25, ease: 'easeOut' }}
+    >
       <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 gap-14 items-center">
         {/* LEFT HERO SECTION */}
-        <div>
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.25, delay: 0.05, ease: 'easeOut' }}
+        >
           <div className="inline-block px-4 py-1 rounded-full bg-blue-100 text-blue-600 text-sm font-semibold mb-4">
             Nhân viên mới
           </div>
@@ -129,99 +139,105 @@ export const AddMember = () => {
             <li>• Xem công việc</li>
             <li>• Tài liệu</li>
           </ul>
-        </div>
+        </motion.div>
 
         {/* RIGHT FORM CARD */}
-        <Card className="shadow-xl border border-gray-200">
-          <CardHeader className="text-center">
-            <CardTitle className="text-xl font-semibold">Tạo tài khoản</CardTitle>
-            <p className="text-sm text-muted-foreground">Nhập thông tin để tạo tài khoản</p>
-          </CardHeader>
+        <motion.div
+          initial={{ opacity: 0, x: 20, scale: 0.97 }}
+          animate={{ opacity: 1, x: 0, scale: 1 }}
+          transition={{ duration: 0.25, delay: 0.08, ease: 'easeOut' }}
+        >
+          <Card className="shadow-xl border border-gray-200">
+            <CardHeader className="text-center">
+              <CardTitle className="text-xl font-semibold">Tạo tài khoản</CardTitle>
+              <p className="text-sm text-muted-foreground">Nhập thông tin để tạo tài khoản</p>
+            </CardHeader>
 
-          <CardContent>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-              {/* NAME */}
-              <div className="space-y-2">
-                <Label>Tên nhân viên</Label>
-                <Input
-                  className="h-11"
-                  placeholder="Nhập tên nhân viên"
-                  {...form.register('name')}
-                />
-                {form.formState.errors.name && (
-                  <p className="text-red-500 text-sm">{form.formState.errors.name.message}</p>
-                )}
-              </div>
-
-              {/* EMAIL */}
-              <div className="space-y-2">
-                <Label>Email</Label>
-                <Input
-                  className="h-11"
-                  placeholder="user@example.com"
-                  {...form.register('email')}
-                />
-                {form.formState.errors.email && (
-                  <p className="text-red-500 text-sm">{form.formState.errors.email.message}</p>
-                )}
-              </div>
-
-              {/* PHONE */}
-              <div className="space-y-2">
-                <Label>Số điện thoại</Label>
-                <Input className="h-11" placeholder="0123456789" {...form.register('phone')} />
-                {form.formState.errors.phone && (
-                  <p className="text-red-500 text-sm">{form.formState.errors.phone.message}</p>
-                )}
-              </div>
-
-              {/* PASSWORD */}
-              <div className="space-y-2">
-                <Label>Mật khẩu</Label>
-                <Input
-                  type="password"
-                  className="h-11"
-                  placeholder=""
-                  {...form.register('password')}
-                />
-                {form.formState.errors.password && (
-                  <p className="text-red-500 text-sm">{form.formState.errors.password.message}</p>
-                )}
-              </div>
-
-              {/* ROLES */}
-              <div className="space-y-2">
-                <Label>Vai trò</Label>
-                <Controller
-                  name="roles"
-                  control={form.control}
-                  render={({ field }) => (
-                    <MultiSelect
-                      options={roleOptions}
-                      selected={field.value || []}
-                      onChange={field.onChange}
-                      placeholder="Chọn vai trò"
-                    />
+            <CardContent>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+                {/* NAME */}
+                <div className="space-y-2">
+                  <Label>Tên nhân viên</Label>
+                  <Input
+                    className="h-11"
+                    placeholder="Nhập tên nhân viên"
+                    {...form.register('name')}
+                  />
+                  {form.formState.errors.name && (
+                    <p className="text-red-500 text-sm">{form.formState.errors.name.message}</p>
                   )}
-                />
-                {form.formState.errors.roles && (
-                  <p className="text-red-500 text-sm">{form.formState.errors.roles.message}</p>
-                )}
-              </div>
+                </div>
 
-              {/* SUBMIT BUTTON */}
-              <Button disabled={isPending} className="w-full h-11" type="submit">
-                {isPending ? 'Đang tạo...' : 'Tạo tài khoản'}
-              </Button>
-              <Link className="text-blue-500 hover:underline" to="/personnel/list">
-                Xem danh sách nhân viên
-              </Link>
-            </form>
-          </CardContent>
-        </Card>
+                {/* EMAIL */}
+                <div className="space-y-2">
+                  <Label>Email</Label>
+                  <Input
+                    className="h-11"
+                    placeholder="user@example.com"
+                    {...form.register('email')}
+                  />
+                  {form.formState.errors.email && (
+                    <p className="text-red-500 text-sm">{form.formState.errors.email.message}</p>
+                  )}
+                </div>
+
+                {/* PHONE */}
+                <div className="space-y-2">
+                  <Label>Số điện thoại</Label>
+                  <Input className="h-11" placeholder="0123456789" {...form.register('phone')} />
+                  {form.formState.errors.phone && (
+                    <p className="text-red-500 text-sm">{form.formState.errors.phone.message}</p>
+                  )}
+                </div>
+
+                {/* PASSWORD */}
+                <div className="space-y-2">
+                  <Label>Mật khẩu</Label>
+                  <Input
+                    type="password"
+                    className="h-11"
+                    placeholder=""
+                    {...form.register('password')}
+                  />
+                  {form.formState.errors.password && (
+                    <p className="text-red-500 text-sm">{form.formState.errors.password.message}</p>
+                  )}
+                </div>
+
+                {/* ROLES */}
+                <div className="space-y-2">
+                  <Label>Vai trò</Label>
+                  <Controller
+                    name="roles"
+                    control={form.control}
+                    render={({ field }) => (
+                      <MultiSelect
+                        options={roleOptions}
+                        selected={field.value || []}
+                        onChange={field.onChange}
+                        placeholder="Chọn vai trò"
+                      />
+                    )}
+                  />
+                  {form.formState.errors.roles && (
+                    <p className="text-red-500 text-sm">{form.formState.errors.roles.message}</p>
+                  )}
+                </div>
+
+                {/* SUBMIT BUTTON */}
+                <Button disabled={isPending} className="w-full h-11" type="submit">
+                  {isPending ? 'Đang tạo...' : 'Tạo tài khoản'}
+                </Button>
+                <Link className="text-blue-500 hover:underline" to="/personnel/list">
+                  Xem danh sách nhân viên
+                </Link>
+              </form>
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
 
       <PersonnelDetailDialog open={open} onOpenChange={setOpen} user={data?.user || null} />
-    </div>
+    </motion.div>
   )
 }

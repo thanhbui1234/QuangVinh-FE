@@ -3,6 +3,7 @@ import { Calendar, Plus } from 'lucide-react'
 import { type LeavesListDataResponse } from '@/types/Leave.ts'
 import LeaveListItemMobile from './LeaveListItemMobile.tsx'
 import LeaveListItemMobileSkeleton from './LeaveListItemMobileSkeleton.tsx'
+import { motion } from 'framer-motion'
 
 type LeaveListMobileProps = {
   items: LeavesListDataResponse[]
@@ -54,15 +55,20 @@ export default function LeaveListMobile({
 
   return (
     <div className="space-y-2">
-      {items.map((request) => (
-        <div key={request.id}>
+      {items.map((request, index) => (
+        <motion.div
+          key={request.id}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2, delay: index * 0.03, ease: 'easeOut' }}
+        >
           <LeaveListItemMobile
             request={request}
             canApprove={canApprove}
             onViewDetails={onViewDetails}
             onActionClick={onActionClick}
           />
-        </div>
+        </motion.div>
       ))}
 
       {/* Show skeleton items when loading more */}
