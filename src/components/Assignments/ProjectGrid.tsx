@@ -72,7 +72,7 @@ export const ProjectGrid = ({ projects, loading, onView, onEdit, onDelete }: Pro
       animate="visible"
     >
       {projects?.map((p, idx) => (
-        <motion.div key={p.taskGroupId || p.name || idx} variants={itemVariants}>
+        <motion.div key={p.taskGroupId || p.name || idx} variants={itemVariants as any}>
           <ProjectCard project={p} onView={onView} onEdit={onEdit} onDelete={onDelete} />
         </motion.div>
       ))}

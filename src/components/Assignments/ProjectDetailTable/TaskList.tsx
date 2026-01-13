@@ -74,7 +74,7 @@ export default function TaskList(props: {
       {tasks.map((t: any, _: number) => {
         const numericId = t.id.replace(/\D/g, '')
         return (
-          <motion.div key={t.id} variants={itemVariants}>
+          <motion.div key={t.id} variants={itemVariants as any}>
             <Card
               className="group cursor-pointer hover:shadow-md transition-shadow"
               onClick={() => navigate(`/tasks/${numericId}`)}

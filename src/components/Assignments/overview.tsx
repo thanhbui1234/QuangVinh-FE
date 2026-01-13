@@ -56,14 +56,14 @@ export const Overview = (props: { tasks: any }) => {
           animate="visible"
         >
           <motion.div
-            variants={itemVariants}
+            variants={itemVariants as any}
             className="flex items-center justify-between rounded-md border border-border bg-muted/50 p-3"
           >
             <div className="text-sm text-muted-foreground">Tổng số task</div>
             <div className="text-lg font-semibold text-foreground">{tasks.length}</div>
           </motion.div>
           <motion.div
-            variants={itemVariants}
+            variants={itemVariants as any}
             className="flex items-center justify-between rounded-md border border-border bg-muted/50 p-3"
           >
             <div className="text-sm text-muted-foreground">Tổng số giờ</div>

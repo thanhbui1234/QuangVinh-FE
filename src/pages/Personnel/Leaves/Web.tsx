@@ -407,7 +407,7 @@ export default function LeavesWeb() {
 
       <WeeklyCalendarWeb open={calendarOpen} onOpenChange={setCalendarOpen} />
 
-      <StatisticsCards requests={statusCounts} />
+      <StatisticsCards requests={statusCounts as any} />
       <LeavesTable
         data={allItems}
         canApprove={canApprove as boolean}
