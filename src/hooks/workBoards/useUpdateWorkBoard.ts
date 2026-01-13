@@ -12,7 +12,7 @@ export const useUpdateWorkBoard = () => {
     },
     onSuccess: (response, variables) => {
       queryClient.invalidateQueries({ queryKey: [workBoardsKey.getAll] })
-      queryClient.invalidateQueries({ queryKey: [workBoardsKey.detail(variables.id)] })
+      queryClient.invalidateQueries({ queryKey: workBoardsKey.detail(variables.id) })
       SonnerToaster({
         type: 'success',
         message: 'Cập nhật bảng công việc thành công',

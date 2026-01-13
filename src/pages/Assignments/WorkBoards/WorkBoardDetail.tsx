@@ -157,7 +157,7 @@ export const WorkBoardDetail: React.FC = () => {
             })
 
             // Invalidate queries once after column changes
-            queryClient.invalidateQueries({ queryKey: [workBoardsKey.detail(sheetId)] })
+            queryClient.invalidateQueries({ queryKey: workBoardsKey.detail(sheetId) })
             queryClient.invalidateQueries({ queryKey: [workBoardsKey.getAll] })
           } catch (error) {
             console.error('❌ Error updating columns:', error)
@@ -266,7 +266,7 @@ export const WorkBoardDetail: React.FC = () => {
               })
 
               // Optimistically update cache to satisfy future diffs
-              queryClient.setQueryData([workBoardsKey.detail(sheetId)], (oldData: any) => {
+              queryClient.setQueryData([...workBoardsKey.detail(sheetId), 50], (oldData: any) => {
                 if (!oldData || !oldData.workBoard) return oldData
                 const newWorkBoard = { ...oldData.workBoard }
                 const newCells = [...(newWorkBoard.cells || [])]
@@ -374,13 +374,35 @@ export const WorkBoardDetail: React.FC = () => {
   const handleCreateRow = async () => {
     if (!sheetId) return
     try {
+      // 🔥 Optimistic update: Add a new row to the cache immediately
+      queryClient.setQueryData([...workBoardsKey.detail(sheetId), 50], (oldData: any) => {
+        if (!oldData || !oldData.workBoard) return oldData
+        const newWorkBoard = { ...oldData.workBoard }
+
+        // 1. Increase row count
+        const newRowIndex = newWorkBoard.rows
+        newWorkBoard.rows = newWorkBoard.rows + 1
+
+        // 2. Add temporary rowId to rowIdMap (using negative ID to indicate temporary)
+        const tempRowId = -Date.now()
+        newWorkBoard.rowIdMap = {
+          ...newWorkBoard.rowIdMap,
+          [newRowIndex]: tempRowId,
+        }
+
+        return { ...oldData, workBoard: newWorkBoard }
+      })
+
       await createSheetRowMutation.mutateAsync({
         sheetId,
         rowData: {},
         color: '#FFFFFF',
       })
+      // Success invalidation is handled in the hook's onSuccess
     } catch (error) {
       console.error('Error creating row:', error)
+      // Revert on error
+      await refetchAndClearCache()
     }
   }
 

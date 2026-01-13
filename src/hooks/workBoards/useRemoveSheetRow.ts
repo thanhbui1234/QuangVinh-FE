@@ -23,9 +23,9 @@ export const useRemoveSheetRow = () => {
     },
     onSuccess: () => {
       // Invalidate all sheet rows queries to refetch
-      queryClient.invalidateQueries({ queryKey: [sheetRowsKey.getAll] })
+      queryClient.invalidateQueries({ queryKey: sheetRowsKey.getAll })
       // Also invalidate work boards to update row count
-      queryClient.invalidateQueries({ queryKey: [workBoardsKey.getAll] })
+      queryClient.invalidateQueries({ queryKey: workBoardsKey.getAll })
       SonnerToaster({
         type: 'success',
         message: 'Xóa hàng thành công',

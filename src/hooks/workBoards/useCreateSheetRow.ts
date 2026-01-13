@@ -23,9 +23,9 @@ export const useCreateSheetRow = () => {
     },
     onSuccess: (_, variables) => {
       // Invalidate sheet rows list to refetch
-      queryClient.invalidateQueries({ queryKey: [sheetRowsKey.detail(variables.sheetId)] })
+      queryClient.invalidateQueries({ queryKey: sheetRowsKey.detail(variables.sheetId) })
       // Also invalidate work board detail to update row count
-      queryClient.invalidateQueries({ queryKey: [workBoardsKey.detail(variables.sheetId)] })
+      queryClient.invalidateQueries({ queryKey: workBoardsKey.detail(variables.sheetId) })
     },
     onError: (error) => {
       SonnerToaster({

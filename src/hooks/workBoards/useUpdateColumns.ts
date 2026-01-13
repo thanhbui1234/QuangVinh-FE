@@ -29,7 +29,7 @@ export const useUpdateColumns = (options?: UseUpdateColumnsOptions) => {
     onSuccess: (_, variables) => {
       if (!options?.suppressInvalidation) {
         // Invalidate work board detail to refetch
-        queryClient.invalidateQueries({ queryKey: [workBoardsKey.detail(variables.sheetId)] })
+        queryClient.invalidateQueries({ queryKey: workBoardsKey.detail(variables.sheetId) })
         queryClient.invalidateQueries({ queryKey: [workBoardsKey.getAll] })
       }
     },

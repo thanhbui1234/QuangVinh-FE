@@ -20,7 +20,7 @@ export const useUpdateNameWB = () => {
       }
     },
     onSuccess: ({ sheetId }) => {
-      queryClient.invalidateQueries({ queryKey: [workBoardsKey.detail(sheetId)] })
+      queryClient.invalidateQueries({ queryKey: workBoardsKey.detail(sheetId) })
     },
   })
 
