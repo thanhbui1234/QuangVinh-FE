@@ -7,6 +7,7 @@ import {
   DocumentsMy,
   DocumentsShared,
   LeavesWeb,
+  LateArrivalWeb,
 } from '@/pages'
 import { AddMember } from '@/pages/Personnel/AddMember'
 import { NotificationPage } from '@/pages/Notification'
@@ -27,6 +28,10 @@ export const WebRoutes: RouteObject[] = [
   {
     path: '/personnel/leaves',
     element: <LeavesWeb />,
+  },
+  {
+    path: '/personnel/late-arrival',
+    element: <LateArrivalWeb />,
   },
   {
     path: '/personnel/positions',

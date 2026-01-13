@@ -1,31 +1,30 @@
 import { Button } from '@/components/ui/button.tsx'
-import { Calendar, Plus, Clock } from 'lucide-react'
+import { Clock, Plus } from 'lucide-react'
 import { useLeaves } from '@/hooks/leaves/useLeaves.ts'
-import LeavesTable from '@/components/Leaves/LeavesTable.tsx'
-import StatisticsCards from '@/components/Leaves/StatisticsCards.tsx'
-import ViewDetailsDialog from '@/components/Leaves/ViewDetailsDialog.tsx'
+import LateArrivalTable from '@/components/Leaves/LateArrivalTable.tsx'
+import { AnimatedFilterPills } from '@/components/Leaves/AnimatedFilterPills.tsx'
+import StatisticsCards from '@/components/Leaves/StatisticsCards'
+import LateArrivalDetailDialog from '@/components/Leaves/LateArrivalDetailDialog.tsx'
 import ConfirmationDialog from '@/components/Leaves/ConfirmationDialog.tsx'
-import CreateLeaveDialog from '@/components/Leaves/CreateLeaveDialog.tsx'
 import CreateLateArrivalDialog from '@/components/Leaves/CreateLateArrivalDialog.tsx'
 import DeleteLeaveDialog from '@/components/Leaves/DeleteLeaveDialog.tsx'
 import useGetLeavesList from '@/hooks/leaves/useGetLeavesList.ts'
-import WeeklyCalendarWeb from '@/components/Leaves/WeeklyCalendar/WeeklyCalendarWeb.tsx'
 import {
   type LeavesStatus,
   StatusLeaves,
   type LeavesListDataResponse,
   type LeaveFormValues,
+  LeavesType,
 } from '@/types/Leave.ts'
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
-import { motion } from 'framer-motion'
-import { convertToDateInput } from '@/utils/CommonUtils.ts'
 import { useRemoveLeaves } from '@/hooks/leaves/useRemoveLeaves'
 import { useAuthStore } from '@/stores/authStore'
 import { PageBreadcrumb } from '@/components/common/PageBreadcrumb'
 import { useSearchParams } from 'react-router-dom'
 import useGetLeaveDetail from '@/hooks/leaves/useGetLeaveDetail'
+import { motion } from 'framer-motion'
 
-export default function LeavesWeb() {
+export default function LateArrivalWeb() {
   const [searchParams, setSearchParams] = useSearchParams()
   const absenceRequestIdParam = searchParams.get('absenceRequestId')
   const absenceRequestId = absenceRequestIdParam ? Number(absenceRequestIdParam) : null
@@ -37,8 +36,6 @@ export default function LeavesWeb() {
     setViewDialogOpen,
     confirmDialogOpen,
     setConfirmDialogOpen,
-    createDialogOpen,
-    setCreateDialogOpen,
     actionType,
     filterStatus,
     setFilterStatus,
@@ -58,13 +55,8 @@ export default function LeavesWeb() {
   const [editInitialValues, setEditInitialValues] = useState<Partial<LeaveFormValues> | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deleteRequest, setDeleteRequest] = useState<LeavesListDataResponse | null>(null)
-  const [calendarOpen, setCalendarOpen] = useState(false)
   const [detailRequestId, setDetailRequestId] = useState<number | null>(null)
   const [lateArrivalDialogOpen, setLateArrivalDialogOpen] = useState(false)
-  const [lateArrivalEditMode, setLateArrivalEditMode] = useState<'create' | 'update'>('create')
-  const [lateArrivalEditId, setLateArrivalEditId] = useState<number | undefined>(undefined)
-  const [lateArrivalInitialValues, setLateArrivalInitialValues] =
-    useState<Partial<LeaveFormValues> | null>(null)
 
   const { removeLeavesMutate, isRemovingLeave } = useRemoveLeaves()
   const { user } = useAuthStore()
@@ -81,17 +73,12 @@ export default function LeavesWeb() {
     useGetLeaveDetail(detailRequestId)
 
   // Auto-open modal when absence request is loaded from URL
-  // Only depends on absenceRequestId and absenceRequestFromUrl, not viewDialogOpen
-  // This prevents reopening when modal is closed
   useEffect(() => {
-    // Only open if:
-    // 1. absenceRequestId exists (URL param is present)
-    // 2. absenceRequestFromUrl is loaded
-    // 3. We haven't opened this specific request yet
     if (
       absenceRequestId &&
       absenceRequestFromUrl &&
-      hasOpenedFromUrlRef.current !== absenceRequestId
+      hasOpenedFromUrlRef.current !== absenceRequestId &&
+      absenceRequestFromUrl.absenceType === LeavesType.LATE_ARRIVAL
     ) {
       setSelectedRequest(absenceRequestFromUrl)
       setViewDialogOpen(true)
@@ -101,18 +88,14 @@ export default function LeavesWeb() {
 
   // Update selectedRequest when detail is fetched
   useEffect(() => {
-    if (detailRequest) {
-      if (import.meta.env.NODE_ENV === 'development') {
-        console.log('LeavesWeb - detailRequest received:', detailRequest)
-      }
+    if (detailRequest && detailRequest.absenceType === LeavesType.LATE_ARRIVAL) {
       setSelectedRequest(detailRequest)
     }
   }, [detailRequest])
 
-  // Reset ref when absenceRequestId is cleared (URL param removed)
+  // Reset ref when absenceRequestId is cleared
   useEffect(() => {
     if (!absenceRequestId) {
-      // URL param was cleared, reset the ref to allow opening again if new param is added
       hasOpenedFromUrlRef.current = null
     }
   }, [absenceRequestId])
@@ -121,13 +104,11 @@ export default function LeavesWeb() {
   const handleViewDialogChange = (open: boolean) => {
     setViewDialogOpen(open)
     if (!open) {
-      // Remove query param when closing
       if (absenceRequestId) {
         const newSearchParams = new URLSearchParams(searchParams)
         newSearchParams.delete('absenceRequestId')
         setSearchParams(newSearchParams, { replace: true })
       }
-      // Clear detail request ID
       setDetailRequestId(null)
       setSelectedRequest(null)
     }
@@ -137,8 +118,8 @@ export default function LeavesWeb() {
 
   // Check if current user is the creator of the leave request
   const canEditOrDelete = useCallback(
-    (request: LeavesListDataResponse) => {
-      return user?.email && request.creator?.email && user.email === request.creator.email
+    (request: LeavesListDataResponse): boolean => {
+      return !!(user?.email && request.creator?.email && user.email === request.creator.email)
     },
     [user?.email]
   )
@@ -146,13 +127,39 @@ export default function LeavesWeb() {
   const queryParams = useMemo(
     () => ({
       statuses: filterStatus,
+      // Chỉ lấy danh sách đơn đi muộn từ backend
+      absenceTypes: [LeavesType.LATE_ARRIVAL],
       offset,
       limit,
     }),
     [filterStatusKey, offset, limit]
   )
 
-  const { absenceRequests, isFetching, statusCounts } = useGetLeavesList(queryParams)
+  const { absenceRequests, isFetching } = useGetLeavesList(queryParams)
+
+  // Filter only late arrival requests
+  const lateArrivalRequests = useMemo(() => {
+    return absenceRequests?.filter((req) => req.absenceType === LeavesType.LATE_ARRIVAL) || []
+  }, [absenceRequests])
+
+  // Calculate status counts for late arrivals only
+  const lateArrivalStatusCounts = useMemo(() => {
+    if (!lateArrivalRequests.length) {
+      return {
+        total: 0,
+        pending: 0,
+        approved: 0,
+        rejected: 0,
+      }
+    }
+
+    return {
+      total: lateArrivalRequests.length,
+      pending: lateArrivalRequests.filter((r) => r.status === StatusLeaves.PENDING).length,
+      approved: lateArrivalRequests.filter((r) => r.status === StatusLeaves.APPROVED).length,
+      rejected: lateArrivalRequests.filter((r) => r.status === StatusLeaves.REJECTED).length,
+    }
+  }, [lateArrivalRequests])
 
   const prevFilterStatusKeyRef = useRef<string>(filterStatusKey)
   const prevAbsenceRequestsIdsRef = useRef<string>('')
@@ -161,13 +168,52 @@ export default function LeavesWeb() {
     if (prevFilterStatusKeyRef.current !== filterStatusKey) {
       setOffset(0)
       setAllItems([])
-      setCurrentPage(1)
-      setPageSize(10)
       setLimit(10)
       prevFilterStatusKeyRef.current = filterStatusKey
       prevAbsenceRequestsIdsRef.current = ''
     }
   }, [filterStatusKey])
+
+  useEffect(() => {
+    if (!lateArrivalRequests) {
+      if (offset === 0 && prevAbsenceRequestsIdsRef.current !== '') {
+        setAllItems([])
+        prevAbsenceRequestsIdsRef.current = ''
+      }
+      return
+    }
+
+    const currentDataKey = lateArrivalRequests
+      .map((item) => `${item.id}:${item.status}`)
+      .sort()
+      .join(',')
+
+    if (offset === 0) {
+      if (currentDataKey !== prevAbsenceRequestsIdsRef.current) {
+        setAllItems(lateArrivalRequests)
+        prevAbsenceRequestsIdsRef.current = currentDataKey
+      }
+    } else {
+      setAllItems((prev) => {
+        const existingIds = new Set(prev.map((item) => item.id))
+        const newItems = lateArrivalRequests.filter((item) => !existingIds.has(item.id))
+        if (newItems.length === 0) return prev
+        const updated = [...prev, ...newItems]
+        prevAbsenceRequestsIdsRef.current = updated
+          .map((item) => `${item.id}:${item.status}`)
+          .sort()
+          .join(',')
+        return updated
+      })
+    }
+
+    if (lateArrivalRequests.length === 0 && offset === 0) {
+      if (prevAbsenceRequestsIdsRef.current !== '') {
+        setAllItems([])
+        prevAbsenceRequestsIdsRef.current = ''
+      }
+    }
+  }, [lateArrivalRequests, offset])
 
   const handlePageChange = useCallback(
     (page: number) => {
@@ -184,85 +230,29 @@ export default function LeavesWeb() {
     setLimit(size)
   }, [])
 
-  useEffect(() => {
-    if (!absenceRequests) {
-      if (offset === 0 && prevAbsenceRequestsIdsRef.current !== '') {
-        setAllItems([])
-        prevAbsenceRequestsIdsRef.current = ''
-      }
-      return
-    }
-
-    const currentDataKey = absenceRequests
-      .map((item) => `${item.id}:${item.status}`)
-      .sort()
-      .join(',')
-
-    if (offset === 0) {
-      if (currentDataKey !== prevAbsenceRequestsIdsRef.current) {
-        setAllItems(absenceRequests)
-        prevAbsenceRequestsIdsRef.current = currentDataKey
-      }
-    } else {
-      setAllItems((prev) => {
-        const existingIds = new Set(prev.map((item) => item.id))
-        const newItems = absenceRequests.filter((item) => !existingIds.has(item.id))
-        if (newItems.length === 0) return prev
-        const updated = [...prev, ...newItems]
-        prevAbsenceRequestsIdsRef.current = updated
-          .map((item) => `${item.id}:${item.status}`)
-          .sort()
-          .join(',')
-        return updated
-      })
-    }
-
-    if (absenceRequests.length === 0 && offset === 0) {
-      if (prevAbsenceRequestsIdsRef.current !== '') {
-        setAllItems([])
-        prevAbsenceRequestsIdsRef.current = ''
-      }
-    }
-  }, [absenceRequests, offset])
-
   const handleEditLeave = (request: LeavesListDataResponse) => {
     if (!canEditOrDelete(request)) return
-
-    // Check if it's a late arrival request
-    if (request.absenceType === 5) {
-      setLateArrivalEditMode('update')
-      setLateArrivalEditId(request.id)
-      setLateArrivalInitialValues({
-        absenceType: request.absenceType,
-        dayOffType: request.dayOffType,
-        offFrom: request.offFrom, // Keep ISO format for late arrival
-        offTo: request.offTo,
-        reason: request.reason,
-      })
-      setLateArrivalDialogOpen(true)
-    } else {
-      setEditMode('update')
-      setEditLeaveId(request.id)
-      setEditInitialValues({
-        absenceType: request.absenceType,
-        dayOffType: request.dayOffType,
-        offFrom: convertToDateInput(request.offFrom),
-        offTo: convertToDateInput(request.offTo),
-        reason: request.reason,
-      })
-      setCreateDialogOpen(true)
-    }
+    setEditMode('update')
+    setEditLeaveId(request.id)
+    setEditInitialValues({
+      absenceType: request.absenceType,
+      dayOffType: request.dayOffType,
+      offFrom: request.offFrom,
+      offTo: request.offTo,
+      reason: request.reason,
+    })
+    setLateArrivalDialogOpen(true)
   }
 
   const handleCreateClick = () => {
     setEditMode('create')
     setEditLeaveId(undefined)
     setEditInitialValues(null)
-    setCreateDialogOpen(true)
+    setLateArrivalDialogOpen(true)
   }
 
   const handleSheetClose = (open: boolean) => {
-    setCreateDialogOpen(open)
+    setLateArrivalDialogOpen(open)
     if (!open) {
       setEditMode('create')
       setEditLeaveId(undefined)
@@ -300,148 +290,104 @@ export default function LeavesWeb() {
     {
       label: 'Tất cả',
       value: [StatusLeaves.APPROVED, StatusLeaves.PENDING, StatusLeaves.REJECTED] as LeavesStatus[],
-      total: statusCounts?.total,
+      total: lateArrivalStatusCounts?.total,
     },
     {
       label: 'Chờ duyệt',
       value: [StatusLeaves.PENDING] as LeavesStatus[],
-      total: statusCounts?.pending,
+      total: lateArrivalStatusCounts?.pending,
     },
     {
       label: 'Đã duyệt',
       value: [StatusLeaves.APPROVED] as LeavesStatus[],
-      total: statusCounts?.approved,
+      total: lateArrivalStatusCounts?.approved,
     },
     {
       label: 'Từ chối',
       value: [StatusLeaves.REJECTED] as LeavesStatus[],
-      total: statusCounts?.rejected,
+      total: lateArrivalStatusCounts?.rejected,
     },
   ]
 
-  const currentTotal = useMemo(() => {
-    if (!statusCounts) return 0
-
-    const key = filterStatusKey
-
-    if (
-      key ===
-      JSON.stringify([StatusLeaves.APPROVED, StatusLeaves.PENDING, StatusLeaves.REJECTED].sort())
-    ) {
-      return statusCounts.total
-    }
-    if (key === JSON.stringify([StatusLeaves.PENDING].sort())) {
-      return statusCounts.pending
-    }
-    if (key === JSON.stringify([StatusLeaves.APPROVED].sort())) {
-      return statusCounts.approved
-    }
-    if (key === JSON.stringify([StatusLeaves.REJECTED].sort())) {
-      return statusCounts.rejected
-    }
-
-    return 0
-  }, [filterStatusKey, statusCounts])
-
   return (
-    <motion.div
-      className="flex flex-col gap-6 p-6"
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25, ease: 'easeOut' }}
-    >
+    <div className="flex flex-col gap-8 p-6 min-h-screen">
       <PageBreadcrumb />
-      {/* Header */}
-      <motion.div
-        className="flex items-center justify-between"
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.2, delay: 0.05 }}
-      >
-        <h1 className="text-2xl font-bold flex items-center gap-2 tracking-tight">
-          <Calendar className="size-7" />
-          Quản lý nghỉ phép
-        </h1>
-        <div className="flex gap-2">
-          <Button
-            onClick={() => {
-              setLateArrivalEditMode('create')
-              setLateArrivalEditId(undefined)
-              setLateArrivalInitialValues(null)
-              setLateArrivalDialogOpen(true)
-            }}
-            className="gap-2 h-10 px-4 bg-orange-600 hover:bg-orange-700"
-          >
-            <Clock className="size-4" />
-            Đi muộn
-          </Button>
-          <Button onClick={handleCreateClick} className="gap-2 h-10 px-4">
-            <Plus className="size-4" />
-            Tạo đơn xin nghỉ
-          </Button>
+
+      {/* Header - simple, similar to leave management */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Clock className="size-7" />
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Quản lý đi muộn</h1>
+            <p className="text-sm text-muted-foreground">
+              Theo dõi và quản lý các đơn đi muộn một cách hiệu quả
+            </p>
+          </div>
         </div>
-      </motion.div>
-
-      {/* Filter Status */}
-      <div className="flex gap-2">
-        {filterOptions.map((option) => {
-          const optionKey = JSON.stringify([...option.value].sort())
-          const isActive = filterStatusKey === optionKey
-
-          return (
-            <Button
-              key={option.label}
-              variant={isActive ? 'default' : 'outline'}
-              onClick={() => {
-                if (!isActive) {
-                  setFilterStatus([...option.value])
-                }
-              }}
-              className="h-9"
-            >
-              {option.label}
-            </Button>
-          )
-        })}
+        <Button onClick={handleCreateClick} className="gap-2 h-10 px-4">
+          <Plus className="size-4" />
+          Nộp đơn xin đi muộn
+        </Button>
       </div>
 
-      <WeeklyCalendarWeb open={calendarOpen} onOpenChange={setCalendarOpen} />
+      {/* Animated Filter Pills */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+      >
+        <AnimatedFilterPills
+          options={filterOptions}
+          value={filterStatus}
+          onChange={(value) => setFilterStatus(value as LeavesStatus[])}
+        />
+      </motion.div>
 
-      <StatisticsCards requests={statusCounts} />
-      <LeavesTable
-        data={allItems}
-        canApprove={canApprove as boolean}
-        currentPage={currentPage}
-        pageSize={pageSize}
-        onPageChange={handlePageChange}
-        onPageSizeChange={handlePageSizeChange}
-        total={currentTotal || (0 as any)}
-        hasMore={absenceRequests && absenceRequests.length >= limit}
-        loading={isFetching}
-        onActionClick={(id, action) => {
-          const request = allItems.find((r) => r.id.toString() === id.toString())
-          if (request) {
-            handleActionClick(Number(id), action, request)
-          }
-        }}
-        onViewDetails={(request) => {
-          if (import.meta.env.NODE_ENV === 'development') {
-            console.log('LeavesWeb - onViewDetails called with request:', request)
-          }
-          // Set selectedRequest from list first (for immediate display)
-          setSelectedRequest(request)
-          // Then fetch detail using the detail API to get latest data
-          setDetailRequestId(request.id)
-          setViewDialogOpen(true)
-        }}
-        onEdit={handleEditLeave}
-        onDelete={handleDeleteLeave}
-        canEditOrDelete={canEditOrDelete}
-        onOpenCalendar={() => setCalendarOpen(true)}
-      />
+      {/* Statistics Cards */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+      >
+        <StatisticsCards requests={lateArrivalStatusCounts} />
+      </motion.div>
 
-      {/* View Details Dialog */}
-      <ViewDetailsDialog
+      {/* Bảng danh sách đơn đi muộn */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+        className="flex-1"
+      >
+        <LateArrivalTable
+          data={allItems}
+          canApprove={canApprove as boolean}
+          currentPage={currentPage}
+          pageSize={pageSize}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
+          total={lateArrivalStatusCounts?.total}
+          hasMore={lateArrivalRequests && lateArrivalRequests.length >= limit}
+          loading={isFetching}
+          onActionClick={(id, action) => {
+            const request = allItems.find((r) => r.id.toString() === id.toString())
+            if (request) {
+              handleActionClick(Number(id), action, request)
+            }
+          }}
+          onViewDetails={(request) => {
+            setSelectedRequest(request)
+            setDetailRequestId(request.id)
+            setViewDialogOpen(true)
+          }}
+          onEdit={handleEditLeave}
+          onDelete={handleDeleteLeave}
+          canEditOrDelete={canEditOrDelete}
+        />
+      </motion.div>
+
+      {/* Late Arrival Detail Dialog */}
+      <LateArrivalDetailDialog
         open={viewDialogOpen}
         onOpenChange={handleViewDialogChange}
         selectedRequest={selectedRequest || absenceRequestFromUrl}
@@ -464,9 +410,9 @@ export default function LeavesWeb() {
         />
       )}
 
-      {/* Create Leave Request Dialog */}
-      <CreateLeaveDialog
-        open={createDialogOpen}
+      {/* Create Late Arrival Dialog */}
+      <CreateLateArrivalDialog
+        open={lateArrivalDialogOpen}
         onOpenChange={handleSheetClose}
         mode={editMode}
         leaveId={editLeaveId}
@@ -480,22 +426,6 @@ export default function LeavesWeb() {
         onConfirm={confirmDeleteLeave}
         isLoading={isRemovingLeave}
       />
-
-      {/* Create Late Arrival Dialog */}
-      <CreateLateArrivalDialog
-        open={lateArrivalDialogOpen}
-        onOpenChange={(open) => {
-          setLateArrivalDialogOpen(open)
-          if (!open) {
-            setLateArrivalEditMode('create')
-            setLateArrivalEditId(undefined)
-            setLateArrivalInitialValues(null)
-          }
-        }}
-        mode={lateArrivalEditMode}
-        leaveId={lateArrivalEditId}
-        initialValues={lateArrivalInitialValues}
-      />
-    </motion.div>
+    </div>
   )
 }

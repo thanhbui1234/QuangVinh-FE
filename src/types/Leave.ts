@@ -1,4 +1,4 @@
-import { Briefcase, Calendar, Heart, Plane } from 'lucide-react'
+import { Briefcase, Calendar, Heart, Plane, Clock } from 'lucide-react'
 import type { User } from '@/types/User.ts'
 
 export type LeaveStatus = 'pending' | 'approved' | 'rejected'
@@ -39,6 +39,7 @@ export enum LeavesType {
   YEARLY = 2,
   NO_SALARY = 3,
   SICK = 4,
+  LATE_ARRIVAL = 5,
 }
 
 export const MappingLeavesType = {
@@ -46,6 +47,7 @@ export const MappingLeavesType = {
   2: 'Phép hàng năm',
   3: 'Không lương',
   4: 'Ốm',
+  5: 'Đi muộn',
 }
 
 export type LeavesStatus = (typeof StatusLeaves)[keyof typeof StatusLeaves]
@@ -82,6 +84,8 @@ export type LeavesRawResponse = {
 export type GetListLeavesParams = {
   statuses: LeavesStatus[]
   creatorIds?: number[]
+  // Optional filter by absence types (e.g. [LeavesType.LATE_ARRIVAL])
+  absenceTypes?: LeavesType[]
   offset: number
   limit: number
 }
@@ -107,6 +111,7 @@ export const getLeaveIcon = (type: LeavesType) => {
     4: Heart,
     3: Briefcase,
     1: Calendar,
+    5: Clock,
   }
   return icons[type] || Calendar
 }

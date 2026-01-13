@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion'
 import { Clock, CheckCircle2 } from 'lucide-react'
 
 type StatisticsCardsMobileProps = {
@@ -5,30 +6,53 @@ type StatisticsCardsMobileProps = {
   approved?: number
 }
 
-export default function StatisticsCardsMobile({ pending, approved }: StatisticsCardsMobileProps) {
+export default function StatisticsCardsMobile({
+  pending = 0,
+  approved = 0,
+}: StatisticsCardsMobileProps) {
   return (
-    <div className="py-3 -mx-4">
-      <div className="px-4 grid grid-cols-2 gap-3 min-w-0">
-        <div className="bg-white dark:bg-gray-900 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 min-w-0">
-          <div className="flex items-center justify-between mb-2">
-            <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center flex-shrink-0">
-              <Clock className="size-5 text-amber-600 dark:text-amber-400" />
-            </div>
+    <div className="grid grid-cols-2 gap-3 mb-2">
+      {/* Pending Card */}
+      <motion.div
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.1 }}
+        className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-200/50 dark:border-amber-800/50 p-4"
+      >
+        <div className="flex items-center gap-3 mb-2">
+          <div className="p-2 rounded-xl bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">
+            <Clock className="size-5" />
           </div>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white mb-0.5">{pending ?? 0}</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400 font-medium truncate">Chờ duyệt</p>
+          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            Chờ duyệt
+          </span>
         </div>
+        <div className="flex items-end gap-1">
+          <span className="text-2xl font-bold text-foreground">{pending}</span>
+          <span className="text-xs text-muted-foreground mb-1">đơn</span>
+        </div>
+      </motion.div>
 
-        <div className="bg-white dark:bg-gray-900 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 min-w-0">
-          <div className="flex items-center justify-between mb-2">
-            <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center flex-shrink-0">
-              <CheckCircle2 className="size-5 text-emerald-600 dark:text-emerald-400" />
-            </div>
+      {/* Approved Card */}
+      <motion.div
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.2 }}
+        className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-200/50 dark:border-green-800/50 p-4"
+      >
+        <div className="flex items-center gap-3 mb-2">
+          <div className="p-2 rounded-xl bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400">
+            <CheckCircle2 className="size-5" />
           </div>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white mb-0.5">{approved ?? 0}</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400 font-medium truncate">Đã duyệt</p>
+          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            Đã duyệt
+          </span>
         </div>
-      </div>
+        <div className="flex items-end gap-1">
+          <span className="text-2xl font-bold text-foreground">{approved}</span>
+          <span className="text-xs text-muted-foreground mb-1">đơn</span>
+        </div>
+      </motion.div>
     </div>
   )
 }

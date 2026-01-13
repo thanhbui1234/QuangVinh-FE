@@ -21,6 +21,7 @@ import AssignmentsModal from '@/components/Assignments/AssignmentsModal'
 import { useUpdateProject } from '@/hooks/assignments/useUpdateProject'
 import { useUpdateStatus } from '@/hooks/assignments/useUpdateStatus'
 import type { IProject } from '@/types/project'
+import { motion } from 'framer-motion'
 
 export type User = {
   id: string
@@ -234,32 +235,55 @@ export const ProjectAssignmentDetail: React.FC = () => {
     )
   }
   return (
-    <div className="p-4 flex flex-col gap-4">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="p-4 flex flex-col gap-4"
+    >
       <PageBreadcrumb />
-      <AssignmentsAction
-        project={project}
-        projectAssignmentDetail={projectAssignmentDetail}
-        setIsInviteOpen={setIsInviteOpen}
-        setIsCreateOpen={setIsCreateOpen}
-        onEdit={() => setIsEditOpen(true)}
-      />
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.1 }}
+      >
+        <AssignmentsAction
+          project={project}
+          projectAssignmentDetail={projectAssignmentDetail}
+          setIsInviteOpen={setIsInviteOpen}
+          setIsCreateOpen={setIsCreateOpen}
+          onEdit={() => setIsEditOpen(true)}
+        />
+      </motion.div>
 
       {/* Stats Section */}
-      <Overview tasks={project.tasks} />
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.2 }}
+      >
+        <Overview tasks={project.tasks} />
+      </motion.div>
 
-      {isMobile ? (
-        <TaskList
-          tasks={project.tasks}
-          supervisors={supervisors}
-          onDelete={handleTaskDeleteClick}
-        />
-      ) : (
-        <TaskTable
-          tasks={project.tasks}
-          supervisors={supervisors}
-          onDelete={handleTaskDeleteClick}
-        />
-      )}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.3 }}
+      >
+        {isMobile ? (
+          <TaskList
+            tasks={project.tasks}
+            supervisors={supervisors}
+            onDelete={handleTaskDeleteClick}
+          />
+        ) : (
+          <TaskTable
+            tasks={project.tasks}
+            supervisors={supervisors}
+            onDelete={handleTaskDeleteClick}
+          />
+        )}
+      </motion.div>
 
       <CreateTaskModal
         open={isCreateOpen}
@@ -296,7 +320,7 @@ export const ProjectAssignmentDetail: React.FC = () => {
         title="Bạn có chắc chắn muốn xóa công việc này?"
         description="Hành động này không thể hoàn tác."
       />
-    </div>
+    </motion.div>
   )
 }
 

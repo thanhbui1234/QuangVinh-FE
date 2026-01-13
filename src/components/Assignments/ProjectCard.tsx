@@ -74,8 +74,10 @@ export const ProjectCard = ({ project, onEdit, onDelete }: ProjectCardProps) => 
 
   return (
     <motion.div
-      whileHover={{ y: -2 }}
-      transition={{ duration: 0.2 }}
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      whileHover={{ y: -4, scale: 1.02 }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
       className="h-full"
       onClick={handleView}
     >

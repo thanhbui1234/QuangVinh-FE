@@ -15,6 +15,7 @@ import { useDeleteProject } from '@/hooks/assignments/useDeleteProject'
 import { useUpdateStatus } from '@/hooks/assignments/useUpdateStatus'
 import useCheckRole from '@/hooks/useCheckRole'
 import { PageBreadcrumb } from '@/components/common/PageBreadcrumb'
+import { motion, AnimatePresence } from 'framer-motion'
 
 const ProjectAssignment = () => {
   const [search, setSearch] = useState('')
@@ -127,9 +128,19 @@ const ProjectAssignment = () => {
   }
 
   return (
-    <div className="space-y-6 p-4">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="space-y-6 p-4"
+    >
       <PageBreadcrumb />
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.1 }}
+        className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+      >
         <h1 className="text-2xl font-semibold">Dự án</h1>
         <div className="flex gap-2 w-full sm:w-auto">
           {/* Search Input with Dropdown */}
@@ -143,36 +154,57 @@ const ProjectAssignment = () => {
             />
 
             {/* Search Results Dropdown */}
-            {showSearchDropdown && searchResults.length > 0 && (
-              <div className="absolute top-full mt-1 w-full bg-card border border-border rounded-md shadow-lg z-50 max-h-[300px] overflow-y-auto">
-                {createSearchMutation.isPending ? (
-                  <div className="p-4 text-center text-muted-foreground">Đang tìm kiếm...</div>
-                ) : searchResults.length === 0 ? (
-                  <div className="p-4 text-center text-muted-foreground">Không tìm thấy dự án</div>
-                ) : (
-                  <ul className="py-1">
-                    {searchResults.map((project) => (
-                      <li
-                        key={project.taskGroupId}
-                        onClick={() => {
-                          setShowSearchDropdown(false)
-                        }}
-                        className="px-4 py-2 hover:bg-accent cursor-pointer transition-colors"
-                      >
-                        <Link to={`/assignments/${project.taskGroupId}`}>
-                          <p className="font-medium text-foreground">{project.name}</p>
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            )}
+            <AnimatePresence>
+              {showSearchDropdown && searchResults.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute top-full mt-1 w-full bg-card border border-border rounded-md shadow-lg z-50 max-h-[300px] overflow-y-auto"
+                >
+                  {createSearchMutation.isPending ? (
+                    <div className="p-4 text-center text-muted-foreground">Đang tìm kiếm...</div>
+                  ) : searchResults.length === 0 ? (
+                    <div className="p-4 text-center text-muted-foreground">
+                      Không tìm thấy dự án
+                    </div>
+                  ) : (
+                    <ul className="py-1">
+                      {searchResults.map((project, idx) => (
+                        <motion.li
+                          key={project.taskGroupId}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: idx * 0.05 }}
+                          onClick={() => {
+                            setShowSearchDropdown(false)
+                          }}
+                          className="px-4 py-2 hover:bg-accent cursor-pointer transition-colors"
+                        >
+                          <Link to={`/assignments/${project.taskGroupId}`}>
+                            <p className="font-medium text-foreground">{project.name}</p>
+                          </Link>
+                        </motion.li>
+                      ))}
+                    </ul>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Overlay to close dropdown when clicking outside */}
-            {showSearchDropdown && (
-              <div className="fixed inset-0 z-40" onClick={() => setShowSearchDropdown(false)} />
-            )}
+            <AnimatePresence>
+              {showSearchDropdown && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="fixed inset-0 z-40"
+                  onClick={() => setShowSearchDropdown(false)}
+                />
+              )}
+            </AnimatePresence>
           </div>
           {hasPermission && <Button onClick={handleCreate}>Tạo dự án</Button>}
           <AssignmentsSheet
@@ -189,23 +221,37 @@ const ProjectAssignment = () => {
             initialData={editingProject}
           />
         </div>
-      </div>
+      </motion.div>
 
-      <ProjectGrid
-        projects={projectsAssignments}
-        loading={isFetching}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-      />
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.4, delay: 0.2 }}
+      >
+        <ProjectGrid
+          projects={projectsAssignments}
+          loading={isFetching}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
+      </motion.div>
 
       {/* Load More Button */}
-      {hasNextPage && (
-        <div className="flex justify-center">
-          <Button onClick={handleLoadMore} variant="outline" disabled={isFetchingNextPage}>
-            {isFetchingNextPage ? 'Đang tải...' : 'Xem thêm'}
-          </Button>
-        </div>
-      )}
+      <AnimatePresence>
+        {hasNextPage && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            transition={{ duration: 0.3 }}
+            className="flex justify-center"
+          >
+            <Button onClick={handleLoadMore} variant="outline" disabled={isFetchingNextPage}>
+              {isFetchingNextPage ? 'Đang tải...' : 'Xem thêm'}
+            </Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <DialogConfirm
         open={openConfirm}
@@ -214,7 +260,7 @@ const ProjectAssignment = () => {
         title="Bạn có chắc chắn muốn xóa dự án này?"
         description="Hành động này không thể hoàn tác."
       />
-    </div>
+    </motion.div>
   )
 }
 

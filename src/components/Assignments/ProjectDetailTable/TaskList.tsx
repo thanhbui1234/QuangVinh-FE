@@ -7,6 +7,7 @@ import { getTaskPriorityLabel, getTaskTypeLabel } from '@/utils/getLable'
 import { User, Clock, AlertCircle, FileText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { formatEstimateHours } from '@/utils/CommonUtils'
+import { motion } from 'framer-motion'
 type Assignee = { id: string; name: string }
 type Supervisor = { id: string; name: string }
 
@@ -41,109 +42,139 @@ export default function TaskList(props: {
     done: 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200',
   }
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.08,
+      },
+    },
+  }
+
+  const itemVariants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: {
+        duration: 0.3,
+        ease: 'easeOut',
+      },
+    },
+  }
+
   return (
-    <div className="flex flex-col gap-3 w-full">
-      {tasks.map((t: any) => {
+    <motion.div
+      className="flex flex-col gap-3 w-full"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      {tasks.map((t: any, _: number) => {
         const numericId = t.id.replace(/\D/g, '')
         return (
-          <Card
-            key={t.id}
-            className="group cursor-pointer hover:shadow-md transition-shadow"
-            onClick={() => navigate(`/tasks/${numericId}`)}
-          >
-            <CardContent className="p-4">
-              {/* Header: Title and Badge */}
-              <div className="flex items-start justify-between gap-3 mb-3">
-                <h3 className="font-semibold text-base line-clamp-2 break-words flex-1">
-                  {t.title}
-                </h3>
-                <Badge
-                  variant="outline"
-                  className={`${statusClassMap[t.status]} shrink-0 whitespace-nowrap`}
-                >
-                  <span className="mr-1.5">{STATUS_ICON[t.status]}</span> {STATUS_LABEL[t.status]}
-                </Badge>
-              </div>
-
-              {/* Description */}
-              {/* Description */}
-              {t.description ? (
-                <p
-                  className="text-sm text-muted-foreground line-clamp-2 mb-3"
-                  dangerouslySetInnerHTML={{ __html: t.description }}
-                />
-              ) : null}
-              {/* Metadata - Vertical Stack */}
-              <div className="space-y-2">
-                {/* Assignee */}
-                <div className="flex items-center gap-2 text-sm">
-                  <User className="w-4 h-4 text-muted-foreground shrink-0" />
-                  <span className="text-muted-foreground">Người phụ trách:</span>
-                  <span className="font-medium truncate">
-                    {assigneeIdToName?.[t.assigneeId as string] || 'Chưa gán'}
-                  </span>
+          <motion.div key={t.id} variants={itemVariants}>
+            <Card
+              className="group cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => navigate(`/tasks/${numericId}`)}
+            >
+              <CardContent className="p-4">
+                {/* Header: Title and Badge */}
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <h3 className="font-semibold text-base line-clamp-2 break-words flex-1">
+                    {t.title}
+                  </h3>
+                  <Badge
+                    variant="outline"
+                    className={`${statusClassMap[t.status]} shrink-0 whitespace-nowrap`}
+                  >
+                    <span className="mr-1.5">{STATUS_ICON[t.status]}</span> {STATUS_LABEL[t.status]}
+                  </Badge>
                 </div>
 
-                {/* Supervisor */}
-                {(t.supervisor || t.supervisorId) && (
+                {/* Description */}
+                {/* Description */}
+                {t.description ? (
+                  <p
+                    className="text-sm text-muted-foreground line-clamp-2 mb-3"
+                    dangerouslySetInnerHTML={{ __html: t.description }}
+                  />
+                ) : null}
+                {/* Metadata - Vertical Stack */}
+                <div className="space-y-2">
+                  {/* Assignee */}
                   <div className="flex items-center gap-2 text-sm">
                     <User className="w-4 h-4 text-muted-foreground shrink-0" />
-                    <span className="text-muted-foreground">Người chịu trách nhiệm:</span>
+                    <span className="text-muted-foreground">Người phụ trách:</span>
                     <span className="font-medium truncate">
-                      {t.supervisor?.name || supervisorIdToName?.[t.supervisorId as string] || '—'}
+                      {assigneeIdToName?.[t.assigneeId as string] || 'Chưa gán'}
                     </span>
                   </div>
-                )}
 
-                {/* Estimate Hours */}
-                <div className="flex items-center gap-2 text-sm">
-                  <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
-                  <span className="text-muted-foreground">Ước lượng:</span>
-                  <span className="font-medium">
-                    {t.status === 'done' || t.status === 9
-                      ? t.estimateHours && t.estimateHours > 0
-                        ? formatEstimateHours(t.estimateHours)
-                        : '0 giờ'
-                      : t.estimateHours
-                        ? formatEstimateHours(t.estimateHours)
-                        : '—'}
-                  </span>
-                </div>
+                  {/* Supervisor */}
+                  {(t.supervisor || t.supervisorId) && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <User className="w-4 h-4 text-muted-foreground shrink-0" />
+                      <span className="text-muted-foreground">Người chịu trách nhiệm:</span>
+                      <span className="font-medium truncate">
+                        {t.supervisor?.name ||
+                          supervisorIdToName?.[t.supervisorId as string] ||
+                          '—'}
+                      </span>
+                    </div>
+                  )}
 
-                {/* Priority */}
-                <div className="flex items-center gap-2 text-sm">
-                  <AlertCircle className="w-4 h-4 text-muted-foreground shrink-0" />
-                  <span className="text-muted-foreground">Ưu tiên:</span>
-                  <span className="font-medium">{getTaskPriorityLabel(t.priority)}</span>
-                </div>
+                  {/* Estimate Hours */}
+                  <div className="flex items-center gap-2 text-sm">
+                    <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
+                    <span className="text-muted-foreground">Ước lượng:</span>
+                    <span className="font-medium">
+                      {t.status === 'done' || t.status === 9
+                        ? t.estimateHours && t.estimateHours > 0
+                          ? formatEstimateHours(t.estimateHours)
+                          : '0 giờ'
+                        : t.estimateHours
+                          ? formatEstimateHours(t.estimateHours)
+                          : '—'}
+                    </span>
+                  </div>
 
-                {/* Task Type */}
-                <div className="flex items-center gap-2 text-sm">
-                  <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
-                  <span className="text-muted-foreground">Loại công việc:</span>
-                  <span className="font-medium">{getTaskTypeLabel(t.taskType)}</span>
-                </div>
+                  {/* Priority */}
+                  <div className="flex items-center gap-2 text-sm">
+                    <AlertCircle className="w-4 h-4 text-muted-foreground shrink-0" />
+                    <span className="text-muted-foreground">Ưu tiên:</span>
+                    <span className="font-medium">{getTaskPriorityLabel(t.priority)}</span>
+                  </div>
 
-                {/* Action */}
-                <div className="flex items-center gap-2 text-sm">
-                  <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
-                  <span className="text-muted-foreground">Thao tác:</span>
-                  <Button
-                    variant="outline"
-                    className="ml-2"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      onDelete?.(t.id)
-                    }}
-                  >
-                    Xoá
-                  </Button>
+                  {/* Task Type */}
+                  <div className="flex items-center gap-2 text-sm">
+                    <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
+                    <span className="text-muted-foreground">Loại công việc:</span>
+                    <span className="font-medium">{getTaskTypeLabel(t.taskType)}</span>
+                  </div>
+
+                  {/* Action */}
+                  <div className="flex items-center gap-2 text-sm">
+                    <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
+                    <span className="text-muted-foreground">Thao tác:</span>
+                    <Button
+                      variant="outline"
+                      className="ml-2"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onDelete?.(t.id)
+                      }}
+                    >
+                      Xoá
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </motion.div>
         )
       })}
-    </div>
+    </motion.div>
   )
 }

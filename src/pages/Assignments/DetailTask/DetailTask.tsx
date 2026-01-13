@@ -26,6 +26,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { scoreSchema } from '@/schemas/taskSchema'
 import { Button } from '@/components/ui/button'
+import { motion } from 'framer-motion'
 
 export const DetailTask = () => {
   const { id } = useParams()
@@ -93,7 +94,12 @@ export const DetailTask = () => {
 
   if (isFetching)
     return (
-      <div className="">
+      <motion.div
+        className=""
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, ease: 'easeOut' }}
+      >
         <div className="max-w-7xl mx-auto p-4 md:p-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Main Content Skeleton */}
@@ -141,75 +147,142 @@ export const DetailTask = () => {
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
     )
 
   if (!projectAssignmentDetail)
-    return <div className="text-center pt-20 text-2xl text-muted-foreground">Task not found.</div>
+    return (
+      <motion.div
+        className="text-center pt-20 text-2xl text-muted-foreground"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25, ease: 'easeOut' }}
+      >
+        Task not found.
+      </motion.div>
+    )
 
   return (
-    <div className="">
+    <motion.div
+      className=""
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: 'easeOut' }}
+    >
       <div className=" mx-auto p-4 md:p-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
-            <MobileBar assignee={projectAssignmentDetail.supervisor} setInfoOpen={setInfoOpen} />
-            <Card className="border-0 shadow-sm py-0">
-              <div className="flex items-center justify-between px-3">
-                <BreadcrumbTask projectAssignmentDetail={projectAssignmentDetail} />
-                <div className="flex gap-2">
-                  {projectAssignmentDetail.status === 9 &&
-                    projectAssignmentDetail.progressScore === 0 && (
-                      <Badge
-                        onClick={() => setShowReview(true)}
-                        className="px-2 py-1 cursor-pointer"
-                      >
-                        Đánh giá công việc
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.25, delay: 0.05 }}
+            >
+              <MobileBar assignee={projectAssignmentDetail.supervisor} setInfoOpen={setInfoOpen} />
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.1 }}
+            >
+              <Card className="border-0 shadow-sm py-0">
+                <div className="flex items-center justify-between px-3">
+                  <BreadcrumbTask projectAssignmentDetail={projectAssignmentDetail} />
+                  <div className="flex gap-2">
+                    {projectAssignmentDetail.status === 9 &&
+                      projectAssignmentDetail.progressScore === 0 && (
+                        <Badge
+                          onClick={() => setShowReview(true)}
+                          className="px-2 py-1 cursor-pointer"
+                        >
+                          Đánh giá công việc
+                        </Badge>
+                      )}
+                    {projectAssignmentDetail.progressScore > 0 && (
+                      <Badge className="px-2 py-1 cursor-pointer bg-green-500">
+                        Số điểm đánh giá {projectAssignmentDetail.progressScore}
                       </Badge>
                     )}
-                  {projectAssignmentDetail.progressScore > 0 && (
-                    <Badge className="px-2 py-1 cursor-pointer bg-green-500">
-                      Số điểm đánh giá {projectAssignmentDetail.progressScore}
-                    </Badge>
-                  )}
-                </div>
-              </div>
-
-              <CardContent className="p-6 pt-0">
-                <div className="flex items-start justify-between gap-4 mb-6">
-                  <h1 className="text-2xl md:text-3xl font-semibold text-foreground flex-1">
-                    {projectAssignmentDetail.description}
-                  </h1>
+                  </div>
                 </div>
 
-                <ButtonAction
-                  memberTask={memberTask}
-                  setEditOpen={setEditOpen}
-                  projectAssignmentDetail={projectAssignmentDetail}
-                />
-                {/* Details Section */}
-                <DetailSection projectAssignmentDetail={projectAssignmentDetail} />
+                <CardContent className="p-6 pt-0">
+                  <motion.div
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25, delay: 0.15 }}
+                    className="flex items-start justify-between gap-4 mb-6"
+                  >
+                    <h1 className="text-2xl md:text-3xl font-semibold text-foreground flex-1">
+                      {projectAssignmentDetail.description}
+                    </h1>
+                  </motion.div>
 
-                <DescriptionTask
-                  projectAssignmentDetail={projectAssignmentDetail}
-                  isEditingDescription={isEditingDescription}
-                  editedDescription={editedDescription}
-                  setEditedDescription={setEditedDescription}
-                  handleStartEdit={handleStartEdit}
-                  handleSaveDescription={handleSaveDescription}
-                  handleCancelEdit={handleCancelEdit}
-                />
-              </CardContent>
-            </Card>
-            <ShowFileTask files={projectAssignmentDetail?.imageUrls || []} />
+                  <motion.div
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25, delay: 0.2 }}
+                  >
+                    <ButtonAction
+                      memberTask={memberTask}
+                      setEditOpen={setEditOpen}
+                      projectAssignmentDetail={projectAssignmentDetail}
+                    />
+                  </motion.div>
+                  {/* Details Section */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25, delay: 0.25 }}
+                  >
+                    <DetailSection projectAssignmentDetail={projectAssignmentDetail} />
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25, delay: 0.3 }}
+                  >
+                    <DescriptionTask
+                      projectAssignmentDetail={projectAssignmentDetail}
+                      isEditingDescription={isEditingDescription}
+                      editedDescription={editedDescription}
+                      setEditedDescription={setEditedDescription}
+                      handleStartEdit={handleStartEdit}
+                      handleSaveDescription={handleSaveDescription}
+                      handleCancelEdit={handleCancelEdit}
+                    />
+                  </motion.div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.25, delay: 0.35 }}
+            >
+              <ShowFileTask files={projectAssignmentDetail?.imageUrls || []} />
+            </motion.div>
 
             {/* Comments Card */}
-            <div className="comments-section">
+            <motion.div
+              className="comments-section"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.4 }}
+            >
               <CommentTask member={memberTask || []} taskId={id ? Number(id) : 0} />
-            </div>
+            </motion.div>
           </div>
 
           {/* Sidebar */}
-          <SidebarTask projectAssignmentDetail={projectAssignmentDetail} />
+          <motion.div
+            initial={{ opacity: 0, x: 12 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3, delay: 0.25, ease: 'easeOut' }}
+          >
+            <SidebarTask projectAssignmentDetail={projectAssignmentDetail} />
+          </motion.div>
         </div>
       </div>
 
@@ -302,6 +375,6 @@ export const DetailTask = () => {
           </div>
         </form>
       </CustomDialog>
-    </div>
+    </motion.div>
   )
 }

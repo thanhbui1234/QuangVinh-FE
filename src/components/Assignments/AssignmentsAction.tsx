@@ -5,6 +5,7 @@ import { Settings, Plus, UserPlus } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { STATUS_PROJECT } from '@/constants/assignments/privacy'
 import { cn } from '@/lib/utils'
+import { motion } from 'framer-motion'
 
 export default function AssignmentsAction({
   project,
@@ -53,7 +54,12 @@ export default function AssignmentsAction({
   const statusConfig = getStatusConfig(status)
 
   return (
-    <div className="flex flex-col gap-6 md:flex-row md:justify-between md:items-start bg-card/50 p-4 rounded-xl border border-border/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-300">
+    <motion.div
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="flex flex-col gap-6 md:flex-row md:justify-between md:items-start bg-card/50 p-4 rounded-xl border border-border/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-300"
+    >
       {/* Project Info */}
       <div className="flex flex-col gap-3 flex-1 min-w-0">
         <div className="flex flex-wrap items-center gap-3">
@@ -159,6 +165,6 @@ export default function AssignmentsAction({
           </button>
         )}
       </div>
-    </div>
+    </motion.div>
   )
 }

@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader } from '../ui/card'
 import type { IProjectAssignment } from '@/types/project'
 import { ProjectCard } from './ProjectCard'
+import { motion } from 'framer-motion'
 
 interface ProjectGridProps {
   projects: IProjectAssignment[]
@@ -30,24 +31,52 @@ export const ProjectGrid = ({ projects, loading, onView, onEdit, onDelete }: Pro
   }
   if (projects?.length === 0) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="flex items-center justify-center h-full"
+      >
         <p className="text-center text-2xl text-muted-foreground">Không có dự án</p>
-      </div>
+      </motion.div>
     )
   }
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  }
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.4,
+        ease: 'easeOut',
+      },
+    },
+  }
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <motion.div
+      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
       {projects?.map((p, idx) => (
-        <ProjectCard
-          key={p.taskGroupId || p.name || idx}
-          project={p}
-          onView={onView}
-          onEdit={onEdit}
-          onDelete={onDelete}
-        />
+        <motion.div key={p.taskGroupId || p.name || idx} variants={itemVariants}>
+          <ProjectCard project={p} onView={onView} onEdit={onEdit} onDelete={onDelete} />
+        </motion.div>
       ))}
-    </div>
+    </motion.div>
   )
 }
 

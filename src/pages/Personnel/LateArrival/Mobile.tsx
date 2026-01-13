@@ -1,23 +1,21 @@
 import { SegmentedControl } from '@/components/base/SegmentedControl'
 import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
+import { Plus, Clock } from 'lucide-react'
 import { useLeaves } from '@/hooks/leaves/useLeaves.ts'
-import StatisticsCardsMobile from '@/components/Leaves/StatisticsCardsMobile.tsx'
-import LeaveListMobile from '@/components/Leaves/LeaveListMobile.tsx'
-import ViewDetailsSheetMobile from '@/components/Leaves/ViewDetailsSheetMobile.tsx'
-import CreateLeaveSheetMobile from '@/components/Leaves/CreateLeaveSheetMobile.tsx'
+import StatisticsCardsMobile from '@/components/Leaves/StatisticsCardsMobile'
+import LateArrivalDetailSheetMobile from '@/components/Leaves/LateArrivalDetailSheetMobile.tsx'
 import CreateLateArrivalSheetMobile from '@/components/Leaves/CreateLateArrivalSheetMobile.tsx'
 import useGetLeavesList from '@/hooks/leaves/useGetLeavesList.ts'
-import WeeklyCalendarMobile from '@/components/Leaves/WeeklyCalendar/WeeklyCalendarMobile.tsx'
+import LeaveListItemMobile from '@/components/Leaves/LeaveListItemMobile.tsx'
+import LeaveListItemMobileSkeleton from '@/components/Leaves/LeaveListItemMobileSkeleton.tsx'
 import {
   type LeavesStatus,
   StatusLeaves,
   type LeavesListDataResponse,
   type LeaveFormValues,
+  LeavesType,
 } from '@/types/Leave.ts'
-import { useState, useEffect, useCallback, useRef } from 'react'
-import { motion } from 'framer-motion'
-import { convertToDateInput } from '@/utils/CommonUtils.ts'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useRemoveLeaves } from '@/hooks/leaves/useRemoveLeaves'
 import ConfirmationSheetMobile from '@/components/base/ConfirmationSheetMobile.tsx'
 import { Trash2, CheckCircle, XCircle } from 'lucide-react'
@@ -25,7 +23,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { useSearchParams } from 'react-router-dom'
 import useGetLeaveDetail from '@/hooks/leaves/useGetLeaveDetail'
 
-export default function LeavesMobile() {
+export default function LateArrivalMobile() {
   const [searchParams, setSearchParams] = useSearchParams()
   const absenceRequestIdParam = searchParams.get('absenceRequestId')
   const absenceRequestId = absenceRequestIdParam ? Number(absenceRequestIdParam) : null
@@ -37,8 +35,6 @@ export default function LeavesMobile() {
     setViewDialogOpen,
     confirmDialogOpen,
     setConfirmDialogOpen,
-    createDialogOpen,
-    setCreateDialogOpen,
     actionType,
     filterStatus,
     setFilterStatus,
@@ -58,10 +54,6 @@ export default function LeavesMobile() {
   const [deleteRequest, setDeleteRequest] = useState<LeavesListDataResponse | null>(null)
   const [detailRequestId, setDetailRequestId] = useState<number | null>(null)
   const [lateArrivalSheetOpen, setLateArrivalSheetOpen] = useState(false)
-  const [lateArrivalEditMode, setLateArrivalEditMode] = useState<'create' | 'update'>('create')
-  const [lateArrivalEditId, setLateArrivalEditId] = useState<number | undefined>(undefined)
-  const [lateArrivalInitialValues, setLateArrivalInitialValues] =
-    useState<Partial<LeaveFormValues> | null>(null)
   const limit = 10
 
   const { removeLeavesMutate, isRemovingLeave } = useRemoveLeaves()
@@ -79,17 +71,12 @@ export default function LeavesMobile() {
     useGetLeaveDetail(detailRequestId)
 
   // Auto-open sheet when absence request is loaded from URL
-  // Only depends on absenceRequestId and absenceRequestFromUrl, not viewDialogOpen
-  // This prevents reopening when sheet is closed
   useEffect(() => {
-    // Only open if:
-    // 1. absenceRequestId exists (URL param is present)
-    // 2. absenceRequestFromUrl is loaded
-    // 3. We haven't opened this specific request yet
     if (
       absenceRequestId &&
       absenceRequestFromUrl &&
-      hasOpenedFromUrlRef.current !== absenceRequestId
+      hasOpenedFromUrlRef.current !== absenceRequestId &&
+      absenceRequestFromUrl.absenceType === LeavesType.LATE_ARRIVAL
     ) {
       setSelectedRequest(absenceRequestFromUrl)
       setViewDialogOpen(true)
@@ -99,18 +86,14 @@ export default function LeavesMobile() {
 
   // Update selectedRequest when detail is fetched
   useEffect(() => {
-    if (detailRequest) {
-      if (import.meta.env.NODE_ENV === 'development') {
-        console.log('LeavesMobile - detailRequest received:', detailRequest)
-      }
+    if (detailRequest && detailRequest.absenceType === LeavesType.LATE_ARRIVAL) {
       setSelectedRequest(detailRequest)
     }
   }, [detailRequest])
 
-  // Reset ref when absenceRequestId is cleared (URL param removed)
+  // Reset ref when absenceRequestId is cleared
   useEffect(() => {
     if (!absenceRequestId) {
-      // URL param was cleared, reset the ref to allow opening again if new param is added
       hasOpenedFromUrlRef.current = null
     }
   }, [absenceRequestId])
@@ -119,31 +102,54 @@ export default function LeavesMobile() {
   const handleViewSheetChange = (open: boolean) => {
     setViewDialogOpen(open)
     if (!open) {
-      // Remove query param when closing
       if (absenceRequestId) {
         const newSearchParams = new URLSearchParams(searchParams)
         newSearchParams.delete('absenceRequestId')
         setSearchParams(newSearchParams, { replace: true })
       }
-      // Clear detail request ID
       setDetailRequestId(null)
       setSelectedRequest(null)
     }
   }
 
-  // Check if current user is the creator of the leave request
   const canEditOrDelete = useCallback(
-    (request: LeavesListDataResponse) => {
-      return user?.email && request.creator?.email && user.email === request.creator.email
+    (request: LeavesListDataResponse): boolean => {
+      return !!(user?.email && request.creator?.email && user.email === request.creator.email)
     },
     [user?.email]
   )
 
-  const { absenceRequests, isFetching, statusCounts } = useGetLeavesList({
+  const { absenceRequests, isFetching } = useGetLeavesList({
     statuses: filterStatus,
+    // Chỉ lấy danh sách đơn đi muộn từ backend
+    absenceTypes: [LeavesType.LATE_ARRIVAL],
     offset,
     limit,
   })
+
+  // Filter only late arrival requests
+  const lateArrivalRequests = useMemo(() => {
+    return absenceRequests?.filter((req) => req.absenceType === LeavesType.LATE_ARRIVAL) || []
+  }, [absenceRequests])
+
+  // Calculate status counts for late arrivals only
+  const lateArrivalStatusCounts = useMemo(() => {
+    if (!lateArrivalRequests.length) {
+      return {
+        total: 0,
+        pending: 0,
+        approved: 0,
+        rejected: 0,
+      }
+    }
+
+    return {
+      total: lateArrivalRequests.length,
+      pending: lateArrivalRequests.filter((r) => r.status === StatusLeaves.PENDING).length,
+      approved: lateArrivalRequests.filter((r) => r.status === StatusLeaves.APPROVED).length,
+      rejected: lateArrivalRequests.filter((r) => r.status === StatusLeaves.REJECTED).length,
+    }
+  }, [lateArrivalRequests])
 
   const prevAbsenceRequestsRef = useRef<LeavesListDataResponse[]>([])
   const prevOffsetRef = useRef<number>(offset)
@@ -165,10 +171,7 @@ export default function LeavesMobile() {
 
   // Reset offset when status update completes
   useEffect(() => {
-    // When isUpdatingStatus changes from true to false, mutation completed
-    // Note: invalidateQueries in useUpdateLeavesStatus will automatically trigger refetch
     if (prevIsUpdatingStatusRef.current && !isUpdatingStatus) {
-      // Reset to first page to get updated list
       setOffset(0)
       prevOffsetRef.current = 0
       setAllItems([])
@@ -178,49 +181,44 @@ export default function LeavesMobile() {
 
   useEffect(() => {
     const offsetChanged = offset !== prevOffsetRef.current
-    // More comprehensive data change detection
     const dataChanged =
-      absenceRequests.length !== prevAbsenceRequestsRef.current.length ||
-      (absenceRequests.length > 0 &&
+      lateArrivalRequests.length !== prevAbsenceRequestsRef.current.length ||
+      (lateArrivalRequests.length > 0 &&
         prevAbsenceRequestsRef.current.length > 0 &&
-        (absenceRequests[0]?.id !== prevAbsenceRequestsRef.current[0]?.id ||
-          absenceRequests.some((item, index) => {
+        (lateArrivalRequests[0]?.id !== prevAbsenceRequestsRef.current[0]?.id ||
+          lateArrivalRequests.some((item, index) => {
             const prevItem = prevAbsenceRequestsRef.current[index]
             if (!prevItem) return true
-            // Check if any field has changed (not just ID and status)
             return (
               prevItem.id !== item.id ||
               prevItem.status !== item.status ||
               prevItem.reason !== item.reason ||
               prevItem.offFrom !== item.offFrom ||
-              prevItem.offTo !== item.offTo ||
-              prevItem.absenceType !== item.absenceType ||
-              prevItem.dayOffType !== item.dayOffType
+              prevItem.offTo !== item.offTo
             )
           })))
 
     if (offsetChanged || dataChanged) {
-      if (absenceRequests && absenceRequests.length > 0) {
+      if (lateArrivalRequests && lateArrivalRequests.length > 0) {
         if (offset === 0) {
-          setAllItems(absenceRequests)
+          setAllItems(lateArrivalRequests)
         } else {
           setAllItems((prev) => {
-            // Avoid duplicate items
             const existingIds = new Set(prev.map((item) => item.id))
-            const newItems = absenceRequests.filter((item) => !existingIds.has(item.id))
+            const newItems = lateArrivalRequests.filter((item) => !existingIds.has(item.id))
             return newItems.length > 0 ? [...prev, ...newItems] : prev
           })
         }
-        setHasMore(absenceRequests.length === limit)
+        setHasMore(lateArrivalRequests.length === limit)
       } else if (offset === 0) {
         setAllItems([])
         setHasMore(false)
       }
 
-      prevAbsenceRequestsRef.current = absenceRequests
+      prevAbsenceRequestsRef.current = lateArrivalRequests
       prevOffsetRef.current = offset
     }
-  }, [absenceRequests, offset, limit])
+  }, [lateArrivalRequests, offset, limit])
 
   const handleLoadMore = () => {
     setOffset((prev) => prev + limit)
@@ -228,42 +226,27 @@ export default function LeavesMobile() {
 
   const handleEditLeave = (request: LeavesListDataResponse) => {
     if (!canEditOrDelete(request)) return
-
-    // Check if it's a late arrival request
-    if (request.absenceType === 5) {
-      setLateArrivalEditMode('update')
-      setLateArrivalEditId(request.id)
-      setLateArrivalInitialValues({
-        absenceType: request.absenceType,
-        dayOffType: request.dayOffType,
-        offFrom: request.offFrom, // Keep ISO format for late arrival
-        offTo: request.offTo,
-        reason: request.reason,
-      })
-      setLateArrivalSheetOpen(true)
-    } else {
-      setEditMode('update')
-      setEditLeaveId(request.id)
-      setEditInitialValues({
-        absenceType: request.absenceType,
-        dayOffType: request.dayOffType,
-        offFrom: convertToDateInput(request.offFrom),
-        offTo: convertToDateInput(request.offTo),
-        reason: request.reason,
-      })
-      setCreateDialogOpen(true)
-    }
+    setEditMode('update')
+    setEditLeaveId(request.id)
+    setEditInitialValues({
+      absenceType: request.absenceType,
+      dayOffType: request.dayOffType,
+      offFrom: request.offFrom,
+      offTo: request.offTo,
+      reason: request.reason,
+    })
+    setLateArrivalSheetOpen(true)
   }
 
   const handleCreateClick = () => {
     setEditMode('create')
     setEditLeaveId(undefined)
     setEditInitialValues(null)
-    setCreateDialogOpen(true)
+    setLateArrivalSheetOpen(true)
   }
 
   const handleSheetClose = (open: boolean) => {
-    setCreateDialogOpen(open)
+    setLateArrivalSheetOpen(open)
     if (!open) {
       setEditMode('create')
       setEditLeaveId(undefined)
@@ -272,8 +255,6 @@ export default function LeavesMobile() {
   }
 
   const handleCreateOrUpdateSuccess = () => {
-    // Reset to first page to get updated list
-    // Note: invalidateQueries in useUpdateLeaves will automatically trigger refetch
     setOffset(0)
     prevOffsetRef.current = 0
     setAllItems([])
@@ -306,17 +287,17 @@ export default function LeavesMobile() {
   }
 
   return (
-    <motion.div
-      className="flex flex-col min-h-screen mt-3 dark:bg-gray-950"
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25, ease: 'easeOut' }}
-    >
-      <StatisticsCardsMobile pending={statusCounts?.pending} approved={statusCounts?.approved} />
-      <div className="py-1">
-        <WeeklyCalendarMobile className="mb-4" />
+    <div className="flex flex-col min-h-screen bg-background">
+      {/* Statistics Cards */}
+      <div className="px-4 mt-3">
+        <StatisticsCardsMobile
+          pending={lateArrivalStatusCounts?.pending}
+          approved={lateArrivalStatusCounts?.approved}
+        />
       </div>
-      <div className="pb-2">
+
+      {/* Segmented Control */}
+      <div className="pb-3 px-4 mt-4">
         <SegmentedControl
           options={[
             {
@@ -330,54 +311,92 @@ export default function LeavesMobile() {
           onChange={(v) => setFilterStatus(v as LeavesStatus[])}
         />
       </div>
-      {/* iOS-style List */}
-      <div className="flex-1 overflow-y-auto pb-28">
-        <LeaveListMobile
-          items={allItems}
-          canApprove={canApprove as boolean}
-          onViewDetails={(request) => {
-            if (import.meta.env.NODE_ENV === 'development') {
-              console.log('LeavesMobile - onViewDetails called with request:', request)
-            }
-            // Set selectedRequest from list first (for immediate display)
-            setSelectedRequest(request)
-            // Then fetch detail using the detail API to get latest data
-            setDetailRequestId(request.id)
-            setViewDialogOpen(true)
-          }}
-          onActionClick={handleActionClick}
-          onCreateClick={handleCreateClick}
-          onLoadMore={handleLoadMore}
-          hasMore={hasMore}
-          isLoading={isFetching}
-        />
+
+      {/* List - giống UI lịch nghỉ */}
+      <div className="flex-1 overflow-y-auto pb-32">
+        {/* Loading skeleton khi chưa có dữ liệu */}
+        {isFetching && allItems.length === 0 && (
+          <div className="px-4 space-y-2">
+            {Array.from({ length: 5 }).map((_, index) => (
+              <LeaveListItemMobileSkeleton key={`late-arrival-skeleton-${index}`} />
+            ))}
+          </div>
+        )}
+
+        {/* Empty state */}
+        {!isFetching && allItems.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
+            <div className="w-20 h-20 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-4">
+              <Clock className="size-10 text-gray-400 dark:text-gray-600" />
+            </div>
+            <p className="text-base font-medium text-gray-900 dark:text-white mb-1">
+              Chưa có đơn đi muộn
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+              Đăng ký đơn đi muộn để bắt đầu
+            </p>
+            <Button onClick={handleCreateClick} className="h-8 px-4 pb-2 rounded-full">
+              <Plus className="size-4 mr-1" /> Nộp đơn xin đi muộn
+            </Button>
+          </div>
+        )}
+
+        {/* Danh sách item giống lịch nghỉ */}
+        {allItems.length > 0 && (
+          <div className="px-4 space-y-2">
+            {allItems.map((request) => (
+              <LeaveListItemMobile
+                key={request.id}
+                request={request}
+                canApprove={canApprove as boolean}
+                onViewDetails={(req) => {
+                  setSelectedRequest(req)
+                  setDetailRequestId(req.id)
+                  setViewDialogOpen(true)
+                }}
+                onActionClick={handleActionClick}
+              />
+            ))}
+
+            {/* Skeleton khi load thêm */}
+            {isFetching && allItems.length > 0 && (
+              <>
+                {Array.from({ length: 3 }).map((_, index) => (
+                  <LeaveListItemMobileSkeleton key={`late-arrival-skeleton-more-${index}`} />
+                ))}
+              </>
+            )}
+
+            {/* Load More */}
+            {hasMore && !isFetching && (
+              <div className="py-4">
+                <Button variant="outline" onClick={handleLoadMore} className="w-full rounded-xl">
+                  Tải thêm
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
+
       {/* Fixed Bottom CTA - pill style (above bottom nav) */}
-      {!(createDialogOpen || viewDialogOpen || confirmDialogOpen || lateArrivalSheetOpen) && (
-        <motion.div
+      {!(lateArrivalSheetOpen || viewDialogOpen || confirmDialogOpen || deleteDialogOpen) && (
+        <div
           className="fixed inset-x-0 z-[60] bg-transparent bottom-22"
           style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.25, ease: 'easeOut' }}
         >
-          <motion.div
-            className="px-4 flex gap-2"
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.2, delay: 0.05 }}
-          >
+          <div className="px-4 flex gap-2">
             <Button
               onClick={handleCreateClick}
               className="flex-1 h-12 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg"
             >
               <Plus className="size-4 mr-1" />
-              Tạo đơn xin nghỉ
+              Nộp đơn xin đi muộn
             </Button>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       )}
-      <ViewDetailsSheetMobile
+      <LateArrivalDetailSheetMobile
         open={viewDialogOpen}
         onOpenChange={handleViewSheetChange}
         selectedRequest={selectedRequest || absenceRequestFromUrl}
@@ -385,6 +404,8 @@ export default function LeavesMobile() {
         onEdit={handleEditLeave}
         onDelete={handleDeleteLeave}
         canEditOrDelete={canEditOrDelete}
+        canApprove={canApprove as boolean}
+        onActionClick={handleActionClick}
       />
       {actionType && (
         <ConfirmationSheetMobile
@@ -394,13 +415,13 @@ export default function LeavesMobile() {
           title={actionType === 'approve' ? 'Xác nhận duyệt đơn' : 'Xác nhận từ chối đơn'}
           description={
             actionType === 'approve'
-              ? 'Xác nhận duyệt đơn xin nghỉ này'
-              : 'Xác nhận từ chối đơn xin nghỉ này'
+              ? 'Xác nhận duyệt đơn đi muộn này'
+              : 'Xác nhận từ chối đơn đi muộn này'
           }
           message={
             actionType === 'approve'
-              ? 'Bạn có chắc chắn muốn duyệt đơn xin nghỉ này không?'
-              : 'Bạn có chắc chắn muốn từ chối đơn xin nghỉ này không?'
+              ? 'Bạn có chắc chắn muốn duyệt đơn đi muộn này không?'
+              : 'Bạn có chắc chắn muốn từ chối đơn đi muộn này không?'
           }
           confirmText={actionType === 'approve' ? 'Xác nhận duyệt' : 'Xác nhận từ chối'}
           cancelText="Hủy"
@@ -416,36 +437,21 @@ export default function LeavesMobile() {
           loadingText={actionType === 'approve' ? 'Đang duyệt...' : 'Đang từ chối...'}
         />
       )}
-      <CreateLeaveSheetMobile
-        open={createDialogOpen}
+      <CreateLateArrivalSheetMobile
+        open={lateArrivalSheetOpen}
         onOpenChange={handleSheetClose}
         mode={editMode}
         leaveId={editLeaveId}
         initialValues={editInitialValues}
         onSuccess={handleCreateOrUpdateSuccess}
       />
-      <CreateLateArrivalSheetMobile
-        open={lateArrivalSheetOpen}
-        onOpenChange={(open) => {
-          setLateArrivalSheetOpen(open)
-          if (!open) {
-            setLateArrivalEditMode('create')
-            setLateArrivalEditId(undefined)
-            setLateArrivalInitialValues(null)
-          }
-        }}
-        mode={lateArrivalEditMode}
-        leaveId={lateArrivalEditId}
-        initialValues={lateArrivalInitialValues}
-        onSuccess={handleCreateOrUpdateSuccess}
-      />
       <ConfirmationSheetMobile
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         onConfirm={confirmDeleteLeave}
-        title="Xác nhận xoá đơn nghỉ"
-        description="Thông tin chi tiết về đơn xin nghỉ"
-        message="Bạn có chắc chắn muốn xoá đơn xin nghỉ này không? Hành động này không thể hoàn tác."
+        title="Xác nhận xoá đơn đi muộn"
+        description="Thông tin chi tiết về đơn đi muộn"
+        message="Bạn có chắc chắn muốn xoá đơn đi muộn này không? Hành động này không thể hoàn tác."
         confirmText="Xác nhận xoá"
         cancelText="Hủy"
         icon={<Trash2 className="size-5" />}
@@ -453,6 +459,6 @@ export default function LeavesMobile() {
         isLoading={isRemovingLeave}
         loadingText="Đang xoá..."
       />
-    </motion.div>
+    </div>
   )
 }
