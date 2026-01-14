@@ -9,7 +9,6 @@ import {
   ChevronLeft,
   Sparkles,
   Menu,
-  LogOut,
   Search,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -417,7 +416,6 @@ const NavContent = memo(
     userRoles,
     setIsCollapsed,
     setIsMobileMenuOpen,
-    handleLogout,
     handleNavigate,
     handleSubItemNavigate,
     expandedItems,

@@ -23,17 +23,7 @@ interface VirtualizedTableCellProps {
 }
 
 export const VirtualizedTableCell: React.FC<VirtualizedTableCellProps> = React.memo(
-  ({
-    rowIndex,
-    colIndex,
-    value,
-    column,
-    rowColor,
-    onValueChange,
-    isEditing,
-    onStartEdit,
-    onEndEdit,
-  }) => {
+  ({ rowIndex, colIndex, value, column, onValueChange, isEditing, onStartEdit, onEndEdit }) => {
     const [localValue, setLocalValue] = useState(value)
     const inputRef = useRef<HTMLInputElement>(null)
 
