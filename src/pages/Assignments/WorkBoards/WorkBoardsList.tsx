@@ -120,22 +120,17 @@ export const WorkBoardsList: React.FC = () => {
               // However, the original code had this logic to add columns if they were NOT in data.
             }
 
-            // 2. Create Default Rows (16 rows)
-            // We can do this in parallel chunks effectively
-            const rowPromises = Array.from({ length: 16 }, (_, i) => {
-              const rowData: Record<string, any> = {}
-              // Fill first column with example data?
-              if (columnsToUse.length > 0) {
-                rowData[columnsToUse[0]] = `Dòng ${i + 1}`
-              }
+            // 2. Create 1 default row
+            const rowData: Record<string, any> = {}
+            if (columnsToUse.length > 0) {
+              rowData[columnsToUse[0]] = `Dòng 1`
+            }
 
-              return createSheetRowMutation.mutateAsync({
-                sheetId: validSheetId,
-                rowData,
-                color: '#FFFFFF',
-              })
+            await createSheetRowMutation.mutateAsync({
+              sheetId: validSheetId,
+              rowData,
+              color: '#FFFFFF',
             })
-            await Promise.all(rowPromises)
           }
         } catch (error) {
           console.error('Error seeding default data:', error)

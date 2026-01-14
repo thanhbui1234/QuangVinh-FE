@@ -91,6 +91,7 @@ export const API_ENDPOINT = {
   UPDATE_SHEET_ROW: '/api/sheet-row/upsert-cell-row',
   REMOVE_SHEET_ROW: '/api/sheet-row/remove',
   GET_SHEET_ROW: '/api/sheet-row/get-list',
+  IMPORT_EXCEL_SHEET_ROW: '/api/sheet-row/import-excel',
   // collection
   CREATE_COLLECTION: '/api/sheet-collection/create',
   GET_COLLECTIONS: '/api/sheet-collection/get-list',
