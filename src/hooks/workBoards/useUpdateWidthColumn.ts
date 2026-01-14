@@ -4,7 +4,7 @@ import { API_ENDPOINT } from '@/common/apiEndpoint'
 import { workBoardsKey } from '@/constants/assignments/assignment'
 import { queryClient } from '@/lib/queryClient'
 import SonnerToaster from '@/components/ui/toaster'
-import type { IUpdateColumnsResponse } from '@/types/WorkBoard'
+import type { IUpdateColumnResponse } from '@/types/WorkBoard'
 import { handleCommonError } from '@/utils/handleErrors'
 
 interface UseUpdateWidthColumnOptions {
@@ -20,13 +20,15 @@ export const useUpdateWidthColumn = (options?: UseUpdateWidthColumnOptions) => {
     mutationFn: async (payload: {
       sheetId: number
       width: number
-    }): Promise<IUpdateColumnsResponse> => {
+      columnName: string
+    }): Promise<IUpdateColumnResponse> => {
       try {
-        // Use UPDATE_WIDTH_ROW endpoint with simplified payload
-        const response = (await POST(API_ENDPOINT.UPDATE_WIDTH_ROW, {
+        // Use UPDATE_COLUMN endpoint with newWidth
+        const response = (await POST(API_ENDPOINT.UPDATE_COLUMN, {
           sheetId: payload.sheetId,
-          width: payload.width,
-        })) as IUpdateColumnsResponse
+          columnName: payload.columnName,
+          newWidth: payload.width,
+        })) as IUpdateColumnResponse
         return response
       } catch (error) {
         handleCommonError(error)

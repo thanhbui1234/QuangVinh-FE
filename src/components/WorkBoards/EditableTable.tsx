@@ -109,10 +109,14 @@ export const EditableTable: React.FC<EditableTableProps> = ({
   )
 
   // Debounced handler for column width resize with backend sync
-  const debouncedColumnResize = useDebouncedCallback((_colIndex: number, width: number) => {
-    // With the new API we only send sheetId and width (which seems to be sheet width)
+  const debouncedColumnResize = useDebouncedCallback((colIndex: number, width: number) => {
+    const column = columnHeaders[colIndex]
+    if (!column) return
+
+    // With the new API we send sheetId, newWidth and columnName
     updateWidthColumnMutation.mutate({
       sheetId: sheetId || workBoard?.id || 0,
+      columnName: column.name || column.label,
       width,
     })
   }, 300)
