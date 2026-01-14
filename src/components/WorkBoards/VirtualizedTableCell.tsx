@@ -1,0 +1,130 @@
+import React, { useState, useEffect, useRef } from 'react'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { cn } from '@/lib/utils'
+import type { IWorkBoardColumn } from '@/types/WorkBoard'
+
+interface VirtualizedTableCellProps {
+  rowIndex: number
+  colIndex: number
+  value: string
+  column: IWorkBoardColumn
+  onValueChange: (rowIndex: number, colIndex: number, value: string) => void
+  isEditing: boolean
+  onStartEdit: (rowIndex: number, colIndex: number) => void
+  onEndEdit: () => void
+}
+
+export const VirtualizedTableCell: React.FC<VirtualizedTableCellProps> = React.memo(
+  ({ rowIndex, colIndex, value, column, onValueChange, isEditing, onStartEdit, onEndEdit }) => {
+    const [localValue, setLocalValue] = useState(value)
+    const inputRef = useRef<HTMLInputElement>(null)
+
+    // Sync local value with prop value when not editing
+    useEffect(() => {
+      if (!isEditing) {
+        setLocalValue(value)
+      }
+    }, [value, isEditing])
+
+    // Focus input when starts editing
+    useEffect(() => {
+      if (isEditing && inputRef.current) {
+        inputRef.current.focus()
+        inputRef.current.select()
+      }
+    }, [isEditing])
+
+    const handleBlur = () => {
+      if (localValue !== value) {
+        onValueChange(rowIndex, colIndex, localValue)
+      }
+      onEndEdit()
+    }
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        handleBlur()
+      } else if (e.key === 'Escape') {
+        setLocalValue(value)
+        onEndEdit()
+      }
+    }
+
+    const columnColor = column.color || '#FFFFFF'
+    const isDefaultColor = columnColor === '#FFFFFF' || columnColor.toLowerCase() === 'transparent'
+    const hasOptions = column?.options && column.options.length > 0
+    const columnType = column?.type || 'text'
+
+    return (
+      <div
+        style={!isDefaultColor ? { backgroundColor: `${columnColor}40` } : {}}
+        className={cn(
+          'w-[200px] max-w-[200px] h-10 p-0 whitespace-nowrap border-r border-border/10 transition-all group/cell flex items-center overflow-hidden shrink-0',
+          isEditing
+            ? 'ring-1 ring-primary/40 ring-inset z-50 bg-background shadow-md shadow-primary/5'
+            : 'hover:bg-muted/15'
+        )}
+      >
+        {columnType === 'select' && hasOptions ? (
+          <Select
+            value={value || undefined}
+            onValueChange={(val) => onValueChange(rowIndex, colIndex, val)}
+          >
+            <SelectTrigger className="border-0 focus:ring-0 h-10 w-full px-4 rounded-none shadow-none bg-transparent hover:bg-muted/20 transition-colors font-medium text-foreground/80">
+              <SelectValue placeholder="Chọn..." />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl border-border/20 shadow-2xl bg-popover/90 backdrop-blur-xl">
+              {column.options?.map((option, idx) => (
+                <SelectItem key={idx} value={option} className="rounded-lg m-1 font-medium">
+                  {option}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : isEditing ? (
+          <div className="relative w-full h-full flex items-center px-4 bg-background z-30 shadow-inner">
+            <Input
+              ref={inputRef}
+              type={columnType === 'number' ? 'number' : 'text'}
+              value={localValue}
+              onChange={(e) => setLocalValue(e.target.value)}
+              onBlur={handleBlur}
+              onKeyDown={handleKeyDown}
+              className="border-0 focus-visible:ring-0 h-9 w-full p-0 bg-transparent font-medium text-foreground selection:bg-primary/20"
+            />
+          </div>
+        ) : (
+          <div
+            className="px-4 w-full h-full flex items-center cursor-pointer transition-all font-medium text-foreground/80 relative overflow-hidden min-w-0"
+            onClick={() => onStartEdit(rowIndex, colIndex)}
+          >
+            {value ? (
+              <span className="truncate">{value}</span>
+            ) : (
+              <span className="text-muted-foreground/80 text-[9px] font-bold uppercase tracking-widest opacity-0 group-hover/cell:opacity-100 transition-all">
+                Trống
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+    )
+  },
+  (prevProps, nextProps) => {
+    return (
+      prevProps.value === nextProps.value &&
+      prevProps.isEditing === nextProps.isEditing &&
+      prevProps.column.id === nextProps.column.id &&
+      prevProps.column.color === nextProps.column.color &&
+      prevProps.column.type === nextProps.column.type &&
+      JSON.stringify(prevProps.column.options) === JSON.stringify(nextProps.column.options)
+    )
+  }
+)

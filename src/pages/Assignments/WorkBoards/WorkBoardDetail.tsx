@@ -612,7 +612,6 @@ export const WorkBoardDetail: React.FC = () => {
               removeSheetRowMutation.isPending
             }
             onRefresh={handleRefreshSheet}
-            onUnsavedChangesChange={undefined}
             onDeleteRow={handleDeleteRow}
             onCreateRow={handleCreateRow}
           />
