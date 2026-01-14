@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react'
+import React, { useRef, useEffect, useState, useCallback } from 'react'
 import { BarChart3 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,6 +12,7 @@ interface VirtualizedTableHeaderProps {
   onEndEdit: () => void
   onHeaderChange: (colIndex: number, label: string) => void
   onShowStatistics: (colIndex: number) => void
+  onColumnResize: (colIndex: number, width: number) => void
   rowsCount: number
   getCellValue: (rowIndex: number, colIndex: number) => string
 }
@@ -24,11 +25,15 @@ export const VirtualizedTableHeader: React.FC<VirtualizedTableHeaderProps> = Rea
     onEndEdit,
     onHeaderChange,
     onShowStatistics,
+    onColumnResize,
     rowsCount,
     getCellValue,
   }) => {
     const [headerValue, setHeaderValue] = useState('')
     const inputRef = useRef<HTMLInputElement>(null)
+    const resizingRef = useRef<{ colIndex: number; startX: number; startWidth: number } | null>(
+      null
+    )
 
     useEffect(() => {
       if (editingCell?.row === -1 && inputRef.current) {
@@ -37,9 +42,40 @@ export const VirtualizedTableHeader: React.FC<VirtualizedTableHeaderProps> = Rea
       }
     }, [editingCell])
 
+    const handleMouseDown = useCallback(
+      (e: React.MouseEvent, colIndex: number, currentWidth: number) => {
+        e.preventDefault()
+        e.stopPropagation()
+        resizingRef.current = {
+          colIndex,
+          startX: e.clientX,
+          startWidth: currentWidth,
+        }
+
+        const onMouseMove = (moveEvent: MouseEvent) => {
+          if (!resizingRef.current) return
+          const deltaX = moveEvent.clientX - resizingRef.current.startX
+          const newWidth = Math.max(80, resizingRef.current.startWidth + deltaX)
+          onColumnResize(resizingRef.current.colIndex, newWidth)
+        }
+
+        const onMouseUp = () => {
+          resizingRef.current = null
+          document.removeEventListener('mousemove', onMouseMove)
+          document.removeEventListener('mouseup', onMouseUp)
+          document.body.style.cursor = 'default'
+        }
+
+        document.addEventListener('mousemove', onMouseMove)
+        document.addEventListener('mouseup', onMouseUp)
+        document.body.style.cursor = 'col-resize'
+      },
+      [onColumnResize]
+    )
+
     return (
-      <div className="sticky top-0 z-20 flex w-max min-w-full">
-        <div className="w-16 h-10 bg-muted/20 backdrop-blur-sm sticky left-0 z-30 border-r border-border/30 font-bold text-muted-foreground/80 text-center flex items-center justify-center shrink-0">
+      <div className="sticky top-0 z-[100] flex w-max min-w-full">
+        <div className="w-16 h-10 bg-[#f8f8f8] dark:bg-[#151518] sticky left-0 z-[110] border-r border-border/30 font-bold text-muted-foreground/80 text-center flex items-center justify-center shrink-0 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
           <div className="text-[10px] tracking-widest">#</div>
         </div>
 
@@ -48,13 +84,17 @@ export const VirtualizedTableHeader: React.FC<VirtualizedTableHeaderProps> = Rea
           const isEditing = editingCell?.row === -1 && editingCell?.col === colIndex
           const isDefaultColor =
             columnColor === '#FFFFFF' || columnColor.toLowerCase() === 'transparent'
+          const colWidth = col.width || 200
 
           return (
             <div
               key={col.id || colIndex}
-              style={!isDefaultColor ? { backgroundColor: `${columnColor}50` } : {}}
+              style={{
+                ...(!isDefaultColor ? { backgroundColor: columnColor } : {}),
+                width: colWidth,
+              }}
               className={cn(
-                'w-[200px] max-w-[200px] h-10 p-0 whitespace-nowrap border-b border-border/15 bg-muted/10 dark:bg-muted/5 backdrop-blur-sm hover:bg-muted/20 transition-colors flex items-center overflow-hidden shrink-0'
+                'h-10 p-0 whitespace-nowrap border-b border-border/15 bg-[#f8f8f8] dark:bg-[#151518] hover:bg-muted/20 transition-colors flex items-center overflow-visible shrink-0 relative group/column'
               )}
             >
               {isEditing ? (
@@ -126,6 +166,12 @@ export const VirtualizedTableHeader: React.FC<VirtualizedTableHeaderProps> = Rea
                   </div>
                 </div>
               )}
+
+              {/* Resize Handle */}
+              <div
+                className="absolute right-0 top-0 w-1 h-full cursor-col-resize hover:bg-primary/50 z-10 transition-colors"
+                onMouseDown={(e) => handleMouseDown(e, colIndex, colWidth)}
+              />
             </div>
           )
         })}
