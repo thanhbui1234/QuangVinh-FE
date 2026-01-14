@@ -12,6 +12,9 @@ import { ColumnStatisticsModal } from './ColumnStatisticsModal'
 import { VirtualizedTableHeader } from './VirtualizedTableHeader'
 import { VirtualizedTableRow } from './VirtualizedTableRow'
 import SonnerToaster from '@/components/ui/toaster'
+import { useUpdateColorRow } from '@/hooks/workBoards/useUpdateColorRow'
+import { useUpdateHeightRow } from '@/hooks/workBoards/useUpdateHeightRow'
+import { useUpdateWidthColumn } from '@/hooks/workBoards/useUpdateWidthColumn'
 
 interface EditableTableProps {
   workBoard: IWorkBoard | null
@@ -53,6 +56,9 @@ export const EditableTable: React.FC<EditableTableProps> = ({
   )
   const [cells, setCells] = useState<Map<string, string>>(new Map())
   const [editingCell, setEditingCell] = useState<{ row: number; col: number } | null>(null)
+  const [rowHeights, setRowHeights] = useState<Record<number, number>>({})
+  const [rowColors, setRowColors] = useState<Record<number, string>>({})
+  const [rowIdMap, setRowIdMap] = useState<Record<number, number>>({})
 
   const parentRef = useRef<HTMLDivElement>(null)
   const [originalColumns, setOriginalColumns] = useState<IWorkBoardColumn[]>([])
@@ -61,6 +67,11 @@ export const EditableTable: React.FC<EditableTableProps> = ({
   const [rowIndexToDelete, setRowIndexToDelete] = useState(-1)
   const [statisticsColumnName, setStatisticsColumnName] = useState<string | null>(null)
   const cellChangesRef = useRef<Map<string, string>>(new Map())
+
+  // Initialize mutations for row/column updates
+  const { updateColorRowMutation } = useUpdateColorRow({ suppressInvalidation: true, sheetId })
+  const { updateHeightRowMutation } = useUpdateHeightRow({ suppressInvalidation: true, sheetId })
+  const { updateWidthColumnMutation } = useUpdateWidthColumn({ suppressInvalidation: true })
 
   // Store state in ref for reliable access in debounced callbacks
   const stateRef = useRef({
@@ -85,8 +96,8 @@ export const EditableTable: React.FC<EditableTableProps> = ({
   const rowVirtualizer = useVirtualizer({
     count: rows,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 40, // Height of each row
-    overscan: 10, // Pre-render some rows for smooth scrolling
+    estimateSize: (index) => rowHeights[index] || 40,
+    overscan: 20,
   })
 
   // Helpers
@@ -95,6 +106,68 @@ export const EditableTable: React.FC<EditableTableProps> = ({
       return cells.get(`${rIdx}-${cIdx}`) || ''
     },
     [cells]
+  )
+
+  // Debounced handler for column width resize with backend sync
+  const debouncedColumnResize = useDebouncedCallback((colIndex: number, width: number) => {
+    const column = columnHeaders[colIndex]
+    if (!column) return
+
+    // With the new API we send sheetId, newWidth and columnName
+    updateWidthColumnMutation.mutate({
+      sheetId: sheetId || workBoard?.id || 0,
+      columnName: column.name || column.label,
+      width,
+    })
+  }, 300)
+
+  const handleColumnResize = useCallback(
+    (colIndex: number, width: number) => {
+      // Optimistic update
+      setColumnHeaders((prev) => {
+        const newHeaders = [...prev]
+        newHeaders[colIndex] = { ...newHeaders[colIndex], width }
+        return newHeaders
+      })
+      // Debounced backend sync
+      debouncedColumnResize(colIndex, width)
+    },
+    [debouncedColumnResize]
+  )
+
+  // Debounced handler for row height resize with backend sync
+  const debouncedRowResize = useDebouncedCallback((rowIndex: number, height: number) => {
+    const rowId = rowIdMap[rowIndex]
+    // Use strict check because rowId can be 0 and height can be 0
+    if (rowId === undefined || rowId === null) return
+
+    updateHeightRowMutation.mutate({ rowId, height })
+  }, 300)
+
+  const handleRowResize = useCallback(
+    (rowIndex: number, height: number) => {
+      // Optimistic update
+      setRowHeights((prev) => ({ ...prev, [rowIndex]: height }))
+      // Debounced backend sync
+      debouncedRowResize(rowIndex, height)
+    },
+    [debouncedRowResize]
+  )
+
+  // Handler for row color change with immediate backend sync
+  const handleRowColorChange = useCallback(
+    (rowIndex: number, color: string) => {
+      // Optimistic update
+      setRowColors((prev) => ({ ...prev, [rowIndex]: color }))
+
+      // Immediate backend sync for color changes
+      if (!workBoard?.rowIdMap) return
+      const rowId = workBoard.rowIdMap[rowIndex]
+      if (!rowId) return
+
+      updateColorRowMutation.mutate({ rowId, color })
+    },
+    [workBoard?.rowIdMap, updateColorRowMutation]
   )
 
   const handleSaveInternal = useCallback(
@@ -162,25 +235,7 @@ export const EditableTable: React.FC<EditableTableProps> = ({
 
   const debouncedSave = useDebouncedCallback(() => handleSaveInternal(), 500)
 
-  const setCellValue = useCallback(
-    (rowIndex: number, colIndex: number, value: string) => {
-      const key = `${rowIndex}-${colIndex}`
-      if (getCellValue(rowIndex, colIndex) === value) return
-
-      cellChangesRef.current.set(key, value)
-      setCells((prev) => {
-        const newMap = new Map(prev)
-        if (value === '') {
-          newMap.delete(key)
-        } else {
-          newMap.set(key, value)
-        }
-        return newMap
-      })
-      debouncedSave()
-    },
-    [debouncedSave, getCellValue]
-  )
+  // ... (keeping other handlers as they were, but they will use debouncedSave which relies on stateRef)
 
   const handleAddRow = () => {
     if (onCreateRow) {
@@ -206,8 +261,61 @@ export const EditableTable: React.FC<EditableTableProps> = ({
       else if (r > rowIndex) newCellsMap.set(`${r - 1}-${c}`, value)
     })
     setCells(newCellsMap)
+
+    // Also update row heights and colors
+    setRowHeights((prev) => {
+      const newHeights: Record<number, number> = {}
+      Object.entries(prev).forEach(([idx, height]) => {
+        const r = Number(idx)
+        if (r < rowIndex) newHeights[r] = height
+        else if (r > rowIndex) newHeights[r - 1] = height
+      })
+      return newHeights
+    })
+
+    setRowColors((prev) => {
+      const newColors: Record<number, string> = {}
+      Object.entries(prev).forEach(([idx, color]) => {
+        const r = Number(idx)
+        if (r < rowIndex) newColors[r] = color
+        else if (r > rowIndex) newColors[r - 1] = color
+      })
+      return newColors
+    })
+
+    // Shift rowIdMap locally
+    setRowIdMap((prev) => {
+      const newMap: Record<number, number> = {}
+      Object.entries(prev).forEach(([idx, id]) => {
+        const r = Number(idx)
+        if (r < rowIndex) newMap[r] = id
+        else if (r > rowIndex) newMap[r - 1] = id
+      })
+      return newMap
+    })
+
     handleSaveInternal(undefined, newCellsMap, newRowCount)
   }
+
+  const setCellValue = useCallback(
+    (rowIndex: number, colIndex: number, value: string) => {
+      const key = `${rowIndex}-${colIndex}`
+      if (getCellValue(rowIndex, colIndex) === value) return
+
+      cellChangesRef.current.set(key, value)
+      setCells((prev) => {
+        const newMap = new Map(prev)
+        if (value === '') {
+          newMap.delete(key)
+        } else {
+          newMap.set(key, value)
+        }
+        return newMap
+      })
+      debouncedSave()
+    },
+    [debouncedSave, getCellValue]
+  )
 
   const handleHeaderChange = (colIndex: number, label: string) => {
     if (columnHeaders.some((col, idx) => idx !== colIndex && (col.name || col.label) === label)) {
@@ -236,6 +344,17 @@ export const EditableTable: React.FC<EditableTableProps> = ({
         cellsMap.set(`${cell.rowIndex}-${cell.columnIndex}`, cell.value)
       })
       setCells(cellsMap)
+
+      // Sync row heights and colors
+      if (workBoard.rowHeights) {
+        setRowHeights(workBoard.rowHeights)
+      }
+      if (workBoard.rowColors) {
+        setRowColors(workBoard.rowColors)
+      }
+      if (workBoard.rowIdMap) {
+        setRowIdMap(workBoard.rowIdMap)
+      }
     }
   }, [workBoard])
 
@@ -314,7 +433,7 @@ export const EditableTable: React.FC<EditableTableProps> = ({
         ) : (
           <div
             ref={parentRef}
-            className="relative w-full overflow-auto max-h-[calc(100vh-280px)] custom-scrollbar"
+            className="relative w-full overflow-auto h-[calc(100vh-220px)] custom-scrollbar"
           >
             <div
               style={{
@@ -332,6 +451,7 @@ export const EditableTable: React.FC<EditableTableProps> = ({
                 onShowStatistics={(colIdx) =>
                   setStatisticsColumnName(columnHeaders[colIdx].name || columnHeaders[colIdx].label)
                 }
+                onColumnResize={handleColumnResize}
                 rowsCount={rows}
                 getCellValue={getCellValue}
               />
@@ -342,10 +462,10 @@ export const EditableTable: React.FC<EditableTableProps> = ({
                   top: 40, // Height of header
                   left: 0,
                   width: '100%',
-                  transform: `translateY(${rowVirtualizer.getVirtualItems()[0]?.start ?? 0}px)`,
+                  transform: `translateY(${rowVirtualizer.getVirtualItems()?.[0]?.start ?? 0}px)`,
                 }}
               >
-                {rowVirtualizer.getVirtualItems().map((virtualRow) => (
+                {(rowVirtualizer.getVirtualItems() || []).map((virtualRow) => (
                   <VirtualizedTableRow
                     key={virtualRow.key}
                     rowIndex={virtualRow.index}
@@ -356,6 +476,10 @@ export const EditableTable: React.FC<EditableTableProps> = ({
                       setRowIndexToDelete(idx)
                       setOpenConfirm(true)
                     }}
+                    onRowResize={handleRowResize}
+                    onRowColorChange={handleRowColorChange}
+                    rowHeight={rowHeights[virtualRow.index] || 40}
+                    rowColor={rowColors[virtualRow.index]}
                     editingCell={editingCell}
                     onStartEdit={(r, c) => setEditingCell({ row: r, col: c })}
                     onEndEdit={() => setEditingCell(null)}
@@ -373,10 +497,11 @@ export const EditableTable: React.FC<EditableTableProps> = ({
                       <Plus className="h-5 w-5 group-hover:scale-110 transition-transform" />
                     </Button>
                   </div>
-                  {columnHeaders.map((_, i) => (
+                  {columnHeaders.map((col, i) => (
                     <div
                       key={i}
-                      className="w-[200px] max-w-[200px] h-10 border-r border-border/10 transition-all shrink-0"
+                      style={{ width: col.width || 200 }}
+                      className="h-10 border-r border-border/10 transition-all shrink-0"
                     />
                   ))}
                 </div>

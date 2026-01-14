@@ -92,6 +92,9 @@ export const API_ENDPOINT = {
   REMOVE_SHEET_ROW: '/api/sheet-row/remove',
   GET_SHEET_ROW: '/api/sheet-row/get-list',
   IMPORT_EXCEL_SHEET_ROW: '/api/sheet-row/import-excel',
+  UPDATE_COLOR_ROW: '/api/sheet-row/update-color',
+  UPDATE_HEIGHT_ROW: '/api/sheet-row/update-height',
+  UPDATE_WIDTH_ROW: '/api/sheet-info/update-width',
   // collection
   CREATE_COLLECTION: '/api/sheet-collection/create',
   GET_COLLECTIONS: '/api/sheet-collection/get-list',

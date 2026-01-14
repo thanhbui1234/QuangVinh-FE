@@ -15,6 +15,7 @@ interface VirtualizedTableCellProps {
   colIndex: number
   value: string
   column: IWorkBoardColumn
+  rowColor?: string
   onValueChange: (rowIndex: number, colIndex: number, value: string) => void
   isEditing: boolean
   onStartEdit: (rowIndex: number, colIndex: number) => void
@@ -58,17 +59,36 @@ export const VirtualizedTableCell: React.FC<VirtualizedTableCellProps> = React.m
     }
 
     const columnColor = column.color || '#FFFFFF'
-    const isDefaultColor = columnColor === '#FFFFFF' || columnColor.toLowerCase() === 'transparent'
+    const isDefaultColor =
+      columnColor.toUpperCase() === '#FFFFFF' ||
+      columnColor.toLowerCase() === 'transparent' ||
+      !column.color
+
     const hasOptions = column?.options && column.options.length > 0
     const columnType = column?.type || 'text'
 
+    // Determine final background color
+    const getBgStyle = () => {
+      const styles: React.CSSProperties = {
+        width: column.width || 200,
+        backgroundColor: 'transparent', // Default to transparent to show row color
+      }
+
+      if (!isDefaultColor) {
+        // If column has a specific color, apply it with alpha
+        styles.backgroundColor = `${columnColor}40`
+      }
+
+      return styles
+    }
+
     return (
       <div
-        style={!isDefaultColor ? { backgroundColor: `${columnColor}40` } : {}}
+        style={getBgStyle()}
         className={cn(
-          'w-[200px] max-w-[200px] h-10 p-0 whitespace-nowrap border-r border-border/10 transition-all group/cell flex items-center overflow-hidden shrink-0',
+          'h-10 p-0 whitespace-nowrap border-r border-border/10 transition-all group/cell flex items-center overflow-hidden shrink-0',
           isEditing
-            ? 'ring-1 ring-primary/40 ring-inset z-50 bg-background shadow-md shadow-primary/5'
+            ? 'ring-1 ring-primary/40 ring-inset z-50 shadow-md shadow-primary/5'
             : 'hover:bg-muted/15'
         )}
       >
@@ -77,8 +97,8 @@ export const VirtualizedTableCell: React.FC<VirtualizedTableCellProps> = React.m
             value={value || undefined}
             onValueChange={(val) => onValueChange(rowIndex, colIndex, val)}
           >
-            <SelectTrigger className="border-0 focus:ring-0 h-10 w-full px-4 rounded-none shadow-none bg-transparent hover:bg-muted/20 transition-colors font-medium text-foreground/80">
-              <SelectValue placeholder="Chọn..." />
+            <SelectTrigger className="border-0 focus:ring-0 h-10 w-full px-4 rounded-none shadow-none bg-transparent hover:bg-muted/20 transition-colors font-medium text-foreground/80 overflow-hidden">
+              <SelectValue placeholder="Chọn..." className="truncate bg-transparent" />
             </SelectTrigger>
             <SelectContent className="rounded-xl border-border/20 shadow-2xl bg-popover/90 backdrop-blur-xl">
               {column.options?.map((option, idx) => (
@@ -89,7 +109,7 @@ export const VirtualizedTableCell: React.FC<VirtualizedTableCellProps> = React.m
             </SelectContent>
           </Select>
         ) : isEditing ? (
-          <div className="relative w-full h-full flex items-center px-4 bg-background z-30 shadow-inner">
+          <div className="relative w-full h-full flex items-center px-4 z-30 shadow-inner bg-transparent">
             <Input
               ref={inputRef}
               type={columnType === 'number' ? 'number' : 'text'}
@@ -102,13 +122,13 @@ export const VirtualizedTableCell: React.FC<VirtualizedTableCellProps> = React.m
           </div>
         ) : (
           <div
-            className="px-4 w-full h-full flex items-center cursor-pointer transition-all font-medium text-foreground/80 relative overflow-hidden min-w-0"
+            className="px-4 w-full h-full flex items-center cursor-pointer transition-all font-medium text-foreground/80 relative overflow-hidden min-w-0 bg-transparent"
             onClick={() => onStartEdit(rowIndex, colIndex)}
           >
             {value ? (
-              <span className="truncate">{value}</span>
+              <span className="truncate w-full bg-transparent">{value}</span>
             ) : (
-              <span className="text-muted-foreground/80 text-[9px] font-bold uppercase tracking-widest opacity-0 group-hover/cell:opacity-100 transition-all">
+              <span className="text-muted-foreground/80 text-[9px] font-bold uppercase tracking-widest opacity-0 group-hover/cell:opacity-100 transition-all bg-transparent">
                 Trống
               </span>
             )}
@@ -121,9 +141,11 @@ export const VirtualizedTableCell: React.FC<VirtualizedTableCellProps> = React.m
     return (
       prevProps.value === nextProps.value &&
       prevProps.isEditing === nextProps.isEditing &&
+      prevProps.rowColor === nextProps.rowColor &&
       prevProps.column.id === nextProps.column.id &&
       prevProps.column.color === nextProps.column.color &&
       prevProps.column.type === nextProps.column.type &&
+      prevProps.column.width === nextProps.column.width &&
       JSON.stringify(prevProps.column.options) === JSON.stringify(nextProps.column.options)
     )
   }

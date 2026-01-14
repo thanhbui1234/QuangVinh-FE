@@ -36,7 +36,7 @@ export const WorkBoardDetail: React.FC = () => {
   const isMobile = useIsMobile()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  const [maxWidth, setMaxWidth] = useState<string>('100%')
+  const [maxWidth, setMaxWidth] = useState<string>('calc(100vw - 320px)')
   // Track pending row creations to prevent duplicates
   const pendingRowCreations = useRef<Set<number>>(new Set())
   // Track in-flight cell updates to prevent redundant calls
@@ -598,8 +598,8 @@ export const WorkBoardDetail: React.FC = () => {
         currentName={workBoard.name}
       />
 
-      <div ref={containerRef} className="w-full relative" style={{ maxWidth }}>
-        <div className="rounded-2cl overflow-hidden border border-border/15 dark:border-border/20 bg-white/40 dark:bg-card/20 backdrop-blur-sm">
+      <div ref={containerRef} className="flex-1 w-full relative" style={{ maxWidth }}>
+        <div className="h-full rounded-2xl overflow-hidden border border-border/15 dark:border-border/20 bg-white/40 dark:bg-card/20 backdrop-blur-sm">
           <EditableTable
             workBoard={workBoard}
             sheetId={sheetId}

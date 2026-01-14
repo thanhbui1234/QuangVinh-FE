@@ -26,6 +26,8 @@ export interface IWorkBoard {
   columnHeaders: IWorkBoardColumn[]
   cells: IWorkBoardCell[]
   rowIdMap?: Record<number, number> // Map rowIndex to rowId from backend
+  rowHeights?: Record<number, number> // Map rowIndex to height from backend
+  rowColors?: Record<number, string> // Map rowIndex to color from backend
   createdAt?: string
   updatedAt?: string
 }
@@ -57,6 +59,7 @@ export interface ISheetColumn {
   color: string
   required: boolean
   options: string[]
+  width?: number
 }
 
 export interface ISheetRow {
@@ -65,6 +68,7 @@ export interface ISheetRow {
   rowData: Record<string, string>
   color: string
   status: number
+  height: number | null
   createdTime: number
   updatedTime: number
 }
@@ -211,4 +215,42 @@ export interface IGetSheetRowListResponse {
   sheetId: number
   rows: ISheetRow[]
   hasMore: boolean
+}
+
+// Row Color Update Types
+export interface IUpdateRowColorRequest {
+  rowId: number
+  color: string
+}
+
+export interface IUpdateRowColorResponse {
+  rowId: number
+  color: string
+  result: boolean
+}
+
+// Row Height Update Types
+export interface IUpdateRowHeightRequest {
+  rowId: number
+  height: number
+}
+
+export interface IUpdateRowHeightResponse {
+  rowId: number
+  height: number
+  result: boolean
+}
+
+// Column Width Update Types
+export interface IUpdateColumnWidthRequest {
+  sheetId: number
+  columnName: string
+  width: number
+}
+
+export interface IUpdateColumnWidthResponse {
+  sheetId: number
+  columnName: string
+  width: number
+  result: boolean
 }

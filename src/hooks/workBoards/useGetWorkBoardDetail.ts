@@ -38,7 +38,7 @@ const mapSheetInfoToWorkBoard = (sheetInfo: ISheetInfo): IWorkBoard => {
     .map((col) => ({
       id: `col-${col.index}`,
       label: col.name,
-      width: 150,
+      width: col.width || 150,
       name: col.name,
       type: col.type,
       index: col.index,
@@ -50,9 +50,20 @@ const mapSheetInfoToWorkBoard = (sheetInfo: ISheetInfo): IWorkBoard => {
   // Map rows to cells (all rows from API)
   const cells: Array<{ rowIndex: number; columnIndex: number; value: string }> = []
   const rowIdMap: Record<number, number> = {}
+  const rowHeights: Record<number, number> = {}
+  const rowColors: Record<number, string> = {}
 
   rows.forEach((row: ISheetRow, rowIndex: number) => {
     rowIdMap[rowIndex] = row.id
+
+    // Extract height and color from row
+    if (row.height != null && row.height > 0) {
+      rowHeights[rowIndex] = row.height
+    }
+    if (row.color && row.color !== '#FFFFFF') {
+      rowColors[rowIndex] = row.color
+    }
+
     const rowData = row.rowData || {}
     columns.forEach((col, colIdx) => {
       const value = rowData[col.name]
@@ -80,6 +91,8 @@ const mapSheetInfoToWorkBoard = (sheetInfo: ISheetInfo): IWorkBoard => {
     columnHeaders,
     cells,
     rowIdMap,
+    rowHeights,
+    rowColors,
     createdAt: sheetInfo.createdTime ? new Date(sheetInfo.createdTime).toISOString() : undefined,
     updatedAt: sheetInfo.updatedTime ? new Date(sheetInfo.updatedTime).toISOString() : undefined,
   }
