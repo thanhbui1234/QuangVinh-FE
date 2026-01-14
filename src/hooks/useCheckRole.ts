@@ -17,7 +17,7 @@ const useCheckRole = () => {
     return isManagerPermission || isDirectorPermission
   }, [isManagerPermission, isDirectorPermission])
 
-  return { isManagerPermission, isDirectorPermission, hasPermission, userId }
+  return { isManagerPermission, isDirectorPermission, hasPermission, userId, user }
 }
 
 export default useCheckRole

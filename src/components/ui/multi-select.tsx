@@ -21,6 +21,7 @@ interface MultiSelectProps {
   onChange: (selected: string[]) => void
   placeholder?: string
   emptyText?: string
+  leftIcon?: React.ReactNode
   className?: string
 }
 
@@ -30,6 +31,7 @@ export function MultiSelect({
   onChange,
   placeholder = 'Chọn...',
   emptyText = 'Không tìm thấy',
+  leftIcon,
   className,
 }: MultiSelectProps) {
   const [open, setOpen] = React.useState(false)
@@ -58,9 +60,18 @@ export function MultiSelect({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className={cn('w-full justify-between min-h-10 h-auto', className)}
+          className={cn(
+            'w-full justify-between min-h-10 h-auto relative',
+            leftIcon && 'pl-11',
+            className
+          )}
           onClick={() => setOpen(!open)}
         >
+          {leftIcon && (
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none opacity-60 group-focus-within/ms:opacity-100 transition-opacity">
+              {leftIcon}
+            </div>
+          )}
           <div className="flex flex-wrap gap-1 flex-1">
             {selected.length === 0 && <span className="text-muted-foreground">{placeholder}</span>}
             {selected.map((value) => {

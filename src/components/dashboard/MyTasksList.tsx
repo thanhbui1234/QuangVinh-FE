@@ -1,16 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
-import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
-import { ClipboardList, Check, X, Briefcase, ShieldCheck } from 'lucide-react'
+import { ClipboardList, Briefcase, ShieldCheck } from 'lucide-react'
 import { useMyTasksInfinite, type TaskRole } from '@/hooks/dashboard/useMyTasks'
 import { useUpdateTaskStatus } from '@/hooks/dashboard/useUpdateTaskStatus'
 import useCheckRole from '@/hooks/useCheckRole'
-import { getTaskPriorityLabel, mapTaskStatus } from '@/utils/getLable'
-import { STATUS_LABEL, STATUS_ICON } from '@/components/Assignments/ProjectDetailTable/columns'
+import { mapTaskStatus } from '@/utils/getLable'
+import { STATUS_LABEL } from '@/components/Assignments/ProjectDetailTable/columns'
 import { TASK_STATUS } from '@/constants/assignments/task'
 import type { MyTask } from '@/types/DashBoard'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -78,236 +75,133 @@ export function MyTasksList({ limit = 5, className = '', enabled = true }: MyTas
   }
 
   return (
-    <Card className={className}>
-      <CardContent className="p-3">
-        <div className="mb-4 flex flex-col gap-4">
-          <div className="flex items-center gap-2 text-sm font-semibold text-primary">
-            <ClipboardList className="h-4 w-4" /> Công việc của tôi
-          </div>
-
+    <Card className={`${className} overflow-hidden transition-all duration-500`}>
+      <CardContent className="p-6">
+        <div className="mb-6 flex flex-col gap-6">
           <Tabs
             value={activeTab}
             onValueChange={(value) => setActiveTab(value as TaskRole)}
             className="w-full"
           >
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="assignee" className="flex items-center gap-1.5 text-xs">
-                <Briefcase className="h-3 w-3" /> Được giao
+            <TabsList className="grid w-full grid-cols-2 bg-slate-100/80 rounded-2xl p-1.5 h-auto">
+              <TabsTrigger
+                value="assignee"
+                className="flex items-center justify-center gap-1.5 text-[11px] font-black uppercase tracking-widest rounded-xl py-2.5 data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all"
+              >
+                <Briefcase className="h-3.5 w-3.5" /> Được giao
               </TabsTrigger>
-              <TabsTrigger value="supervisor" className="flex items-center gap-1.5 text-xs">
-                <ShieldCheck className="h-3 w-3" /> Chịu trách nhiệm
+              <TabsTrigger
+                value="supervisor"
+                className="flex items-center justify-center gap-1.5 text-[11px] font-black uppercase tracking-widest rounded-xl py-2.5 data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all"
+              >
+                <ShieldCheck className="h-3.5 w-3.5" /> Trách nhiệm
               </TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
 
-        <Separator className="my-3 opacity-50" />
-
         {isLoading && tasks.length === 0 ? (
-          <div className="space-y-2">
+          <div className="space-y-4">
             {[...Array(limit)].map((_, i) => (
-              <Skeleton key={i} className="h-16 w-full" />
+              <div key={i} className="h-24 w-full rounded-3xl bg-muted/20 animate-pulse" />
             ))}
           </div>
         ) : tasks.length === 0 ? (
-          <p className="text-xs text-muted-foreground text-center py-8 bg-muted/20 rounded-lg">
-            Không có công việc nào trong danh mục này
-          </p>
+          <div className="flex flex-col items-center justify-center py-12 px-4 text-center space-y-3 opacity-40">
+            <ClipboardList className="w-10 h-10 text-muted-foreground" />
+            <p className="text-xs font-black uppercase tracking-widest">Không có công việc nào</p>
+          </div>
         ) : (
-          <>
-            {/* Mobile list (stacked) */}
-            <div className="space-y-3 sm:hidden">
-              {tasks.map((task) => {
-                const isCreatedStatus = task.status === TASK_STATUS.CREATED
-                const hasPermission = canManageTask(task)
-                const showActions = isCreatedStatus && hasPermission
-                const mappedStatus = mapTaskStatus(task.status)
+          <div className="space-y-4">
+            {tasks.map((task) => {
+              const isCreatedStatus = task.status === TASK_STATUS.CREATED
+              const hasPermission = canManageTask(task)
+              const showActions = isCreatedStatus && hasPermission
+              const mappedStatus = mapTaskStatus(task.status)
 
-                return (
-                  <div
-                    key={task.taskId}
-                    className="rounded-lg border bg-card p-3 shadow-sm active:scale-[0.98] transition-all cursor-pointer"
-                    onClick={(e) => handleTaskClick(task.taskId, e)}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-[10px] font-mono font-bold text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-                        T-{task.taskId}
-                      </span>
-                      <div className="flex items-center gap-1.5">
-                        <Badge
-                          variant="outline"
-                          className={`${getStatusClassName(mappedStatus)} text-[10px] px-1.5 py-0`}
-                        >
-                          {STATUS_LABEL[mappedStatus]}
-                        </Badge>
-                        {task.estimateTime && (
-                          <span className="text-[10px] text-muted-foreground font-medium">
-                            {new Date(task.estimateTime).toLocaleDateString('vi-VN')}
-                          </span>
-                        )}
+              return (
+                <div
+                  key={task.taskId}
+                  className="group relative p-5 rounded-[2.5rem] bg-white/40 dark:bg-card/30 border border-border/5 hover:border-primary/20 hover:bg-white dark:hover:bg-card transition-all duration-300 cursor-pointer overflow-hidden shadow-sm"
+                  onClick={(e) => handleTaskClick(task.taskId, e)}
+                >
+                  <div className="flex gap-4">
+                    <div className="shrink-0">
+                      <div className="w-10 h-10 rounded-2xl bg-primary/5 flex items-center justify-center border border-primary/10">
+                        <ClipboardList className="w-5 h-5 text-primary/60" />
                       </div>
                     </div>
-                    <div className="text-sm font-semibold line-clamp-2 mb-2">
-                      {task.description}
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-                        <div
-                          className="flex items-center gap-1 cursor-pointer group/project"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            if (task.groupId) navigate(`/assignments/${task.groupId}`)
-                          }}
-                        >
-                          <Briefcase className="h-3 w-3 text-primary/70 group-hover/project:text-primary" />
-                          <span className="truncate max-w-[120px] font-medium text-primary/80 group-hover/project:text-primary group-hover/project:underline">
-                            Dự án: {task.groupName || 'N/A'}
-                          </span>
-                        </div>
-                        <span>•</span>
-                        <span className="font-medium text-primary/70">
-                          {getTaskPriorityLabel(task.priority)}
-                        </span>
-                      </div>
-                    </div>
-                    {showActions && (
-                      <div className="mt-3 flex items-center gap-2 pt-2 border-t border-dashed">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="flex-1 h-8 gap-1 text-[11px] font-medium text-green-600 border-green-200 hover:bg-green-50"
-                          onClick={(e) => handleConfirmTask(task.taskId, e)}
-                          disabled={updateStatusMutation.isPending}
-                        >
-                          <Check className="h-3 w-3" />
-                          Xác nhận
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="flex-1 h-8 gap-1 text-[11px] font-medium text-red-600 border-red-200 hover:bg-red-50"
-                          onClick={(e) => handleRejectTask(task.taskId, e)}
-                          disabled={updateStatusMutation.isPending}
-                        >
-                          <X className="h-3 w-3" />
-                          Từ chối
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
 
-            {/* Table for >= sm screens */}
-            <div className="-mx-3 hidden overflow-x-auto px-3 sm:block">
-              <div className="space-y-3">
-                {tasks.map((task) => {
-                  const isCreatedStatus = task.status === TASK_STATUS.CREATED
-                  const hasPermission = canManageTask(task)
-                  const showActions = isCreatedStatus && hasPermission
-                  const mappedStatus = mapTaskStatus(task.status)
-
-                  return (
-                    <div
-                      key={task.taskId}
-                      className="rounded-lg border bg-card p-4 hover:shadow-md transition-shadow cursor-pointer"
-                      onClick={(e) => handleTaskClick(task.taskId, e)}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <span className="text-xs font-mono font-bold text-muted-foreground">
+                    <div className="flex-1 min-w-0 space-y-3">
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-[10px] font-black font-mono text-muted-foreground/40">
                             T-{task.taskId}
                           </span>
-                          <span className="text-sm font-semibold">{task.description}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge
-                            variant="outline"
-                            className={`${getStatusClassName(mappedStatus)} px-2 py-0.5`}
-                          >
-                            <span className="mr-1.5">{STATUS_ICON[mappedStatus]}</span>
-                            {STATUS_LABEL[mappedStatus]}
-                          </Badge>
-                          <Badge variant="secondary" className="font-normal text-[11px]">
-                            {getTaskPriorityLabel(task.priority)}
-                          </Badge>
-                        </div>
-                      </div>
-                      <div className="mt-2 flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <div
-                            className="flex items-center gap-1.5 cursor-pointer group/project"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              if (task.groupId) navigate(`/assignments/${task.groupId}`)
-                            }}
+                            className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border border-transparent ${getStatusClassName(mappedStatus)}`}
                           >
-                            <Briefcase className="h-3.5 w-3.5 text-muted-foreground/70 group-hover/project:text-primary transition-colors" />
-                            <span className="font-medium text-muted-foreground group-hover/project:text-primary group-hover/project:underline transition-colors">
-                              Dự án: {task.groupName || 'N/A'}
-                            </span>
+                            {STATUS_LABEL[mappedStatus]}
                           </div>
-                          {task.estimateTime && (
-                            <>
-                              <span className="text-muted-foreground/30">|</span>
-                              <span>
-                                Hạn: {new Date(task.estimateTime).toLocaleDateString('vi-VN')}
-                              </span>
-                            </>
-                          )}
                         </div>
-                        {showActions && (
-                          <div className="flex items-center gap-2">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-8 px-3 gap-1.5 text-xs font-semibold text-green-600 hover:text-green-700 hover:bg-green-50"
-                              onClick={(e) => handleConfirmTask(task.taskId, e)}
-                              disabled={updateStatusMutation.isPending}
-                            >
-                              <Check className="h-3.5 w-3.5" />
-                              Xác nhận
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-8 px-3 gap-1.5 text-xs font-semibold text-red-600 hover:text-red-700 hover:bg-red-50"
-                              onClick={(e) => handleRejectTask(task.taskId, e)}
-                              disabled={updateStatusMutation.isPending}
-                            >
-                              <X className="h-3.5 w-3.5" />
-                              Từ chối
-                            </Button>
+                        <h4 className="text-sm font-black text-foreground line-clamp-2 tracking-tight">
+                          {task.description}
+                        </h4>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 opacity-70">
+                        <div className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground uppercase leading-none">
+                          <Briefcase className="h-3 w-3" />
+                          <span className="truncate max-w-[120px]">
+                            {task.groupName || 'No Board'}
+                          </span>
+                        </div>
+                        {task.estimateTime && (
+                          <div className="flex items-center gap-1.5 text-[10px] font-bold text-red-500 uppercase leading-none">
+                            <span className="w-1 h-1 rounded-full bg-red-500 mr-0.5" />
+                            {new Date(task.estimateTime).toLocaleDateString('vi-VN')}
                           </div>
                         )}
                       </div>
+
+                      {showActions && (
+                        <div className="flex items-center gap-2 pt-1">
+                          <Button
+                            size="sm"
+                            className="flex-1 h-9 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white border-none text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/10"
+                            onClick={(e) => handleConfirmTask(task.taskId, e)}
+                            disabled={updateStatusMutation.isPending}
+                          >
+                            Xác nhận
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="flex-1 h-9 rounded-2xl border-red-200 text-red-600 hover:bg-red-50 text-[10px] font-black uppercase tracking-widest"
+                            onClick={(e) => handleRejectTask(task.taskId, e)}
+                            disabled={updateStatusMutation.isPending}
+                          >
+                            Từ chối
+                          </Button>
+                        </div>
+                      )}
                     </div>
-                  )
-                })}
-              </div>
-            </div>
+                  </div>
+                </div>
+              )
+            })}
 
             {hasMore && (
-              <div className="mt-6">
-                <Button
-                  variant="outline"
-                  className="w-full h-10 text-xs font-semibold rounded-lg hover:bg-primary/5 hover:text-primary transition-colors"
-                  onClick={handleLoadMore}
-                  disabled={isFetchingMore || !hasMore}
-                >
-                  {isFetchingMore ? (
-                    <div className="flex items-center gap-2">
-                      <div className="h-3 w-3 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                      Đang tải...
-                    </div>
-                  ) : (
-                    'Xem thêm công việc'
-                  )}
-                </Button>
-              </div>
+              <Button
+                variant="ghost"
+                className="w-full h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary hover:bg-primary/5 mt-2 rounded-[2rem] border border-dashed border-border/20"
+                onClick={handleLoadMore}
+                disabled={isFetchingMore || !hasMore}
+              >
+                {isFetchingMore ? 'Đang tải...' : 'Xem thêm công việc'}
+              </Button>
             )}
-          </>
+          </div>
         )}
       </CardContent>
     </Card>

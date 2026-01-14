@@ -3,10 +3,12 @@ import { useNavigate, useParams } from 'react-router'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
 import { SwitchMode } from '@/components/ui/switchMode'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { ProfileInfoGrid } from '@/components/Profile/ProfileInfoGrid'
+import { motion } from 'framer-motion'
 import { useAuthStore } from '@/stores/authStore'
 import { useGetProfile } from '@/hooks/profile/useGetProfile'
 import { useUpdateName } from '@/hooks/profile/useUpdateName'
@@ -16,7 +18,7 @@ import { useUpdateAvatar } from '@/hooks/profile/useUpdateAvatar'
 import { useUploadFile } from '@/hooks/useUploadFile'
 import { ProfileSchema, type ProfileFormData } from '@/schemas/profileSchema'
 import { toast } from 'sonner'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Camera, User as UserIcon, Settings, LogOut, Bell, Palette } from 'lucide-react'
 import {
   getSubscriptionStatus,
   setNotificationEnabled,
@@ -424,123 +426,183 @@ export const Profile = () => {
   const hasPhoneChanged = currentValues.phone !== initialValues.phone
 
   return (
-    <div className="w-full min-h-screen bg-background">
-      <div className="px-4 pt-4">
+    <div className="w-full min-h-screen bg-[#fcfcfd] dark:bg-[#0c0c0e] pb-10">
+      <div className="px-6 py-4">
         <PageBreadcrumb />
       </div>
-      {/* Cover Image */}
-      <div className="h-48 w-full bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600" />
 
-      {/* Profile Content */}
-      <div className="mx-auto -mt-24 flex w-full max-w-3xl flex-col items-center px-4 pb-12">
-        {/* Avatar Section */}
-        <div className="relative mb-6">
-          <PhotoProvider maskOpacity={0.9} speed={() => 300}>
-            <PhotoView src={avatarPreview}>
-              <Avatar className="size-32 ring-4 ring-card shadow-xl cursor-pointer">
-                <AvatarImage src={avatarPreview} alt="Avatar" />
-                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white text-3xl">
-                  {currentValues.name?.charAt(0).toUpperCase() || 'U'}
-                </AvatarFallback>
-              </Avatar>
-            </PhotoView>
-          </PhotoProvider>
-          {isOwnProfile && (
-            <Button
-              size="icon"
-              className="absolute bottom-0 right-0 rounded-full shadow-lg"
-              onClick={handlePickAvatar}
-              disabled={isUploading}
-            >
-              {isUploading ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <span className="text-lg">📷</span>
-              )}
-            </Button>
-          )}
-        </div>
-
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={handleAvatarChange}
-        />
-
-        {/* Name Display */}
-        <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-foreground">
-            {currentValues.name || 'Người dùng'}
-          </h1>
-          <p className="text-xl text-muted-foreground mt-1">
-            {currentValues.position === 'WORKER'
-              ? 'STAFF'
-              : currentValues.position === 'MANAGER'
-                ? 'MANAGER'
-                : 'DIRECTOR'}
-          </p>
-        </div>
-
-        {/* Info Grid - Using FormInlineField like before */}
-        <div className="w-full">
-          <ProfileInfoGrid
-            control={control}
-            isOwnProfile={isOwnProfile}
-            isLoading={isFetching}
-            isSaving={false}
-            onUpdateField={(field) => {
-              switch (field) {
-                case 'name':
-                  handleUpdateName()
-                  break
-                case 'email':
-                  handleUpdateEmail()
-                  break
-                case 'phone':
-                  handleUpdatePhone()
-                  break
-              }
-            }}
-            // Pass dirty state to conditionally show buttons
-            hasNameChanged={hasNameChanged}
-            hasEmailChanged={hasEmailChanged}
-            hasPhoneChanged={hasPhoneChanged}
-          />
-        </div>
-
-        {/* Logout Button */}
-        {isOwnProfile && (
-          <div className="mt-8 w-full max-w-md space-y-3">
-            <div className="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3 shadow-sm">
-              <div>
-                <p className="text-sm font-medium text-foreground">Nhận thông báo</p>
-                <p className="text-xs text-muted-foreground">
-                  Bật để nhận thông báo đẩy từ hệ thống
-                </p>
-              </div>
-              <Switch
-                checked={isNotificationsOn}
-                disabled={isRequestingNotifications}
-                onCheckedChange={handleToggleNotifications}
-              />
-            </div>
-
-            <div className="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3 shadow-sm">
-              <div>
-                <p className="text-sm font-medium text-foreground">Giao diện</p>
-                <p className="text-xs text-muted-foreground">Chuyển đổi giữa chế độ sáng và tối</p>
-              </div>
-              <SwitchMode />
-            </div>
-
-            <Button variant="destructive" onClick={handleLogout} className="w-full">
-              Đăng xuất
-            </Button>
-          </div>
-        )}
+      {/* Hero Header Section - Reduced Height */}
+      <div className="relative h-48 w-full overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 animate-gradient-x" />
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay" />
+        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#fcfcfd] dark:from-[#0c0c0e] to-transparent" />
       </div>
+
+      {/* Main Content Container */}
+      <div className="mx-auto -mt-24 relative z-10 w-full max-w-3xl px-4 lg:px-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
+          className="bg-white/70 dark:bg-card/40 backdrop-blur-2xl border border-white dark:border-white/10 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] overflow-hidden"
+        >
+          {/* Profile Header Card - Centered Layout */}
+          <div className="p-8 pb-6 flex flex-col items-center border-b border-border/5">
+            <div className="relative group">
+              <PhotoProvider maskOpacity={0.9} speed={() => 300}>
+                <PhotoView src={avatarPreview}>
+                  <Avatar className="size-32 ring-8 ring-white/50 dark:ring-white/5 shadow-2xl cursor-pointer hover:scale-[1.02] transition-transform duration-500">
+                    <AvatarImage src={avatarPreview} alt="Avatar" />
+                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-4xl font-black">
+                      {currentValues.name?.charAt(0).toUpperCase() || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                </PhotoView>
+              </PhotoProvider>
+
+              {isOwnProfile && (
+                <Button
+                  size="icon"
+                  className="absolute bottom-1 right-1 size-10 rounded-2xl bg-primary hover:bg-primary/90 text-white shadow-xl shadow-primary/20 transition-all hover:scale-110 active:scale-95 border-4 border-white dark:border-[#1c1c1e]"
+                  onClick={handlePickAvatar}
+                  disabled={isUploading}
+                >
+                  {isUploading ? (
+                    <Loader2 className="size-4.5 animate-spin" />
+                  ) : (
+                    <Camera className="size-4.5" />
+                  )}
+                </Button>
+              )}
+            </div>
+
+            <div className="mt-6 text-center space-y-2">
+              <h1 className="text-2xl font-black tracking-tight text-foreground">
+                {currentValues.name || 'Người dùng'}
+              </h1>
+              <div className="flex items-center justify-center gap-2">
+                <Badge
+                  variant="secondary"
+                  className="bg-primary/10 text-primary border-primary/20 font-bold px-3 py-0.5 rounded-full uppercase tracking-widest text-[9px]"
+                >
+                  {currentValues.position === 'WORKER'
+                    ? 'Staff Member'
+                    : currentValues.position === 'MANAGER'
+                      ? 'System Manager'
+                      : 'Executive Director'}
+                </Badge>
+              </div>
+            </div>
+          </div>
+
+          {/* Settings Grid - Compact items */}
+          <div className="p-6 sm:p-8 space-y-10">
+            {/* Basic Info Section */}
+            <section className="space-y-4">
+              <div className="flex items-center gap-3 px-1">
+                <div className="p-1.5 bg-blue-500/10 rounded-lg">
+                  <UserIcon className="size-3.5 text-blue-500" />
+                </div>
+                <h2 className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground">
+                  Thông tin cơ bản
+                </h2>
+              </div>
+
+              <div className="bg-muted/10 dark:bg-muted/5 rounded-[1.8rem] p-4 sm:p-6 border border-border/5">
+                <ProfileInfoGrid
+                  control={control}
+                  isOwnProfile={isOwnProfile}
+                  isLoading={isFetching}
+                  isSaving={false}
+                  onUpdateField={(field: 'name' | 'email' | 'phone' | 'position') => {
+                    switch (field) {
+                      case 'name':
+                        handleUpdateName()
+                        break
+                      case 'email':
+                        handleUpdateEmail()
+                        break
+                      case 'phone':
+                        handleUpdatePhone()
+                        break
+                    }
+                  }}
+                  hasNameChanged={hasNameChanged}
+                  hasEmailChanged={hasEmailChanged}
+                  hasPhoneChanged={hasPhoneChanged}
+                />
+              </div>
+            </section>
+
+            {/* Account Settings Section */}
+            {isOwnProfile && (
+              <section className="space-y-4">
+                <div className="flex items-center gap-3 px-1">
+                  <div className="p-1.5 bg-indigo-500/10 rounded-lg">
+                    <Settings className="size-3.5 text-indigo-500" />
+                  </div>
+                  <h2 className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground">
+                    Thiết lập hệ thống
+                  </h2>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-card border border-border/10 shadow-sm transition-all group">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2.5 bg-amber-500/10 rounded-xl group-hover:scale-105 transition-transform">
+                        <Bell className="size-4.5 text-amber-500" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-foreground">Thông báo đẩy</p>
+                        <p className="text-[10px] text-muted-foreground font-medium">
+                          Thời gian thực
+                        </p>
+                      </div>
+                    </div>
+                    <Switch
+                      checked={isNotificationsOn}
+                      disabled={isRequestingNotifications}
+                      onCheckedChange={handleToggleNotifications}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-card border border-border/10 shadow-sm transition-all group">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2.5 bg-blue-500/10 rounded-xl group-hover:scale-105 transition-transform">
+                        <Palette className="size-4.5 text-blue-500" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-foreground">Chế độ hiển thị</p>
+                        <p className="text-[10px] text-muted-foreground font-medium">Sáng / Tối</p>
+                      </div>
+                    </div>
+                    <SwitchMode />
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t border-border/5 flex flex-col items-center">
+                  <Button
+                    variant="ghost"
+                    onClick={handleLogout}
+                    className="h-12 w-full max-w-xs rounded-2xl text-rose-500 hover:bg-rose-500/5 font-black uppercase tracking-widest text-[11px] transition-all flex items-center justify-center gap-3 group border border-rose-500/10 shadow-sm"
+                  >
+                    <LogOut className="size-4 group-hover:-translate-x-1 transition-transform" />
+                    Đăng xuất khỏi hệ thống
+                  </Button>
+                </div>
+              </section>
+            )}
+          </div>
+        </motion.div>
+      </div>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleAvatarChange}
+      />
 
       {/* Custom Notification Permission Dialog */}
       <NotificationPermissionDialog
