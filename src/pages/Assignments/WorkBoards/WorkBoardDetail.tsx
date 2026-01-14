@@ -5,17 +5,20 @@ import { useUpdateColumns } from '@/hooks/workBoards/useUpdateColumns'
 import { useCreateSheetRow } from '@/hooks/workBoards/useCreateSheetRow'
 import { useUpdateSheetRowCell } from '@/hooks/workBoards/useUpdateSheetRowCell'
 import { useRemoveSheetRow } from '@/hooks/workBoards/useRemoveSheetRow'
+import { useImportExcelSheetRow } from '@/hooks/workBoards/useImportExcelSheetRow'
 // TODO: Add pagination support later
 // import { useGetSheetRowList } from '@/hooks/workBoards/useGetSheetRowList'
 import { EditableTable } from '@/components/WorkBoards/EditableTable'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, Settings } from 'lucide-react'
+import { ArrowLeft, Settings, Upload } from 'lucide-react'
+import { useAuthStore } from '@/stores/authStore'
 import type { IWorkBoardCell, IWorkBoardColumn } from '@/types/WorkBoard'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { queryClient } from '@/lib/queryClient'
 import { workBoardsKey } from '@/constants/assignments/assignment'
 import { SettingWorkBoards } from '@/components/WorkBoards/SettingWorkBoards'
 import useCheckRole from '@/hooks/useCheckRole'
+import SonnerToaster from '@/components/ui/toaster'
 export const WorkBoardDetail: React.FC = () => {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -28,7 +31,10 @@ export const WorkBoardDetail: React.FC = () => {
   const { createSheetRowMutation } = useCreateSheetRow()
   const { updateSheetRowCellMutation } = useUpdateSheetRowCell()
   const { removeSheetRowMutation } = useRemoveSheetRow()
+  const { importExcelMutation } = useImportExcelSheetRow()
+  const { user } = useAuthStore()
   const isMobile = useIsMobile()
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [maxWidth, setMaxWidth] = useState<string>('100%')
   // Track pending row creations to prevent duplicates
@@ -111,6 +117,7 @@ export const WorkBoardDetail: React.FC = () => {
   }, [isMobile])
 
   const [isManualRefetching, setIsManualRefetching] = useState(false)
+  const [isImportingExcel, setIsImportingExcel] = useState(false)
 
   const handleSave = async (data: {
     rows: number
@@ -406,6 +413,58 @@ export const WorkBoardDetail: React.FC = () => {
     }
   }
 
+  const handleImportExcel = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !sheetId || !user?.id) return
+
+    // Validate file type
+    const validExtensions = [
+      '.xlsx',
+      '.xls',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-excel',
+    ]
+    const isValidType =
+      validExtensions.some((ext) => file.name.toLowerCase().endsWith(ext)) ||
+      validExtensions.includes(file.type)
+
+    if (!isValidType) {
+      SonnerToaster({
+        type: 'error',
+        message: 'File không hợp lệ',
+        description: 'Vui lòng chọn file Excel (.xlsx hoặc .xls)',
+      })
+      e.target.value = ''
+      return
+    }
+
+    try {
+      setIsImportingExcel(true)
+      await importExcelMutation.mutateAsync({
+        sheetId,
+        actionUserId: user.id,
+        file,
+      })
+      // Wait for the refetch to complete after invalidateQueries
+      // The invalidateQueries in the hook will trigger refetch automatically
+      // We wait for the active query to finish refetching
+      await queryClient.refetchQueries({
+        queryKey: workBoardsKey.detail(sheetId),
+        type: 'active',
+      })
+    } catch (error) {
+      console.error('Error importing Excel:', error)
+    } finally {
+      setIsImportingExcel(false)
+      // Reset file input
+      e.target.value = ''
+    }
+  }
+
   // Only show loader if we don't have the workBoard data yet
   if (!workBoard && isLoading) {
     return (
@@ -496,7 +555,39 @@ export const WorkBoardDetail: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2 self-end md:self-center">
-          {/* Action buttons could go here */}
+          {hasPermission && (
+            <>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+                className="hidden"
+                onChange={handleFileChange}
+                disabled={importExcelMutation.isPending || isImportingExcel}
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleImportExcel}
+                disabled={
+                  importExcelMutation.isPending || isImportingExcel || !sheetId || !user?.id
+                }
+                className="h-9 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-all gap-2 px-3"
+              >
+                {importExcelMutation.isPending || isImportingExcel ? (
+                  <>
+                    <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    <span className="text-xs font-medium">Đang import...</span>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="h-4 w-4" />
+                    <span className="text-sm font-medium">Import Excel</span>
+                  </>
+                )}
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
@@ -514,7 +605,7 @@ export const WorkBoardDetail: React.FC = () => {
             sheetId={sheetId}
             onSave={handleSave}
             isInitialLoading={isLoading}
-            isFetching={isFetching || isManualRefetching}
+            isFetching={isFetching || isManualRefetching || isImportingExcel}
             isSaving={
               createSheetRowMutation.isPending ||
               updateSheetRowCellMutation.isPending ||

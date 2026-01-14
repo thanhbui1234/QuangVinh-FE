@@ -606,7 +606,7 @@ export const EditableTable: React.FC<EditableTableProps> = ({
                                   className="w-2.5 h-2.5 rounded-full shrink-0 border border-background shadow-sm"
                                   style={{ backgroundColor: columnColor }}
                                 />
-                                <span className="font-bold text-foreground/80 truncate tracking-tight uppercase text-[11px]">
+                                <span className="font-bold text-foreground/80 truncate tracking-tight text-sm">
                                   {col.label}
                                 </span>
                               </div>
