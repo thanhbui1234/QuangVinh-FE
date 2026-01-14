@@ -24,10 +24,8 @@ export const useUpdateWidthColumn = (options?: UseUpdateWidthColumnOptions) => {
       try {
         // Use UPDATE_WIDTH_ROW endpoint with simplified payload
         const response = (await POST(API_ENDPOINT.UPDATE_WIDTH_ROW, {
-          data: {
-            sheetId: payload.sheetId,
-            width: payload.width,
-          },
+          sheetId: payload.sheetId,
+          width: payload.width,
         })) as IUpdateColumnsResponse
         return response
       } catch (error) {

@@ -38,7 +38,7 @@ const mapSheetInfoToWorkBoard = (sheetInfo: ISheetInfo): IWorkBoard => {
     .map((col) => ({
       id: `col-${col.index}`,
       label: col.name,
-      width: 150,
+      width: col.width || 150,
       name: col.name,
       type: col.type,
       index: col.index,

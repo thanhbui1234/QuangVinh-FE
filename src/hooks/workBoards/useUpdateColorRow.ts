@@ -16,9 +16,10 @@ export const useUpdateColorRow = (options?: UseUpdateColorRowOptions) => {
   const updateColorRowMutation = useMutation({
     mutationFn: async (payload: IUpdateRowColorRequest): Promise<IUpdateRowColorResponse> => {
       try {
-        const response = (await POST(API_ENDPOINT.UPDATE_COLOR_ROW, {
-          data: payload,
-        })) as IUpdateRowColorResponse
+        const response = (await POST(
+          API_ENDPOINT.UPDATE_COLOR_ROW,
+          payload
+        )) as IUpdateRowColorResponse
         return response
       } catch (error) {
         handleCommonError(error)

@@ -16,9 +16,10 @@ export const useUpdateHeightRow = (options?: UseUpdateHeightRowOptions) => {
   const updateHeightRowMutation = useMutation({
     mutationFn: async (payload: IUpdateRowHeightRequest): Promise<IUpdateRowHeightResponse> => {
       try {
-        const response = (await POST(API_ENDPOINT.UPDATE_HEIGHT_ROW, {
-          data: payload,
-        })) as IUpdateRowHeightResponse
+        const response = (await POST(
+          API_ENDPOINT.UPDATE_HEIGHT_ROW,
+          payload
+        )) as IUpdateRowHeightResponse
         return response
       } catch (error) {
         handleCommonError(error)

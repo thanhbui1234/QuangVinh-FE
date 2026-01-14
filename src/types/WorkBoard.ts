@@ -59,6 +59,7 @@ export interface ISheetColumn {
   color: string
   required: boolean
   options: string[]
+  width?: number
 }
 
 export interface ISheetRow {
