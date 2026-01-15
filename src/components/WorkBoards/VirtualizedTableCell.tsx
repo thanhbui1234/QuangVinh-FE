@@ -47,7 +47,7 @@ export const VirtualizedTableCell: React.FC<VirtualizedTableCellProps> = React.m
           inputRef.current.select()
         }
       }
-    }, [isEditing, localValue.length])
+    }, [isEditing])
 
     const handleBlur = () => {
       if (localValue !== value) {
@@ -102,13 +102,21 @@ export const VirtualizedTableCell: React.FC<VirtualizedTableCellProps> = React.m
       >
         {columnType === 'select' && hasOptions ? (
           <Select
-            value={value || undefined}
-            onValueChange={(val) => onValueChange(rowIndex, colIndex, val)}
+            value={value || 'EMPTY_VALUE'}
+            onValueChange={(val) =>
+              onValueChange(rowIndex, colIndex, val === 'EMPTY_VALUE' ? '' : val)
+            }
           >
             <SelectTrigger className="border-0 focus:ring-0 h-full w-full px-4 rounded-none shadow-none bg-transparent hover:bg-muted/20 transition-colors font-medium text-foreground/80 overflow-hidden">
               <SelectValue placeholder="Chọn..." className="truncate bg-transparent" />
             </SelectTrigger>
             <SelectContent className="rounded-xl border-border/20 shadow-2xl bg-popover/90 backdrop-blur-xl">
+              <SelectItem
+                value="EMPTY_VALUE"
+                className="rounded-lg m-1 font-medium text-muted-foreground italic"
+              >
+                Chọn...
+              </SelectItem>
               {column.options?.map((option, idx) => (
                 <SelectItem key={idx} value={option} className="rounded-lg m-1 font-medium">
                   {option}
