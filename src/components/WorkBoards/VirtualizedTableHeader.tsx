@@ -133,10 +133,6 @@ export const VirtualizedTableHeader: React.FC<VirtualizedTableHeaderProps> = Rea
                   }}
                 >
                   <div className="flex items-center gap-2.5 flex-1 overflow-hidden">
-                    <div
-                      className="w-2.5 h-2.5 rounded-full shrink-0 border border-background shadow-sm"
-                      style={{ backgroundColor: columnColor }}
-                    />
                     <span className="font-bold text-foreground/80 truncate tracking-tight text-sm">
                       {col.label}
                     </span>
