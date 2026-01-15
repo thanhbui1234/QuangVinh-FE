@@ -66,12 +66,24 @@ export const EditableTable: React.FC<EditableTableProps> = ({
   const [openConfirm, setOpenConfirm] = useState(false)
   const [rowIndexToDelete, setRowIndexToDelete] = useState(-1)
   const [statisticsColumnName, setStatisticsColumnName] = useState<string | null>(null)
+  const [resizeGuide, setResizeGuide] = useState<{ type: 'col' | 'row'; pos: number } | null>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   const cellChangesRef = useRef<Map<string, string>>(new Map())
 
+  const handleResizeGuide = useCallback((type: 'col' | 'row' | null, clientPos: number) => {
+    if (!type || !containerRef.current) {
+      setResizeGuide(null)
+      return
+    }
+    const rect = containerRef.current.getBoundingClientRect()
+    const relativePos = type === 'col' ? clientPos - rect.left : clientPos - rect.top
+    setResizeGuide({ type, pos: relativePos })
+  }, [])
+
   // Initialize mutations for row/column updates
-  const { updateColorRowMutation } = useUpdateColorRow({ suppressInvalidation: true, sheetId })
-  const { updateHeightRowMutation } = useUpdateHeightRow({ suppressInvalidation: true, sheetId })
-  const { updateWidthColumnMutation } = useUpdateWidthColumn({ suppressInvalidation: true })
+  const { updateColorRowMutation } = useUpdateColorRow({ suppressInvalidation: false, sheetId })
+  const { updateHeightRowMutation } = useUpdateHeightRow({ suppressInvalidation: false, sheetId })
+  const { updateWidthColumnMutation } = useUpdateWidthColumn({ suppressInvalidation: false })
 
   // Store state in ref for reliable access in debounced callbacks
   const stateRef = useRef({
@@ -119,7 +131,7 @@ export const EditableTable: React.FC<EditableTableProps> = ({
       columnName: column.name || column.label,
       width,
     })
-  }, 300)
+  }, 600)
 
   const handleColumnResize = useCallback(
     (colIndex: number, width: number) => {
@@ -142,7 +154,7 @@ export const EditableTable: React.FC<EditableTableProps> = ({
     if (rowId === undefined || rowId === null) return
 
     updateHeightRowMutation.mutate({ rowId, height })
-  }, 300)
+  }, 600)
 
   const handleRowResize = useCallback(
     (rowIndex: number, height: number) => {
@@ -410,7 +422,23 @@ export const EditableTable: React.FC<EditableTableProps> = ({
       </div>
 
       {/* Table Content */}
-      <Card className="overflow-hidden border border-border/20 shadow-sm rounded-xl bg-card/30 backdrop-blur-sm relative">
+      <Card
+        ref={containerRef}
+        className="overflow-hidden border border-border/20 shadow-sm rounded-xl bg-card/30 backdrop-blur-sm relative"
+      >
+        {/* Resize Guidelines - Constrained to Table */}
+        {resizeGuide && (
+          <div
+            className={cn(
+              'absolute bg-gray-400 z-[50] pointer-events-none fade-in zoom-in duration-200',
+              resizeGuide.type === 'col' ? 'w-px top-0 bottom-0' : 'h-px left-0 right-0'
+            )}
+            style={{
+              [resizeGuide.type === 'col' ? 'left' : 'top']: resizeGuide.pos,
+            }}
+          />
+        )}
+
         {isFetching && isInitialLoading ? (
           <div className="flex items-center justify-center h-80">
             <div className="flex flex-col items-center gap-6">
@@ -454,6 +482,7 @@ export const EditableTable: React.FC<EditableTableProps> = ({
                 onColumnResize={handleColumnResize}
                 rowsCount={rows}
                 getCellValue={getCellValue}
+                onResizeGuide={handleResizeGuide}
               />
 
               <div
@@ -483,6 +512,7 @@ export const EditableTable: React.FC<EditableTableProps> = ({
                     editingCell={editingCell}
                     onStartEdit={(r, c) => setEditingCell({ row: r, col: c })}
                     onEndEdit={() => setEditingCell(null)}
+                    onResizeGuide={handleResizeGuide}
                   />
                 ))}
 
@@ -504,6 +534,8 @@ export const EditableTable: React.FC<EditableTableProps> = ({
                       className="h-10 border-r border-border/10 transition-all shrink-0"
                     />
                   ))}
+                  {/* Spacer to fill remaining width */}
+                  <div className="flex-1 border-r border-border/10 min-w-[50px]" />
                 </div>
               </div>
             </div>

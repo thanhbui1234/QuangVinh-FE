@@ -18,7 +18,8 @@ interface VirtualizedTableRowProps {
   editingCell: { row: number; col: number } | null
   onStartEdit: (rowIndex: number, colIndex: number) => void
   onEndEdit: () => void
-  virtualRow?: any // Handle tanstack virtual row if needed
+  virtualRow?: any
+  onResizeGuide: (type: 'col' | 'row' | null, clientPos: number) => void
 }
 
 const PREDEFINED_COLORS = [
@@ -56,6 +57,7 @@ export const VirtualizedTableRow: React.FC<VirtualizedTableRowProps> = React.mem
     editingCell,
     onStartEdit,
     onEndEdit,
+    onResizeGuide,
   }) => {
     const resizingRef = useRef<{ rowIndex: number; startY: number; startHeight: number } | null>(
       null
@@ -70,16 +72,19 @@ export const VirtualizedTableRow: React.FC<VirtualizedTableRowProps> = React.mem
           startY: e.clientY,
           startHeight: rowHeight,
         }
+        onResizeGuide('row', e.clientY)
 
         const onMouseMove = (moveEvent: MouseEvent) => {
           if (!resizingRef.current) return
           const deltaY = moveEvent.clientY - resizingRef.current.startY
           const newHeight = Math.max(32, resizingRef.current.startHeight + deltaY)
           onRowResize(resizingRef.current.rowIndex, newHeight)
+          onResizeGuide('row', moveEvent.clientY)
         }
 
         const onMouseUp = () => {
           resizingRef.current = null
+          onResizeGuide(null, 0)
           document.removeEventListener('mousemove', onMouseMove)
           document.removeEventListener('mouseup', onMouseUp)
           document.body.style.cursor = 'default'
@@ -89,7 +94,7 @@ export const VirtualizedTableRow: React.FC<VirtualizedTableRowProps> = React.mem
         document.addEventListener('mouseup', onMouseUp)
         document.body.style.cursor = 'row-resize'
       },
-      [rowIndex, rowHeight, onRowResize]
+      [rowIndex, rowHeight, onRowResize, onResizeGuide]
     )
 
     return (
@@ -107,9 +112,7 @@ export const VirtualizedTableRow: React.FC<VirtualizedTableRowProps> = React.mem
             backgroundColor: rowColor && rowColor !== 'transparent' ? `${rowColor}30` : undefined,
           }}
         >
-          {!rowColor || rowColor === 'transparent' ? (
-            <div className="absolute inset-0 bg-[#f8f8f8] dark:bg-[#151518] -z-10" />
-          ) : null}
+          <div className="absolute inset-0 bg-[#f8f8f8] dark:bg-[#151518] -z-10" />
           <div
             className="flex flex-col items-center justify-center relative min-h-full"
             style={{ height: rowHeight - 1 }}
@@ -179,6 +182,9 @@ export const VirtualizedTableRow: React.FC<VirtualizedTableRowProps> = React.mem
             onEndEdit={onEndEdit}
           />
         ))}
+
+        {/* Spacer to fill remaining width */}
+        <div className="flex-1 border-r border-border/10 min-w-[50px]" />
       </div>
     )
   }

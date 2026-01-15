@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, useCallback } from 'react'
+import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { BarChart3 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,6 +15,7 @@ interface VirtualizedTableHeaderProps {
   onColumnResize: (colIndex: number, width: number) => void
   rowsCount: number
   getCellValue: (rowIndex: number, colIndex: number) => string
+  onResizeGuide: (type: 'col' | 'row' | null, clientPos: number) => void
 }
 
 export const VirtualizedTableHeader: React.FC<VirtualizedTableHeaderProps> = React.memo(
@@ -28,6 +29,7 @@ export const VirtualizedTableHeader: React.FC<VirtualizedTableHeaderProps> = Rea
     onColumnResize,
     rowsCount,
     getCellValue,
+    onResizeGuide,
   }) => {
     const [headerValue, setHeaderValue] = useState('')
     const inputRef = useRef<HTMLInputElement>(null)
@@ -51,16 +53,19 @@ export const VirtualizedTableHeader: React.FC<VirtualizedTableHeaderProps> = Rea
           startX: e.clientX,
           startWidth: currentWidth,
         }
+        onResizeGuide('col', e.clientX)
 
         const onMouseMove = (moveEvent: MouseEvent) => {
           if (!resizingRef.current) return
           const deltaX = moveEvent.clientX - resizingRef.current.startX
           const newWidth = Math.max(80, resizingRef.current.startWidth + deltaX)
           onColumnResize(resizingRef.current.colIndex, newWidth)
+          onResizeGuide('col', moveEvent.clientX)
         }
 
         const onMouseUp = () => {
           resizingRef.current = null
+          onResizeGuide(null, 0)
           document.removeEventListener('mousemove', onMouseMove)
           document.removeEventListener('mouseup', onMouseUp)
           document.body.style.cursor = 'default'
@@ -70,7 +75,7 @@ export const VirtualizedTableHeader: React.FC<VirtualizedTableHeaderProps> = Rea
         document.addEventListener('mouseup', onMouseUp)
         document.body.style.cursor = 'col-resize'
       },
-      [onColumnResize]
+      [onColumnResize, onResizeGuide]
     )
 
     return (
@@ -175,6 +180,8 @@ export const VirtualizedTableHeader: React.FC<VirtualizedTableHeaderProps> = Rea
             </div>
           )
         })}
+        {/* Spacer to fill remaining width */}
+        <div className="flex-1 border-b border-border/15 bg-[#f8f8f8] dark:bg-[#151518] min-w-[50px]" />
       </div>
     )
   }
