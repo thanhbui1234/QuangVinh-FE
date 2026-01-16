@@ -1,5 +1,5 @@
 import MobileBottomNav from '@/components/ui/mobile-bottom-nav'
-import { PieChart, LineChart, Calendar, Bell, User, Sparkles } from 'lucide-react'
+import { PieChart, LineChart, Calendar, User, Sparkles } from 'lucide-react'
 import useCheckRole from '@/hooks/useCheckRole'
 import { useNavigate } from 'react-router'
 import { MiniLeaveStacked } from '@/components/dashboard/Charts'
@@ -73,7 +73,7 @@ export default function DashboardMobile() {
       <motion.header
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="px-6 pt-10 pb-6 flex items-center justify-between"
+        className="pt-10 pb-6 flex items-center justify-between"
       >
         <div className="flex items-center gap-4">
           <Avatar className="w-12 h-12 border-2 border-white dark:border-white/10 shadow-lg shadow-black/5 ring-1 ring-border/5">
@@ -93,14 +93,10 @@ export default function DashboardMobile() {
             </h2>
           </div>
         </div>
-        <button className="w-11 h-11 rounded-2xl bg-white dark:bg-card border border-border/10 flex items-center justify-center shadow-lg shadow-black/5 relative hover:scale-105 active:scale-95 transition-all">
-          <Bell className="w-5 h-5 text-foreground/80" />
-          <span className="absolute top-3 right-3 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white dark:border-card" />
-        </button>
       </motion.header>
 
       <motion.div
-        className="flex-1 space-y-10 overflow-auto px-6 pb-40 scrollbar-hide"
+        className="flex-1 space-y-10 overflow-auto pb-40 scrollbar-hide"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
@@ -129,7 +125,7 @@ export default function DashboardMobile() {
         {/* Stats Section - Clearer grouping */}
         <motion.section
           variants={itemVariants}
-          className="relative p-6 rounded-[3rem] bg-slate-50 dark:bg-card/20 border border-border/10 overflow-hidden"
+          className="relative p-3 rounded-[2rem] bg-slate-50 dark:bg-card/20 border border-border/10 overflow-hidden"
         >
           <div className="flex items-center gap-2 mb-4 px-1">
             <div className="w-1.5 h-6 bg-primary rounded-full" />

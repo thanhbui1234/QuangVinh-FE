@@ -31,7 +31,7 @@ export default function ChartCard({
       <Card
         className={`group h-full bg-white/40 dark:bg-card/30 backdrop-blur-xl border border-white/20 dark:border-white/5 rounded-[2.5rem] shadow-[0_20px_40px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_40px_rgba(0,0,0,0.4)] overflow-hidden transition-all duration-500 ${className || ''}`}
       >
-        <CardContent className={`h-full flex flex-col p-6 sm:p-8 ${contentClassName || ''}`}>
+        <CardContent className={`h-full flex flex-col p-4 sm:p-8 ${contentClassName || ''}`}>
           {/* Enhanced Header */}
           <div className="flex items-start justify-between mb-8">
             <div className="flex items-center gap-4">
