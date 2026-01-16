@@ -19,6 +19,55 @@ export const useNotificationNavigation = ({
   const handleNavigate = () => {
     onSeen?.(noti.id)
 
+    // Handle URL from backend - convert to mobile route if needed
+    if (noti.url) {
+      let url = noti.url
+
+      // Remove leading slash if present
+      if (url.startsWith('/')) {
+        url = url.substring(1)
+      }
+
+      // Extract query params from URL
+      const extractQueryParams = (urlString: string) => {
+        const queryIndex = urlString.indexOf('?')
+        if (queryIndex === -1) return { path: urlString, params: new URLSearchParams() }
+
+        const path = urlString.substring(0, queryIndex)
+        const queryString = urlString.substring(queryIndex + 1)
+        const params = new URLSearchParams(queryString)
+        return { path, params }
+      }
+
+      const { path, params } = extractQueryParams(url)
+
+      // Convert personnel/leaves to mobile/schedule?tab=leaves on mobile
+      if (isMobile && path === 'personnel/leaves') {
+        const absenceRequestId = params.get('absenceRequestId')
+        if (absenceRequestId) {
+          navigate(`/mobile/schedule?tab=leaves&absenceRequestId=${absenceRequestId}`)
+        } else {
+          navigate(`/mobile/schedule?tab=leaves`)
+        }
+        return
+      }
+
+      // Convert personnel/late-arrival to mobile/schedule?tab=late-arrival on mobile
+      if (isMobile && path === 'personnel/late-arrival') {
+        const absenceRequestId = params.get('absenceRequestId')
+        if (absenceRequestId) {
+          navigate(`/mobile/schedule?tab=late-arrival&absenceRequestId=${absenceRequestId}`)
+        } else {
+          navigate(`/mobile/schedule?tab=late-arrival`)
+        }
+        return
+      }
+
+      // For web or other URLs, navigate as-is
+      navigate(`/${url}`)
+      return
+    }
+
     // Get notiType from prop or from noti object
     const currentNotiType = notiType || noti.notiType || noti.type
     const type = Number(currentNotiType)
