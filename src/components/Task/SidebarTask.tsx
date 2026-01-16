@@ -1,5 +1,5 @@
 import { Card, CardContent } from '@/components/ui/card'
-import { Calendar, Clock4, Repeat, Clock, Power } from 'lucide-react'
+import { Calendar, Clock4, Repeat, Clock, Power, Pencil } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
 import { formatTimestamp, getFormattedEstimate } from '@/utils/CommonUtils'
 import { MdOutlineContentCopy } from 'react-icons/md'
@@ -18,16 +18,92 @@ import {
 import { Switch } from '@/components/ui/switch'
 import { useUpdateRecurrence } from '@/hooks/assignments/task/useUpdateRecurrence'
 import { cn } from '@/lib/utils'
+import { EditRecurrenceModal } from './EditRecurrenceModal'
+import { useState } from 'react'
+
+const DAY_OF_WEEK_LABELS: Record<string, string> = {
+  '1': 'Thứ 2',
+  '2': 'Thứ 3',
+  '3': 'Thứ 4',
+  '4': 'Thứ 5',
+  '5': 'Thứ 6',
+  '6': 'Thứ 7',
+  '7': 'Chủ nhật',
+}
+
+interface RecurrenceSchedule {
+  type: number // 1=HOURLY, 2=DAILY, 3=WEEKLY, 4=MONTHLY
+  interval: number
+  daysOfWeek?: number[]
+  daysOfMonth?: number[]
+  hours?: number[]
+  minutes?: number[]
+}
+
+const formatRecurrenceSchedule = (schedule: RecurrenceSchedule): string => {
+  const typeLabel =
+    RECURRENCE_TYPE_LABELS[String(schedule.type) as keyof typeof RECURRENCE_TYPE_LABELS] ||
+    'Không xác định'
+
+  const parts: string[] = []
+
+  // Interval
+  if (schedule.interval > 1) {
+    const unit =
+      schedule.type === 1
+        ? 'giờ'
+        : schedule.type === 2
+          ? 'ngày'
+          : schedule.type === 3
+            ? 'tuần'
+            : 'tháng'
+    parts.push(`Mỗi ${schedule.interval} ${unit}`)
+  } else {
+    parts.push(typeLabel)
+  }
+
+  // Days of week (for WEEKLY)
+  if (schedule.type === 3 && schedule.daysOfWeek && schedule.daysOfWeek.length > 0) {
+    const dayLabels = schedule.daysOfWeek
+      .map((day) => DAY_OF_WEEK_LABELS[String(day)])
+      .filter(Boolean)
+      .join(', ')
+    if (dayLabels) {
+      parts.push(`vào ${dayLabels}`)
+    }
+  }
+
+  // Days of month (for MONTHLY)
+  if (schedule.type === 4 && schedule.daysOfMonth && schedule.daysOfMonth.length > 0) {
+    const days = schedule.daysOfMonth.join(', ')
+    parts.push(`ngày ${days}`)
+  }
+
+  // Hours
+  if (schedule.hours && schedule.hours.length > 0) {
+    const hours = schedule.hours.map((h) => `${h} giờ`).join(', ')
+    parts.push(`lúc ${hours}`)
+  }
+
+  // Minutes
+  if (schedule.minutes && schedule.minutes.length > 0 && schedule.minutes.some((m) => m !== 0)) {
+    const minutes = schedule.minutes.map((m) => `${m} phút`).join(', ')
+    parts.push(`${minutes}`)
+  }
+
+  return parts.join(' ')
+}
 
 export const SidebarTask = ({ projectAssignmentDetail }: { projectAssignmentDetail: any }) => {
   const path = window.location.href
   const updateRecurrenceMutation = useUpdateRecurrence(projectAssignmentDetail)
+  const [isEditRecurrenceOpen, setIsEditRecurrenceOpen] = useState(false)
 
   const assignees = projectAssignmentDetail?.assignees || []
   const supervisor = projectAssignmentDetail?.supervisor
 
   // Recurrence data
-  const hasRecurrence = projectAssignmentDetail?.recurrenceType
+  const hasRecurrence = projectAssignmentDetail?.recurrenceEnable
   const recurrenceType = hasRecurrence
     ? (String(projectAssignmentDetail?.recurrenceType || '2') as RecurrenceType)
     : null
@@ -35,6 +111,7 @@ export const SidebarTask = ({ projectAssignmentDetail }: { projectAssignmentDeta
   const interval = projectAssignmentDetail?.recurrenceInterval || 1
   const isRecurrenceEnabled = projectAssignmentDetail?.recurrenceEnable || false
   const nextExecutionTime = projectAssignmentDetail?.nextExecutionTime
+  const recurrenceSchedules = projectAssignmentDetail?.recurrenceSchedules || []
 
   const getIntervalText = () => {
     if (!hasRecurrence) return ''
@@ -65,9 +142,19 @@ export const SidebarTask = ({ projectAssignmentDetail }: { projectAssignmentDeta
   }
 
   const handleToggleRecurrence = (checked: boolean) => {
+    // Khi tắt recurrence (checked = false), truyền recurrenceEnable: false lên API
     updateRecurrenceMutation.mutate({
       taskId: projectAssignmentDetail?.taskId || projectAssignmentDetail?.id,
       recurrenceEnable: checked,
+      // Nếu tắt đi, không cần truyền các thông tin recurrence khác
+      ...(checked === false && {
+        recurrenceType: undefined,
+        recurrenceInterval: undefined,
+        daysOfWeek: undefined,
+        daysOfMonth: undefined,
+        hours: undefined,
+        minutes: undefined,
+      }),
     })
   }
 
@@ -156,9 +243,16 @@ export const SidebarTask = ({ projectAssignmentDetail }: { projectAssignmentDeta
             {/* RECURRENCE */}
             {hasRecurrence && (
               <div>
-                <label className="text-xs font-medium text-muted-foreground mb-2 block">
-                  Lặp lại
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-medium text-muted-foreground block">Lặp lại</label>
+                  <button
+                    onClick={() => setIsEditRecurrenceOpen(true)}
+                    className="flex items-center gap-1 text-xs text-purple-600 hover:text-purple-700 font-medium transition-colors"
+                  >
+                    <Pencil className="w-3 h-3" />
+                    Chỉnh sửa
+                  </button>
+                </div>
                 <div
                   className={cn(
                     'p-3 rounded-lg border transition-all',
@@ -201,6 +295,57 @@ export const SidebarTask = ({ projectAssignmentDetail }: { projectAssignmentDeta
                       <div className="flex items-center gap-2 text-xs text-muted-foreground bg-white/60 dark:bg-black/20 rounded-md px-2.5 py-1.5">
                         <Clock className="w-3.5 h-3.5 flex-shrink-0" />
                         <span className="truncate">Tiếp theo: {formatNextExecution()}</span>
+                      </div>
+                    )}
+
+                    {/* Recurrence Schedules Details */}
+                    {recurrenceSchedules.length > 0 && (
+                      <div className="pt-2 border-t border-purple-200/50 dark:border-purple-800/50 space-y-2">
+                        <div className="text-xs font-medium text-muted-foreground mb-1.5">
+                          Lịch lặp lại chi tiết:
+                        </div>
+                        {recurrenceSchedules.map((schedule: RecurrenceSchedule, index: number) => (
+                          <div
+                            key={index}
+                            className="p-2.5 rounded-md bg-white/60 dark:bg-black/20 border border-purple-200/30 dark:border-purple-800/30"
+                          >
+                            <div className="text-xs font-semibold text-foreground mb-1.5">
+                              {formatRecurrenceSchedule(schedule)}
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">
+                              {schedule.hours && schedule.hours.length > 0 && (
+                                <div className="flex items-center gap-1">
+                                  <Clock className="w-3 h-3" />
+                                  <span>Giờ: {schedule.hours.join(', ')}</span>
+                                </div>
+                              )}
+                              {schedule.minutes && schedule.minutes.length > 0 && (
+                                <div className="flex items-center gap-1">
+                                  <Clock className="w-3 h-3" />
+                                  <span>Phút: {schedule.minutes.join(', ')}</span>
+                                </div>
+                              )}
+                              {schedule.daysOfWeek && schedule.daysOfWeek.length > 0 && (
+                                <div className="flex items-center gap-1">
+                                  <Calendar className="w-3 h-3" />
+                                  <span>
+                                    Ngày:{' '}
+                                    {schedule.daysOfWeek
+                                      .map((day) => DAY_OF_WEEK_LABELS[String(day)])
+                                      .filter(Boolean)
+                                      .join(', ')}
+                                  </span>
+                                </div>
+                              )}
+                              {schedule.daysOfMonth && schedule.daysOfMonth.length > 0 && (
+                                <div className="flex items-center gap-1">
+                                  <Calendar className="w-3 h-3" />
+                                  <span>Ngày: {schedule.daysOfMonth.join(', ')}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     )}
 
@@ -267,6 +412,13 @@ export const SidebarTask = ({ projectAssignmentDetail }: { projectAssignmentDeta
           </div>
         </CardContent>
       </Card>
+
+      {/* Edit Recurrence Modal */}
+      <EditRecurrenceModal
+        open={isEditRecurrenceOpen}
+        onOpenChange={setIsEditRecurrenceOpen}
+        task={projectAssignmentDetail}
+      />
     </div>
   )
 }

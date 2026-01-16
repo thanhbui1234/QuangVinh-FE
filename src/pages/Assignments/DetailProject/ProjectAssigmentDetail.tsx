@@ -138,9 +138,10 @@ export const ProjectAssignmentDetail: React.FC = () => {
           isRecurrenceEnabled: true,
           recurrenceType: data.recurrenceType,
           recurrenceInterval: data.recurrenceInterval,
-          hourOfDay: data.hourOfDay,
-          dayOfWeek: data.dayOfWeek,
-          dayOfMonth: data.dayOfMonth,
+          daysOfWeek: data.daysOfWeek,
+          daysOfMonth: data.daysOfMonth,
+          hours: data.hours,
+          minutes: data.minutes,
         },
         {
           onSuccess: () => {

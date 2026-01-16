@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router'
 import { TableBase } from '@/components/base/DataTable'
 import { taskColumns, type TaskRow } from './columns'
@@ -15,6 +15,8 @@ export default function TaskTable(props: {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([])
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
 
   const supervisorIdToName = useMemo(() => {
     if (!supervisors) return undefined
@@ -24,9 +26,26 @@ export default function TaskTable(props: {
     }, {})
   }, [supervisors])
 
+  // Reset to page 1 if current page is out of bounds when tasks change
+  useEffect(() => {
+    const totalPages = Math.ceil(tasks.length / pageSize)
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(1)
+    }
+  }, [tasks.length, pageSize, currentPage])
+
   const handleRefresh = () => {
     setLoading(true)
     setTimeout(() => setLoading(false), 800)
+  }
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+  }
+
+  const handlePageSizeChange = (_: number, size: number) => {
+    setPageSize(size)
+    setCurrentPage(1)
   }
 
   return (
@@ -47,13 +66,15 @@ export default function TaskTable(props: {
         rowKey="id"
         rowSelection={{ type: 'checkbox', selectedRowKeys, onChange: setSelectedRowKeys }}
         pagination={{
-          current: 1,
-          pageSize: 10,
+          current: currentPage,
+          pageSize: pageSize,
           total: tasks.length,
           showSizeChanger: true,
           showTotal: (total, range) =>
             `Hiển thị ${range[0]}-${range[1]} trong tổng số ${total} mục`,
           pageSizeOptions: [5, 10, 20, 50],
+          onChange: handlePageChange,
+          onShowSizeChange: handlePageSizeChange,
         }}
         size="middle"
         bordered

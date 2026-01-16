@@ -17,9 +17,10 @@ export const CreateTaskFormSchema = z
     isRecurrenceEnabled: z.preprocess((val) => val ?? false, z.boolean()),
     recurrenceType: z.string().optional(), // 1=HOURLY, 2=DAILY, 3=WEEKLY, 4=MONTHLY
     recurrenceInterval: z.string().optional(),
-    hourOfDay: z.string().optional(), // 0-23
-    dayOfWeek: z.string().optional(), // 1=Monday, 7=Sunday
-    dayOfMonth: z.string().optional(), // 1-31
+    hours: z.array(z.string()).optional(), // 0-23, multiple hours
+    minutes: z.array(z.string()).optional(), // 0-59, multiple minutes
+    daysOfWeek: z.array(z.string()).optional(), // 1=Monday, 7=Sunday, for WEEKLY
+    daysOfMonth: z.array(z.string()).optional(), // 1-31, for MONTHLY
   })
   .refine(
     (data) => {

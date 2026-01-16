@@ -91,11 +91,23 @@ const LateArrivalTable: React.FC<LateArrivalTableProps> = (props) => {
       ),
     },
     {
-      title: 'Loại nghỉ',
+      title: 'Loại đi muộn',
       dataIndex: 'absenceType',
       key: 'type',
       render: (value: any) => (
         <span>{MappingLeavesType[value as keyof typeof MappingLeavesType] || 'Đi muộn'}</span>
+      ),
+    },
+    {
+      title: 'Lý do đi muộn',
+      dataIndex: 'reason',
+      key: 'reason',
+      filterable: true,
+      filterType: 'text',
+      render: (value: any) => (
+        <span className="max-w-xs truncate block" title={value}>
+          {value || 'N/A'}
+        </span>
       ),
     },
     {
