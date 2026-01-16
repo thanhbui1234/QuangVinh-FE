@@ -39,11 +39,12 @@ export type CreateTaskFormData = {
   checkList?: string
   // Recurrence fields
   isRecurrenceEnabled?: boolean
-  recurrenceType?: number
-  recurrenceInterval?: number
-  hourOfDay?: number
-  dayOfWeek?: number
-  dayOfMonth?: number
+  recurrenceType?: number // type: 1=HOURLY, 2=DAILY, 3=WEEKLY, 4=MONTHLY
+  recurrenceInterval?: number // interval: default 1
+  daysOfWeek?: number[] // for WEEKLY
+  daysOfMonth?: number[] // for MONTHLY
+  hours?: number[] // hours in day (0-23)
+  minutes?: number[] // minutes in hour (0-59), default [0] if empty
 }
 
 export type CreateTaskModalProps = {
@@ -88,9 +89,10 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
         recurrenceInterval: initialData.recurrenceInterval
           ? String(initialData.recurrenceInterval)
           : '',
-        hourOfDay: initialData.hourOfDay !== undefined ? String(initialData.hourOfDay) : '',
-        dayOfWeek: initialData.dayOfWeek ? String(initialData.dayOfWeek) : '',
-        dayOfMonth: initialData.dayOfMonth ? String(initialData.dayOfMonth) : '',
+        hours: initialData.hours?.map(String) || [],
+        minutes: initialData.minutes?.map(String) || [],
+        daysOfWeek: initialData.daysOfWeek?.map(String) || [],
+        daysOfMonth: initialData.daysOfMonth?.map(String) || [],
       }
     }
     return {
@@ -107,9 +109,10 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
       isRecurrenceEnabled: false,
       recurrenceType: '',
       recurrenceInterval: '',
-      hourOfDay: '',
-      dayOfWeek: '',
-      dayOfMonth: '',
+      hours: [],
+      minutes: [],
+      daysOfWeek: [],
+      daysOfMonth: [],
     }
   }, [mode, initialData, formatDate])
 
@@ -183,10 +186,24 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
       ? {
           isRecurrenceEnabled: true,
           recurrenceType: data.recurrenceType ? Number(data.recurrenceType) : undefined,
-          recurrenceInterval: data.recurrenceInterval ? Number(data.recurrenceInterval) : undefined,
-          hourOfDay: data.hourOfDay ? Number(data.hourOfDay) : undefined,
-          dayOfWeek: data.dayOfWeek ? Number(data.dayOfWeek) : undefined,
-          dayOfMonth: data.dayOfMonth ? Number(data.dayOfMonth) : undefined,
+          recurrenceInterval: data.recurrenceInterval ? Number(data.recurrenceInterval) : 1, // default: 1
+          // Transform arrays from string[] to number[]
+          daysOfWeek:
+            data.daysOfWeek && data.daysOfWeek.length > 0
+              ? data.daysOfWeek.map((d) => Number(d)).filter((d) => !isNaN(d))
+              : undefined,
+          daysOfMonth:
+            data.daysOfMonth && data.daysOfMonth.length > 0
+              ? data.daysOfMonth.map((d) => Number(d)).filter((d) => !isNaN(d))
+              : undefined,
+          hours:
+            data.hours && data.hours.length > 0
+              ? data.hours.map((h) => Number(h)).filter((h) => !isNaN(h))
+              : undefined,
+          minutes:
+            data.minutes && data.minutes.length > 0
+              ? data.minutes.map((m) => Number(m)).filter((m) => !isNaN(m))
+              : [0], // default: [0] if empty
         }
       : { isRecurrenceEnabled: false }
 

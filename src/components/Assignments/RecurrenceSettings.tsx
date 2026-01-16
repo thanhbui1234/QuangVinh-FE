@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
+import { MultiSelect } from '@/components/ui/multi-select'
 import { Repeat, Clock, Calendar } from 'lucide-react'
 import type { CreateTaskFormData } from '@/schemas/taskSchema'
 
@@ -38,6 +39,30 @@ export const DAY_OF_WEEK_LABELS = {
   '6': 'Thứ 7',
   '7': 'Chủ nhật',
 }
+
+// Generate options for hours (0-23)
+const HOUR_OPTIONS = Array.from({ length: 24 }, (_, i) => ({
+  label: `${i} giờ`,
+  value: String(i),
+}))
+
+// Generate options for minutes (0-59)
+const MINUTE_OPTIONS = Array.from({ length: 60 }, (_, i) => ({
+  label: `${i} phút`,
+  value: String(i),
+}))
+
+// Generate options for days of month (1-31)
+const DAY_OF_MONTH_OPTIONS = Array.from({ length: 31 }, (_, i) => ({
+  label: `Ngày ${i + 1}`,
+  value: String(i + 1),
+}))
+
+// Options for days of week
+const DAY_OF_WEEK_OPTIONS = Object.entries(DAY_OF_WEEK_LABELS).map(([value, label]) => ({
+  label,
+  value,
+}))
 
 interface RecurrenceSettingsProps {
   control: Control<CreateTaskFormData>
@@ -133,91 +158,123 @@ export const RecurrenceSettings: React.FC<RecurrenceSettingsProps> = ({
             </p>
           </div>
 
-          {/* Hour of Day (for DAILY, WEEKLY, MONTHLY) */}
+          {/* Hours (for DAILY, WEEKLY, MONTHLY) */}
           {recurrenceType && recurrenceType !== RECURRENCE_TYPE.HOURLY && (
             <div className="space-y-2">
               <Label
-                htmlFor="hourOfDay"
+                htmlFor="hours"
                 className="text-sm font-medium text-gray-700 flex items-center gap-1.5"
               >
                 <Clock className="w-4 h-4" />
                 Giờ trong ngày (0-23)
               </Label>
               <Controller
-                name="hourOfDay"
+                name="hours"
                 control={control}
                 render={({ field }) => (
-                  <Input
-                    id="hourOfDay"
-                    type="number"
-                    min="0"
-                    max="23"
-                    placeholder="Ví dụ: 9 (9h sáng)"
-                    {...field}
+                  <MultiSelect
+                    options={HOUR_OPTIONS}
+                    selected={field.value || []}
+                    onChange={field.onChange}
+                    placeholder="Chọn giờ (có thể chọn nhiều)"
+                    emptyText="Không tìm thấy"
                     className="bg-white"
                   />
                 )}
               />
-              <p className="text-xs text-gray-500">Để trống nếu không cần chỉ định giờ cụ thể</p>
+              <p className="text-xs text-gray-500">
+                Chọn một hoặc nhiều giờ trong ngày để task chạy (ví dụ: 9, 14)
+              </p>
             </div>
           )}
 
-          {/* Day of Week (for WEEKLY) */}
+          {/* Minutes (for all types except HOURLY) */}
+          {recurrenceType && recurrenceType !== RECURRENCE_TYPE.HOURLY && (
+            <div className="space-y-2">
+              <Label
+                htmlFor="minutes"
+                className="text-sm font-medium text-gray-700 flex items-center gap-1.5"
+              >
+                <Clock className="w-4 h-4" />
+                Phút trong giờ (0-59)
+              </Label>
+              <Controller
+                name="minutes"
+                control={control}
+                render={({ field }) => (
+                  <MultiSelect
+                    options={MINUTE_OPTIONS}
+                    selected={field.value || []}
+                    onChange={field.onChange}
+                    placeholder="Chọn phút (mặc định: 0 nếu để trống)"
+                    emptyText="Không tìm thấy"
+                    className="bg-white"
+                  />
+                )}
+              />
+              <p className="text-xs text-gray-500">
+                Chọn phút trong giờ (ví dụ: 0, 30). Mặc định [0] nếu để trống
+              </p>
+            </div>
+          )}
+
+          {/* Days of Week (for WEEKLY) */}
           {recurrenceType === RECURRENCE_TYPE.WEEKLY && (
             <div className="space-y-2">
               <Label
-                htmlFor="dayOfWeek"
+                htmlFor="daysOfWeek"
                 className="text-sm font-medium text-gray-700 flex items-center gap-1.5"
               >
                 <Calendar className="w-4 h-4" />
                 Ngày trong tuần
               </Label>
               <Controller
-                name="dayOfWeek"
+                name="daysOfWeek"
                 control={control}
                 render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger id="dayOfWeek" className="w-full bg-white">
-                      <SelectValue placeholder="Chọn ngày trong tuần" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(DAY_OF_WEEK_LABELS).map(([value, label]) => (
-                        <SelectItem key={value} value={value}>
-                          {label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <MultiSelect
+                    options={DAY_OF_WEEK_OPTIONS}
+                    selected={field.value || []}
+                    onChange={field.onChange}
+                    placeholder="Chọn ngày trong tuần (có thể chọn nhiều)"
+                    emptyText="Không tìm thấy"
+                    className="bg-white"
+                  />
                 )}
               />
+              <p className="text-xs text-gray-500">
+                Chọn một hoặc nhiều ngày trong tuần (ví dụ: Thứ 2, Thứ 4, Thứ 6)
+              </p>
             </div>
           )}
 
-          {/* Day of Month (for MONTHLY) */}
+          {/* Days of Month (for MONTHLY) */}
           {recurrenceType === RECURRENCE_TYPE.MONTHLY && (
             <div className="space-y-2">
               <Label
-                htmlFor="dayOfMonth"
+                htmlFor="daysOfMonth"
                 className="text-sm font-medium text-gray-700 flex items-center gap-1.5"
               >
                 <Calendar className="w-4 h-4" />
                 Ngày trong tháng (1-31)
               </Label>
               <Controller
-                name="dayOfMonth"
+                name="daysOfMonth"
                 control={control}
                 render={({ field }) => (
-                  <Input
-                    id="dayOfMonth"
-                    type="number"
-                    min="1"
-                    max="31"
-                    placeholder="Ví dụ: 15 (ngày 15 hàng tháng)"
-                    {...field}
+                  <MultiSelect
+                    options={DAY_OF_MONTH_OPTIONS}
+                    selected={field.value || []}
+                    onChange={field.onChange}
+                    placeholder="Chọn ngày trong tháng (có thể chọn nhiều)"
+                    emptyText="Không tìm thấy"
                     className="bg-white"
                   />
                 )}
               />
+              <p className="text-xs text-gray-500">
+                Chọn một hoặc nhiều ngày trong tháng (ví dụ: 1, 15)
+              </p>
             </div>
           )}
 
