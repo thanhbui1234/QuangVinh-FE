@@ -40,9 +40,30 @@ export const useNotificationNavigation = ({
     ) {
       const absenceRequestId = noti.objectId
       if (absenceRequestId) {
-        // Navigate to leaves page with query param
-        const leavesPath = isMobile ? '/mobile/leaves' : '/personnel/leaves'
-        navigate(`${leavesPath}?absenceRequestId=${absenceRequestId}`)
+        // Navigate to schedule page with leaves tab and query param
+        if (isMobile) {
+          navigate(`/mobile/schedule?tab=leaves&absenceRequestId=${absenceRequestId}`)
+        } else {
+          navigate(`/personnel/leaves?absenceRequestId=${absenceRequestId}`)
+        }
+      }
+      return
+    }
+
+    // Types 11,12,13: Navigate to late arrival page and show modal/sheet
+    if (
+      type === NotiType.CREATE_LATELY_CHECKIN ||
+      type === NotiType.APPROVE_LATELY_CHECKIN ||
+      type === NotiType.REJECT_LATELY_CHECKIN
+    ) {
+      const absenceRequestId = noti.objectId
+      if (absenceRequestId) {
+        // Navigate to schedule page with late-arrival tab and query param
+        if (isMobile) {
+          navigate(`/mobile/schedule?tab=late-arrival&absenceRequestId=${absenceRequestId}`)
+        } else {
+          navigate(`/personnel/late-arrival?absenceRequestId=${absenceRequestId}`)
+        }
       }
       return
     }

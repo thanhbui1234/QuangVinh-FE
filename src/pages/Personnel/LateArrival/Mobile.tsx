@@ -119,7 +119,7 @@ export default function LateArrivalMobile() {
     [user?.email]
   )
 
-  const { absenceRequests, isFetching } = useGetLeavesList({
+  const { absenceRequests, isFetching, statusCounts } = useGetLeavesList({
     statuses: filterStatus,
     // Chỉ lấy danh sách đơn đi muộn từ backend
     absenceTypes: [LeavesType.LATE_ARRIVAL],
@@ -131,25 +131,6 @@ export default function LateArrivalMobile() {
   const lateArrivalRequests = useMemo(() => {
     return absenceRequests?.filter((req) => req.absenceType === LeavesType.LATE_ARRIVAL) || []
   }, [absenceRequests])
-
-  // Calculate status counts for late arrivals only
-  const lateArrivalStatusCounts = useMemo(() => {
-    if (!lateArrivalRequests.length) {
-      return {
-        total: 0,
-        pending: 0,
-        approved: 0,
-        rejected: 0,
-      }
-    }
-
-    return {
-      total: lateArrivalRequests.length,
-      pending: lateArrivalRequests.filter((r) => r.status === StatusLeaves.PENDING).length,
-      approved: lateArrivalRequests.filter((r) => r.status === StatusLeaves.APPROVED).length,
-      rejected: lateArrivalRequests.filter((r) => r.status === StatusLeaves.REJECTED).length,
-    }
-  }, [lateArrivalRequests])
 
   const prevAbsenceRequestsRef = useRef<LeavesListDataResponse[]>([])
   const prevOffsetRef = useRef<number>(offset)
@@ -290,10 +271,7 @@ export default function LateArrivalMobile() {
     <div className="flex flex-col min-h-screen bg-background">
       {/* Statistics Cards */}
       <div className="px-4 mt-3">
-        <StatisticsCardsMobile
-          pending={lateArrivalStatusCounts?.pending}
-          approved={lateArrivalStatusCounts?.approved}
-        />
+        <StatisticsCardsMobile pending={statusCounts?.pending} approved={statusCounts?.approved} />
       </div>
 
       {/* Segmented Control */}

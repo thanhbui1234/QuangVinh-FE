@@ -1,8 +1,9 @@
 import { type RouteObject, Navigate } from 'react-router'
-import { DashboardMobile, PersonnelMobile, LeavesMobile, LateArrivalMobile } from '@/pages'
+import { DashboardMobile, PersonnelMobile } from '@/pages'
 import ProjectAssignment from '@/pages/Assignments/ProjectAssignment/Web'
 import { AddMember } from '@/pages/Personnel/AddMember'
 import { NotificationPage } from '@/pages/Notification'
+import ScheduleMobile from '@/pages/Personnel/Schedule/Mobile'
 
 export const MobileRoutes: RouteObject[] = [
   {
@@ -22,12 +23,16 @@ export const MobileRoutes: RouteObject[] = [
     element: <PersonnelMobile />,
   },
   {
+    path: 'schedule',
+    element: <ScheduleMobile />,
+  },
+  {
     path: 'leaves',
-    element: <LeavesMobile />,
+    element: <Navigate to="/mobile/schedule?tab=leaves" replace />,
   },
   {
     path: 'late-arrival',
-    element: <LateArrivalMobile />,
+    element: <Navigate to="/mobile/schedule?tab=late-arrival" replace />,
   },
   {
     path: 'member',

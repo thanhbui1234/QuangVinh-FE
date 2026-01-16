@@ -16,6 +16,7 @@ export const useGetNotiBell = () => {
     select: (data) => data.notifications,
     refetchOnMount: 'always', // Luôn refetch khi component mount
     staleTime: 0, // Data luôn stale → sẽ refetch khi invalidate
+    refetchInterval: 5000, // Tự động refetch mỗi 5 giây để lấy danh sách mới nhất
   })
   return { notifications: data, isFetching, error, refetch }
 }

@@ -75,14 +75,14 @@ export default function CreateLateArrivalDialog({
     }
   }, [open, mode, initialValues, reset])
 
-  // Calculate minimum time (7:30 AM) for today
+  // Calculate minimum time (8:00 AM) for today
   const minTime = useMemo(() => {
     const now = new Date()
     const currentHour = now.getHours()
     const currentMinute = now.getMinutes()
 
-    // If current time is after 7:30, use current time + 1 minute
-    if (currentHour > 7 || (currentHour === 7 && currentMinute >= 30)) {
+    // If current time is after 8:00, use current time + 1 minute
+    if (currentHour > 8 || (currentHour === 8 && currentMinute >= 0)) {
       const nextMinute = currentMinute + 1
       if (nextMinute >= 60) {
         return `${(currentHour + 1).toString().padStart(2, '0')}:00`
@@ -90,7 +90,7 @@ export default function CreateLateArrivalDialog({
       return `${currentHour.toString().padStart(2, '0')}:${nextMinute.toString().padStart(2, '0')}`
     }
 
-    return '07:30'
+    return '08:00'
   }, [])
 
   const validateTime = (time: string): boolean => {
@@ -204,8 +204,8 @@ export default function CreateLateArrivalDialog({
               <p className="flex items-center gap-1 text-xs text-muted-foreground">
                 <Clock className="size-3 text-muted-foreground" />
                 <span>
-                  <span className="font-semibold">Giờ vào làm: 7:30</span>. Vui lòng chọn thời gian
-                  sau 7:30 của ngày hiện tại.
+                  <span className="font-semibold">Giờ vào làm: 8:00</span>. Vui lòng chọn thời gian
+                  sau 8:00 của ngày hiện tại.
                 </span>
               </p>
             </div>
