@@ -135,31 +135,12 @@ export default function LateArrivalWeb() {
     [filterStatusKey, offset, limit]
   )
 
-  const { absenceRequests, isFetching } = useGetLeavesList(queryParams)
+  const { absenceRequests, isFetching, statusCounts } = useGetLeavesList(queryParams)
 
   // Filter only late arrival requests
   const lateArrivalRequests = useMemo(() => {
     return absenceRequests?.filter((req) => req.absenceType === LeavesType.LATE_ARRIVAL) || []
   }, [absenceRequests])
-
-  // Calculate status counts for late arrivals only
-  const lateArrivalStatusCounts = useMemo(() => {
-    if (!lateArrivalRequests.length) {
-      return {
-        total: 0,
-        pending: 0,
-        approved: 0,
-        rejected: 0,
-      }
-    }
-
-    return {
-      total: lateArrivalRequests.length,
-      pending: lateArrivalRequests.filter((r) => r.status === StatusLeaves.PENDING).length,
-      approved: lateArrivalRequests.filter((r) => r.status === StatusLeaves.APPROVED).length,
-      rejected: lateArrivalRequests.filter((r) => r.status === StatusLeaves.REJECTED).length,
-    }
-  }, [lateArrivalRequests])
 
   const prevFilterStatusKeyRef = useRef<string>(filterStatusKey)
   const prevAbsenceRequestsIdsRef = useRef<string>('')
@@ -290,22 +271,22 @@ export default function LateArrivalWeb() {
     {
       label: 'Tất cả',
       value: [StatusLeaves.APPROVED, StatusLeaves.PENDING, StatusLeaves.REJECTED] as LeavesStatus[],
-      total: lateArrivalStatusCounts?.total,
+      total: statusCounts?.total,
     },
     {
       label: 'Chờ duyệt',
       value: [StatusLeaves.PENDING] as LeavesStatus[],
-      total: lateArrivalStatusCounts?.pending,
+      total: statusCounts?.pending,
     },
     {
       label: 'Đã duyệt',
       value: [StatusLeaves.APPROVED] as LeavesStatus[],
-      total: lateArrivalStatusCounts?.approved,
+      total: statusCounts?.approved,
     },
     {
       label: 'Từ chối',
       value: [StatusLeaves.REJECTED] as LeavesStatus[],
-      total: lateArrivalStatusCounts?.rejected,
+      total: statusCounts?.rejected,
     },
   ]
 
@@ -349,7 +330,7 @@ export default function LateArrivalWeb() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
       >
-        <StatisticsCards requests={lateArrivalStatusCounts} />
+        <StatisticsCards requests={statusCounts as any} />
       </motion.div>
 
       {/* Bảng danh sách đơn đi muộn */}
@@ -366,7 +347,7 @@ export default function LateArrivalWeb() {
           pageSize={pageSize}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
-          total={lateArrivalStatusCounts?.total}
+          total={statusCounts?.total as any}
           hasMore={lateArrivalRequests && lateArrivalRequests.length >= limit}
           loading={isFetching}
           onActionClick={(id, action) => {

@@ -117,40 +117,70 @@ function WheelPicker({
     touchStartTime.current = null
   }
 
-  const handleWheel = () => {
-    // Allow native scroll to work, don't prevent default
-    // The scroll handler will handle snapping after scroll stops
+  const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    if (!scrollRef.current) return
+
+    // Prevent default to have more control over scrolling
+    e.preventDefault()
+
     setIsScrolling(true)
+
+    // Get current scroll position
+    const currentScrollTop = scrollRef.current.scrollTop
+    const currentIndex = Math.round(currentScrollTop / itemHeight)
+
+    // Calculate scroll delta (normalize for different browsers)
+    const delta = e.deltaY > 0 ? 1 : -1
+
+    // Calculate new index with bounds checking
+    let newIndex = currentIndex + delta
+    newIndex = Math.max(0, Math.min(newIndex, items.length - 1))
+
+    // Calculate target scroll position
+    const targetScroll = newIndex * itemHeight
+
+    // Smooth scroll to target position
+    scrollRef.current.scrollTo({
+      top: targetScroll,
+      behavior: 'smooth',
+    })
+
+    // Update selection immediately
+    const selectedItem = items[newIndex]
+    if (selectedItem !== undefined && selectedItem !== selectedValue) {
+      onSelect(selectedItem)
+    }
 
     // Clear existing timeout
     if (scrollTimeoutRef.current) {
       clearTimeout(scrollTimeoutRef.current)
     }
 
-    // Set timeout to snap after wheel stops
+    // Set timeout to snap after wheel stops and ensure final position
     scrollTimeoutRef.current = window.setTimeout(() => {
       if (scrollRef.current) {
-        const currentScrollTop = scrollRef.current.scrollTop
-        const currentIndex = Math.round(currentScrollTop / itemHeight)
-        const targetScroll = currentIndex * itemHeight
+        const finalScrollTop = scrollRef.current.scrollTop
+        const finalIndex = Math.round(finalScrollTop / itemHeight)
+        const finalScroll = finalIndex * itemHeight
 
+        // Snap to exact position
         scrollRef.current.scrollTo({
-          top: targetScroll,
+          top: finalScroll,
           behavior: 'auto',
         })
 
-        const selectedItem = items[currentIndex]
-        if (selectedItem !== undefined && selectedItem !== selectedValue) {
-          onSelect(selectedItem)
+        const finalSelectedItem = items[finalIndex]
+        if (finalSelectedItem !== undefined && finalSelectedItem !== selectedValue) {
+          onSelect(finalSelectedItem)
         }
 
         setIsScrolling(false)
       }
-    }, 150)
+    }, 200)
   }
 
   return (
-    <div className="relative flex-1 overflow-hidden min-w-[85px]">
+    <div className="relative flex-1 min-w-[85px]">
       {/* iOS-style selection indicator - two thin lines */}
       <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[44px] pointer-events-none z-10">
         <div className="absolute top-0 left-0 right-0 h-[0.5px] bg-gray-300 dark:bg-gray-600" />
@@ -172,6 +202,7 @@ function WheelPicker({
           touchAction: 'pan-y',
           overscrollBehavior: 'contain',
           scrollBehavior: 'auto', // iOS uses instant scroll, not smooth
+          pointerEvents: 'auto',
         }}
         onScroll={handleScroll}
         onWheel={handleWheel}
@@ -235,7 +266,7 @@ export function TimePicker({
   const inputUpdateTimeoutRef = useRef<number | undefined>(undefined)
   const isUserTypingRef = useRef(false)
 
-  // Set default value to 7:30 when opening picker if no value exists
+  // Set default value to 8:00 when opening picker if no value exists
   useEffect(() => {
     if (
       open &&
@@ -244,8 +275,8 @@ export function TimePicker({
       selectedMinute === null &&
       !hasSetDefaultRef.current
     ) {
-      const defaultHour = 7
-      const defaultMinute = 30
+      const defaultHour = 8
+      const defaultMinute = 0
       setSelectedHour(defaultHour)
       setSelectedMinute(defaultMinute)
       const defaultTimeStr = `${defaultHour.toString().padStart(2, '0')}:${defaultMinute.toString().padStart(2, '0')}`
@@ -334,7 +365,7 @@ export function TimePicker({
 
   const handleMinuteSelect = (minute: number) => {
     setSelectedMinute(minute)
-    const hour = selectedHour !== null ? selectedHour : 7 // Default to 7 if no hour selected
+    const hour = selectedHour !== null ? selectedHour : 8 // Default to 8 if no hour selected
     updateInputValueDebounced(hour, minute)
     // Don't call onChange here to avoid flickering, only update local state
   }
@@ -386,14 +417,14 @@ export function TimePicker({
   const isTimeValid = (time: string): boolean => {
     if (!time) return false
 
-    // Always check against 7:30 minimum
+    // Always check against 8:00 minimum
     const [timeHour, timeMinute] = time.split(':').map(Number)
 
-    // Check if time is after 7:30
-    if (timeHour < 7) return false
-    if (timeHour === 7 && timeMinute <= 30) return false
+    // Check if time is after 8:00
+    if (timeHour < 8) return false
+    if (timeHour === 8 && timeMinute < 0) return false // This check is redundant but kept for clarity
 
-    // If minTime is provided and is later than 7:30, check against minTime
+    // If minTime is provided and is later than 8:00, check against minTime
     if (minTime) {
       const [minHour, minMinute] = minTime.split(':').map(Number)
       if (timeHour < minHour) return false
@@ -570,7 +601,7 @@ export function TimePicker({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-auto p-0 border shadow-2xl rounded-xl overflow-hidden bg-background max-w-sm"
+        className="w-auto p-0 border shadow-2xl rounded-xl bg-background max-w-sm"
         align="start"
       >
         <AnimatePresence>
@@ -580,6 +611,7 @@ export function TimePicker({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
+              style={{ overflow: 'visible' }}
             >
               <PickerContent />
             </motion.div>

@@ -61,22 +61,7 @@ export function AnimatedFilterPills<T = unknown>({
             )}
 
             {/* Content */}
-            <span className="relative z-10 flex items-center gap-2">
-              {option.label}
-              {option.total !== undefined && (
-                <motion.span
-                  className={cn(
-                    'inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-xs font-bold',
-                    isActive ? 'bg-white/20 text-white' : 'bg-background/80 text-foreground/90'
-                  )}
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: 0.1 }}
-                >
-                  {option.total}
-                </motion.span>
-              )}
-            </span>
+            <span className="relative z-10 flex items-center gap-2">{option.label}</span>
 
             {/* Shimmer effect on active */}
             {isActive && (

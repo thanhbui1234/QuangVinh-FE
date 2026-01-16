@@ -26,16 +26,10 @@ const navItems: NavItem[] = [
     path: '/assignments',
   },
   {
-    id: 'leaves',
+    id: 'schedule',
     label: 'Lịch nghỉ',
-    icon: FileText,
-    path: '/mobile/leaves',
-  },
-  {
-    id: 'late-arrival',
-    label: 'Đi muộn',
     icon: Clock,
-    path: '/mobile/late-arrival',
+    path: '/mobile/schedule',
   },
   {
     id: 'profile',
@@ -70,10 +64,13 @@ const MobileBottomNav = () => {
         )
       case 'profile':
         return currentPath.startsWith('/profile')
-      case 'leaves':
-        return currentPath.startsWith('/mobile/leaves')
-      case 'late-arrival':
-        return currentPath.startsWith('/mobile/late-arrival')
+      case 'schedule':
+        // Highlight schedule tab for both leaves and late-arrival pages
+        return (
+          currentPath.startsWith('/mobile/schedule') ||
+          currentPath.startsWith('/mobile/leaves') ||
+          currentPath.startsWith('/mobile/late-arrival')
+        )
       case 'notifications':
         return currentPath.startsWith('/mobile/notifications')
       default:

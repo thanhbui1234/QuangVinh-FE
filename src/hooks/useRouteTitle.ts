@@ -5,7 +5,9 @@ export type TitleGetter = (pathname: string) => string | undefined
 const defaultMap: Record<string, string> = {
   '/mobile/dashboard': 'Trang chủ',
   '/assignments': 'Công việc',
+  '/mobile/schedule': 'Lịch nghỉ',
   '/mobile/leaves': 'Lịch nghỉ',
+  '/mobile/late-arrival': 'Lịch nghỉ',
   '/mobile/documents': 'Tài liệu',
   '/profile': 'Cá nhân',
   '/mobile/notifications': 'Thông báo',
