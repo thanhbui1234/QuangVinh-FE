@@ -7,7 +7,6 @@ import {
   FileIcon,
   ChevronUp,
   ChevronLeft,
-  Sparkles,
   Menu,
   Search,
 } from 'lucide-react'
