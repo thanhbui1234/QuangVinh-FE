@@ -373,19 +373,6 @@ const WebLayout = ({ children }: Props) => {
 
         <main className="flex-1 bg-[#fcfcfd] dark:bg-[#0c0c0e] relative overflow-auto p-0 scroll-smooth custom-scrollbar">
           {children}
-
-          <motion.div
-            className="fixed bottom-6 right-6 lg:bottom-10 lg:right-10 z-[40]"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Button
-              size="icon"
-              className="w-12 h-12 lg:w-14 lg:h-14 rounded-2xl bg-primary hover:bg-primary/90 shadow-[0_8px_30px_rgb(var(--primary-rgb),0.3)] border border-primary/20 transition-all duration-300"
-            >
-              <Sparkles className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
-            </Button>
-          </motion.div>
         </main>
       </div>
     </div>

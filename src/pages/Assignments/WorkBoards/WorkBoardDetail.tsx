@@ -45,70 +45,48 @@ export const WorkBoardDetail: React.FC = () => {
   useEffect(() => {
     const calculateMaxWidth = () => {
       if (isMobile) {
-        // On mobile, tabbar is at bottom, so full width minus padding
-        setMaxWidth('calc(100vw - 2rem)') // 2rem for padding (p-4 = 1rem each side)
+        // On mobile, tabbar is at bottom, so full width minus padding (p-4 = 16px each side = 32px)
+        setMaxWidth('calc(100vw - 32px)')
       } else {
-        // On web, find sidebar width by looking for the sidebar element
-        // The sidebar has classes like "w-18" (72px) or "w-80" (320px)
-        const sidebar = document.querySelector(
-          'div[class*="w-18"], div[class*="w-80"]'
-        ) as HTMLElement
-        if (sidebar) {
-          const sidebarWidth = sidebar.offsetWidth || sidebar.getBoundingClientRect().width
-          // Account for padding (p-4 = 1rem = 16px each side = 32px total)
-          const padding = 32
+        // Find the main content container and the sidebar
+        const main = document.querySelector('main')
+        const sidebar = document.querySelector('aside')
+
+        if (main) {
+          // Use ResizeObserver for the most reliable measurements
+          // but for the initial/fallback, we can use clientWidth
+          const sidebarWidth = sidebar ? sidebar.getBoundingClientRect().width : 0
+          // p-4 = 16px each side (32px), p-6 = 24px each side (48px)
+          const isMD = window.innerWidth >= 768
+          const padding = isMD ? 48 : 32
           setMaxWidth(`calc(100vw - ${sidebarWidth}px - ${padding}px)`)
         } else {
-          // Fallback: try to find by looking for flex container with sidebar
-          // Or use a reasonable default
-          setTimeout(() => {
-            const sidebar = document.querySelector(
-              'div[class*="w-18"], div[class*="w-80"]'
-            ) as HTMLElement
-            if (sidebar) {
-              const sidebarWidth = sidebar.offsetWidth || sidebar.getBoundingClientRect().width
-              const padding = 32
-              setMaxWidth(`calc(100vw - ${sidebarWidth}px - ${padding}px)`)
-            } else {
-              // Default to expanded sidebar width (320px)
-              setMaxWidth('calc(100vw - 320px - 32px)')
-            }
-          }, 100)
+          // Absolute fallback
+          setMaxWidth('calc(100vw - 320px)')
         }
       }
     }
 
+    // Use ResizeObserver to detect any layout changes (sidebar collapse, window resize, etc.)
+    const mainContainer = document.querySelector('main')
+    const sidebar = document.querySelector('aside')
+    const layoutWrapper = document.querySelector('div.flex.h-screen')
+
+    const observer = new ResizeObserver(() => {
+      // Small delay to allow CSS transitions (like sidebar collapse) to complete
+      // though ResizeObserver usually fires throughout the transition
+      calculateMaxWidth()
+    })
+
+    if (mainContainer) observer.observe(mainContainer)
+    if (sidebar) observer.observe(sidebar)
+    if (layoutWrapper) observer.observe(layoutWrapper)
+
     // Initial calculation
     calculateMaxWidth()
 
-    // Recalculate on resize
+    // Also listen to window resize as a backup
     window.addEventListener('resize', calculateMaxWidth)
-
-    // Recalculate when sidebar class changes (collapse/expand)
-    const observer = new MutationObserver(() => {
-      setTimeout(calculateMaxWidth, 50) // Small delay to ensure DOM is updated
-    })
-
-    // Observe the document body for class changes on sidebar
-    const sidebar = document.querySelector('div[class*="w-18"], div[class*="w-80"]')
-    if (sidebar) {
-      observer.observe(sidebar, {
-        attributes: true,
-        attributeFilter: ['class'],
-        childList: false,
-        subtree: false,
-      })
-    }
-
-    // Also observe the parent container in case sidebar is added dynamically
-    const mainContainer = document.querySelector('div.flex.h-screen')
-    if (mainContainer) {
-      observer.observe(mainContainer, {
-        attributes: false,
-        childList: true,
-        subtree: true,
-      })
-    }
 
     return () => {
       window.removeEventListener('resize', calculateMaxWidth)
