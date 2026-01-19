@@ -22,62 +22,54 @@ export const EditorJSComponent = ({
 }: EditorJSComponentProps) => {
   const editorRef = useRef<EditorJS | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const initialDataRef = useRef(data)
+  const onChangeRef = useRef(onChange)
+
+  useEffect(() => {
+    onChangeRef.current = onChange
+  }, [onChange])
 
   useEffect(() => {
     if (!containerRef.current) return
-    if (editorRef.current) return // Prevent double initialization
+    if (editorRef.current) return
 
-    // Initialize Editor.js
     const editor = new EditorJS({
       holder: containerRef.current,
       placeholder,
       readOnly,
-      autofocus: !readOnly, // Auto-focus khi ở edit mode để hiện toolbar
-      data: data || {
-        blocks: [],
-      },
+      autofocus: !readOnly,
+      data: initialDataRef.current || { blocks: [] },
       tools: {
         header: {
           class: Header,
-          config: {
-            placeholder: 'Nhập tiêu đề',
-            levels: [1, 2, 3, 4],
-            defaultLevel: 1,
-          },
+          config: { placeholder: 'Nhập tiêu đề', levels: [1, 2, 3, 4], defaultLevel: 1 },
         },
         list: {
           class: List,
           inlineToolbar: true,
-          config: {
-            defaultStyle: 'unordered',
-          },
+          config: { defaultStyle: 'unordered' },
         },
         quote: {
           class: Quote,
           inlineToolbar: true,
-          config: {
-            quotePlaceholder: 'Nhập trích dẫn',
-            captionPlaceholder: 'Tác giả',
-          },
+          config: { quotePlaceholder: 'Nhập trích dẫn', captionPlaceholder: 'Tác giả' },
         },
         code: {
           class: Code,
           inlineToolbar: true,
-          config: {
-            placeholder: 'Nhập code',
-          },
+          config: { placeholder: 'Nhập code' },
         },
-        marker: {
-          class: Marker,
-        },
-        inlineCode: {
-          class: InlineCode,
-        },
+        marker: { class: Marker },
+        inlineCode: { class: InlineCode },
       },
       onChange: async () => {
-        if (editorRef.current && onChange && !readOnly) {
-          const content = await editorRef.current.save()
-          onChange(content)
+        if (editorRef.current && onChangeRef.current && !readOnly) {
+          try {
+            const content = await editorRef.current.save()
+            onChangeRef.current(content)
+          } catch (e) {
+            console.error('EditorJS save error:', e)
+          }
         }
       },
     })
@@ -90,7 +82,7 @@ export const EditorJSComponent = ({
         editorRef.current = null
       }
     }
-  }, [data, onChange, placeholder, readOnly])
+  }, [placeholder, readOnly])
 
   return <div ref={containerRef} className="min-h-[120px] prose max-w-none" />
 }
