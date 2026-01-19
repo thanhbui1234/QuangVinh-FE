@@ -30,14 +30,14 @@ import { motion } from 'framer-motion'
 
 export const DetailTask = () => {
   const { id } = useParams()
-  const { projectAssignmentDetail, isFetching } = useGetDetailTask(Number(id))
+  const [isEditingDescription, setIsEditingDescription] = useState(false)
+  const { projectAssignmentDetail, isLoading } = useGetDetailTask(Number(id))
   const groupId = projectAssignmentDetail?.groupId
   const { memberTask } = useGetMemberTask(groupId)
   const { updateTaskMutation, isUpdateTaskLoading } = useUpdateTask()
   const [editOpen, setEditOpen] = useState(false)
   const [infoOpen, setInfoOpen] = useState(false)
   const [showReview, setShowReview] = useState(false)
-  const [isEditingDescription, setIsEditingDescription] = useState(false)
   const [editedDescription, setEditedDescription] = useState<OutputData>(() =>
     convertHTMLToEditorJS(projectAssignmentDetail?.checkList || '')
   )
@@ -50,11 +50,11 @@ export const DetailTask = () => {
   })
 
   useEffect(() => {
-    if (projectAssignmentDetail?.checkList) {
+    if (projectAssignmentDetail?.checkList && !isEditingDescription) {
       const converted = convertHTMLToEditorJS(projectAssignmentDetail.checkList)
       setEditedDescription(converted)
     }
-  }, [projectAssignmentDetail?.checkList])
+  }, [projectAssignmentDetail?.checkList, isEditingDescription])
 
   const handleSaveDescription = () => {
     const descriptionHTML = convertEditorJSToHTML(editedDescription)
@@ -92,7 +92,7 @@ export const DetailTask = () => {
     }
   }, [projectAssignmentDetail])
 
-  if (isFetching)
+  if (isLoading)
     return (
       <motion.div
         className=""
