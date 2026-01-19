@@ -31,8 +31,11 @@ interface GetListCommentsResponse {
   comments: Comment[]
 }
 
-export const useGetListComments = (taskId: number) => {
-  const { data, isFetching, error } = useQuery({
+export const useGetListComments = (
+  taskId: number,
+  options?: { refetchInterval?: number | false }
+) => {
+  const { data, isFetching, isLoading, error } = useQuery({
     queryKey: [listCommentKey.detail(taskId.toString()), { taskId }],
     queryFn: async () => {
       const response = await POST(API_ENDPOINT.GET_LIST_COMMENT, {
@@ -46,12 +49,10 @@ export const useGetListComments = (taskId: number) => {
     select(data) {
       return data?.comments || []
     },
-    refetchInterval: () => {
-      return 5_000
-    },
+    refetchInterval: options?.refetchInterval ?? 5_000,
     refetchIntervalInBackground: true,
     enabled: !!taskId && taskId > 0,
   })
 
-  return { comments: data || [], isFetching, error }
+  return { comments: data || [], isFetching, isLoading, error }
 }
