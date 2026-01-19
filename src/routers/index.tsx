@@ -5,7 +5,7 @@ import PublichRoute from './RoleRoute/PublichRoute'
 import AuthLayout from '@/layouts/AuthLayout'
 import MainLayout from '@/layouts/MainLayout'
 import MobileLayout from '@/layouts/MobileLayout'
-import { Login, Profile, Register } from '@/pages'
+import { Login, Profile } from '@/pages'
 import ResponsiveLayout from '@/layouts/ResponsiveLayout'
 import { WebRoutes } from './DeviceRouter/WebRoute'
 import { MobileRoutes } from './DeviceRouter/MobileRoute'
@@ -72,16 +72,6 @@ const router = createBrowserRouter([
       {
         index: true,
         element: <Login />,
-      },
-    ],
-  },
-  {
-    element: <PublichRoute children={<AuthLayout />} />,
-    path: '/register',
-    children: [
-      {
-        index: true,
-        element: <Register />,
       },
     ],
   },

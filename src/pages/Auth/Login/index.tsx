@@ -5,13 +5,11 @@ import { User, Lock, Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { loginSchema } from '@/schemas/Auth'
-import { useNavigate } from 'react-router'
 import type { LoginFormData } from '@/types/Auth'
 import { useLogin } from '@/hooks/authenication/useLogin'
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false)
-  const navigate = useNavigate()
   const {
     register,
     handleSubmit,
@@ -79,24 +77,12 @@ const Login = () => {
           </Button>
 
           {/* Forgot Password Link */}
-          <div className="text-center">
+          {/* <div className="text-center">
             <button type="button" className="text-blue-600 hover:text-blue-700 text-sm font-medium">
               Quên mật khẩu
             </button>
-          </div>
+          </div> */}
         </form>
-
-        {/* Sign up link */}
-        <div className="mt-6 text-center">
-          <span className="text-gray-600 text-sm">Chưa có tài khoản? </span>
-          <button
-            type="button"
-            onClick={() => navigate('/register')}
-            className="text-blue-600 hover:text-blue-700 text-sm font-medium cursor-pointer"
-          >
-            Đăng ký ngay
-          </button>
-        </div>
       </div>
     </div>
   )

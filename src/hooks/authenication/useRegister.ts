@@ -1,4 +1,4 @@
-import { API_ENDPOINT } from '@/common'
+// import { API_ENDPOINT } from '@/common'
 import SonnerToaster from '@/components/ui/toaster'
 import { publicPOST } from '@/core/api'
 import { handleCommonError } from '@/utils/handleErrors'
@@ -12,7 +12,7 @@ export const useRegister = () => {
   const setAuth = useAuthStore((state) => state.setAuth)
   const registerMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await publicPOST(API_ENDPOINT.REGISTER, data)
+      const response = await publicPOST('any', data)
       return response
     },
     onSuccess: (response: RegisterResponse) => {

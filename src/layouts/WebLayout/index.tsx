@@ -8,7 +8,7 @@ import {
   ChevronUp,
   ChevronLeft,
   Menu,
-  Search,
+  // Search,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useLocation, useNavigate } from 'react-router'
@@ -346,13 +346,13 @@ const WebLayout = ({ children }: Props) => {
           </div>
           <div className="flex items-center gap-2 lg:gap-4">
             <div className="hidden sm:flex items-center mr-2">
-              <Button
+              {/* <Button
                 variant="ghost"
                 size="icon"
                 className="h-9 w-9 text-muted-foreground rounded-full"
               >
                 <Search className="h-4 w-4" />
-              </Button>
+              </Button> */}
             </div>
             <ModeToggle />
             <BellNotification />

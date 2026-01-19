@@ -2,7 +2,7 @@ export const API_ENDPOINT = {
   // authentication
   LOGIN: '/api/auth/login',
   LOGOUT: '/api/auth/logout',
-  REGISTER: 'api/auth/register',
+  // REGISTER: 'api/auth/register',
   REFRESH_TOKEN: 'api/auth/refresh-token',
   // project group task
   CREATE_PROJECT: '/api/task-group/create',
