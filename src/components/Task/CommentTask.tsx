@@ -81,7 +81,6 @@ export const CommentTask = ({ member, taskId }: { member: IMemberTask[]; taskId:
     return user?.id ? Number(user.id) === commentCreatorId : false
   }
 
-  const { comments, isFetching } = useGetListComments(taskId)
   const createCommentMutation = useCreateComment()
   const updateCommentMutation = useUpdateComment({ taskId })
   const uploadFileMutation = useUploadFile()
@@ -115,6 +114,11 @@ export const CommentTask = ({ member, taskId }: { member: IMemberTask[]; taskId:
   })
 
   const commentInput = watch('message')
+  const isUserTyping = !!(commentInput?.trim() || imageUploads.length > 0)
+
+  const { comments, isLoading } = useGetListComments(taskId, {
+    refetchInterval: isUserTyping ? false : 5_000,
+  })
 
   const handleUserClick = (userId: number) => {
     // Navigate to user profile page
@@ -545,7 +549,7 @@ export const CommentTask = ({ member, taskId }: { member: IMemberTask[]; taskId:
 
           {/* Comments List */}
           <div className="pt-2">
-            {isFetching && comments.length === 0 ? (
+            {isLoading && comments.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 space-y-4">
                 <Loader2 className="w-8 h-8 animate-spin text-primary/20" />
                 <p className="text-sm text-muted-foreground font-medium">Đang tải bình luận...</p>
