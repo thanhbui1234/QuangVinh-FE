@@ -94,7 +94,7 @@ export const VirtualizedTableCell: React.FC<VirtualizedTableCellProps> = React.m
       <div
         style={getBgStyle()}
         className={cn(
-          'h-full p-0 border-r border-border/10 transition-all group/cell flex flex-col justify-center overflow-hidden shrink-0',
+          'h-full p-0 border-r border-border/10 transition-all group/cell flex flex-col overflow-hidden shrink-0',
           isEditing
             ? 'ring-1 ring-primary/40 ring-inset z-50 shadow-md shadow-primary/5'
             : 'hover:bg-muted/15'
@@ -107,7 +107,7 @@ export const VirtualizedTableCell: React.FC<VirtualizedTableCellProps> = React.m
               onValueChange(rowIndex, colIndex, val === 'EMPTY_VALUE' ? '' : val)
             }
           >
-            <SelectTrigger className="border-0 focus:ring-0 h-full w-full px-4 rounded-none shadow-none bg-transparent hover:bg-muted/20 transition-colors font-medium text-foreground/80 overflow-hidden">
+            <SelectTrigger className="border-0 focus:ring-0 h-full w-full px-4 rounded-none shadow-none bg-transparent hover:bg-muted/20 transition-colors font-medium text-base text-foreground/80 overflow-hidden">
               <SelectValue placeholder="Chọn..." className="truncate bg-transparent" />
             </SelectTrigger>
             <SelectContent className="rounded-xl border-border/20 shadow-2xl bg-popover/90 backdrop-blur-xl">
