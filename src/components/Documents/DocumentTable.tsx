@@ -10,8 +10,11 @@ import { Button } from '@/components/ui/button'
 import { Download, ExternalLink } from 'lucide-react'
 import { PrivacyBadge, StatusBadge } from '@/components/Documents'
 import type { Document } from '@/types/Document'
-import { formatDistanceToNow } from 'date-fns'
-import { vi } from 'date-fns/locale'
+import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
+import 'dayjs/locale/vi'
+
+dayjs.extend(relativeTime)
 
 interface DocumentTableProps {
   documents: Document[]
@@ -85,10 +88,7 @@ export const DocumentTable = ({ documents, isLoading }: DocumentTableProps) => {
                   <StatusBadge status={doc.status} />
                 </TableCell>
                 <TableCell className="text-sm text-gray-500">
-                  {formatDistanceToNow(new Date(doc.createdTime), {
-                    addSuffix: true,
-                    locale: vi,
-                  })}
+                  {dayjs(doc.createdTime).locale('vi').fromNow()}
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end gap-2">

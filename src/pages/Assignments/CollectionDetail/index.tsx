@@ -17,8 +17,8 @@ import { Badge } from '@/components/ui/badge'
 import { useGetDetailColection } from '@/hooks/colection/useGetDetailColection'
 import { AddSheetModal } from './components/AddSheetModal'
 import { cn } from '@/lib/utils'
-import { format } from 'date-fns'
-import { vi } from 'date-fns/locale'
+import dayjs from 'dayjs'
+import 'dayjs/locale/vi'
 import { useDeleteWorkBoardCollection } from '@/hooks/colection/useDeleteWorkBoardCollection'
 import useCheckRole from '@/hooks/useCheckRole'
 import { DialogConfirm } from '@/components/ui/alertComponent'
@@ -227,7 +227,7 @@ export const CollectionDetail = () => {
                           <Calendar className="w-3 h-3" />
                           <span>
                             {sheet.createdTime
-                              ? format(new Date(sheet.createdTime), 'dd/MM/yyyy', { locale: vi })
+                              ? dayjs(sheet.createdTime).locale('vi').format('DD/MM/YYYY')
                               : 'N/A'}
                           </span>
                         </div>

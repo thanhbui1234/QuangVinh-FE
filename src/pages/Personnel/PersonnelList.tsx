@@ -10,7 +10,7 @@ import { PersonnelDetailDialog } from '@/components/Personnel/PersonnelDetailDia
 import type { PersonnelUser } from '@/types/Personnel'
 import { formatTimestampToDate } from '@/utils/CommonUtils'
 import type { UserRole } from '@/constants'
-import { AiFillEdit } from 'react-icons/ai'
+import { Pencil } from 'lucide-react'
 import { CustomDialog } from '@/components/ui/customDialog'
 import {
   Select,
@@ -136,14 +136,14 @@ const PersonnelList = () => {
         return (
           <div className="flex items-center gap-2">
             <PersonnelActions userId={record.id} onView={handleView} />
-            <AiFillEdit
+            <Pencil
               onClick={(e) => {
                 e.stopPropagation()
                 setEditDialogOpen(true)
                 setSelectedUser(record)
                 setSelectedRole(record.roles?.[0])
               }}
-              className="cursor-pointer text-2xl"
+              className="cursor-pointer w-5 h-5"
             />
           </div>
         )

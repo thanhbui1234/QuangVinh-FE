@@ -21,7 +21,7 @@ import { TableBase } from '@/components/base/DataTable'
 import { Badge } from '@/components/ui/badge.tsx'
 import { Button } from '@/components/ui/button.tsx'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar.tsx'
-import { format, parseISO } from 'date-fns'
+import dayjs from 'dayjs'
 import { type LeavesListDataResponse, MappingLeavesType, StatusLeaves } from '@/types/Leave.ts'
 
 type LateArrivalTableProps = {
@@ -43,11 +43,10 @@ type LateArrivalTableProps = {
 
 const getLateMinutes = (offFrom: string): number => {
   if (!offFrom) return 0
-  const actual = parseISO(offFrom)
-  const scheduled = new Date(actual)
-  scheduled.setHours(7, 30, 0, 0)
+  const actual = dayjs(offFrom)
+  const scheduled = actual.hour(7).minute(30).second(0).millisecond(0)
 
-  const diffMs = actual.getTime() - scheduled.getTime()
+  const diffMs = actual.diff(scheduled)
   const minutes = Math.round(diffMs / 60000)
   return minutes > 0 ? minutes : 0
 }
@@ -117,8 +116,7 @@ const LateArrivalTable: React.FC<LateArrivalTableProps> = (props) => {
       sorter: true,
       render: (value: any) => {
         if (!value) return 'N/A'
-        const date = parseISO(value)
-        return format(date, 'HH:mm dd/MM/yyyy')
+        return dayjs(value).format('HH:mm DD/MM/YYYY')
       },
     },
     {

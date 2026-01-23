@@ -68,22 +68,27 @@ export default defineConfig(({ mode }) => {
                 id.includes('node_modules/scheduler/')
               )
                 return 'react-core'
+              // Tách TanStack (Query, Table, Virtual) - Nhóm này rất nặng
+              if (id.includes('@tanstack')) return 'vendor-tanstack'
+
+              // Tách Form & Validation
+              if (id.includes('react-hook-form') || id.includes('@hookform')) return 'vendor-forms'
+
               if (id.includes('emoji-picker-react')) return 'emoji-vendor'
               if (id.includes('react-mentions')) return 'mentions-vendor'
               if (id.includes('@editorjs')) return 'editor-vendor'
               if (id.includes('recharts')) return 'charts-vendor'
               if (id.includes('framer-motion')) return 'motion-vendor'
-              if (id.includes('lucide-react')) return 'icons-lucide'
-              if (id.includes('react-icons')) return 'icons-react'
-              if (id.includes('@radix-ui')) return 'radix-vendor'
+              if (id.includes('lucide-react')) return 'vendor-ui'
+              if (id.includes('@radix-ui')) return 'vendor-ui'
               if (
                 id.includes('axios') ||
                 id.includes('zod') ||
-                id.includes('date-fns') ||
                 id.includes('dayjs') ||
-                id.includes('socket.io-client')
+                id.includes('socket.io-client') ||
+                id.includes('zustand')
               )
-                return 'utils-vendor'
+                return 'vendor-utils'
               return 'vendor'
             }
           },
