@@ -94,6 +94,18 @@ export const WorkBoardDetail: React.FC = () => {
     }
   }, [isMobile])
 
+  // Strictly disable page-level scroll to prevent double scrollbars and ensure UX
+  useEffect(() => {
+    const main = document.querySelector('main')
+    if (main) {
+      const originalOverflow = main.style.overflow
+      main.style.overflow = 'hidden'
+      return () => {
+        main.style.overflow = originalOverflow
+      }
+    }
+  }, [])
+
   const [isManualRefetching, setIsManualRefetching] = useState(false)
   const [isImportingExcel, setIsImportingExcel] = useState(false)
 
@@ -498,7 +510,7 @@ export const WorkBoardDetail: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] dark:bg-[#0c0c0e] p-4 md:p-6 space-y-4 animate-in fade-in duration-700">
+    <div className="h-full min-h-0 bg-[#f5f5f7] dark:bg-[#0c0c0e] p-4 md:p-6 flex flex-col overflow-hidden animate-in fade-in duration-700">
       {/* Compressed & Softened Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/40 dark:bg-card/30 p-4 rounded-2xl border border-border/10 dark:border-border/20 shadow-sm backdrop-blur-md">
         <div className="flex items-center gap-4">
@@ -576,7 +588,7 @@ export const WorkBoardDetail: React.FC = () => {
         currentName={workBoard.name}
       />
 
-      <div ref={containerRef} className="flex-1 w-full relative" style={{ maxWidth }}>
+      <div ref={containerRef} className="flex-1 min-h-0 w-full relative mt-4" style={{ maxWidth }}>
         <div className="h-full rounded-2xl overflow-hidden border border-border/15 dark:border-border/20 bg-white/40 dark:bg-card/20 backdrop-blur-sm">
           <EditableTable
             workBoard={workBoard}

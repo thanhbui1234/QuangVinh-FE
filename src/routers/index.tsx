@@ -1,35 +1,97 @@
 import { createBrowserRouter, Navigate } from 'react-router'
+import { lazy, Suspense } from 'react'
 import DeviceRouter from './DeviceRouter/DeviceRouter'
 import PrivateRoute from './RoleRoute/PrivateRoute'
 import PublichRoute from './RoleRoute/PublichRoute'
-import AuthLayout from '@/layouts/AuthLayout'
-import MainLayout from '@/layouts/MainLayout'
-import MobileLayout from '@/layouts/MobileLayout'
-import { Login, Profile } from '@/pages'
-import ResponsiveLayout from '@/layouts/ResponsiveLayout'
+import PageLoader from '@/components/common/PageLoader'
+
+const AuthLayout = lazy(() => import('@/layouts/AuthLayout'))
+const MainLayout = lazy(() => import('@/layouts/MainLayout'))
+const MobileLayout = lazy(() => import('@/layouts/MobileLayout'))
+const Login = lazy(() => import('@/pages/Auth/Login'))
+const Profile = lazy(() => import('@/pages/Profile/index').then((m) => ({ default: m.Profile })))
+const ResponsiveLayout = lazy(() => import('@/layouts/ResponsiveLayout'))
+const ProjectAssignmentDetail = lazy(() =>
+  import('@/pages/Assignments/DetailProject/ProjectAssigmentDetail').then((m) => ({
+    default: m.ProjectAssignmentDetail,
+  }))
+)
+const ProjectAssignment = lazy(() => import('@/pages/Assignments/ProjectAssignment/Web'))
+const DetailTask = lazy(() =>
+  import('@/pages/Assignments/DetailTask/DetailTask').then((m) => ({ default: m.DetailTask }))
+)
+const WorkBoardDetail = lazy(() =>
+  import('@/pages/Assignments/WorkBoards/WorkBoardDetail').then((m) => ({
+    default: m.WorkBoardDetail,
+  }))
+)
+const WorkBoardsList = lazy(() =>
+  import('@/pages/Assignments/WorkBoards/WorkBoardsList').then((m) => ({
+    default: m.WorkBoardsList,
+  }))
+)
+const FilterWorkboard = lazy(() =>
+  import('@/pages/Assignments/FilerWorkboard/index').then((m) => ({ default: m.FilterWorkboard }))
+)
+const CollectionDetail = lazy(() =>
+  import('@/pages/Assignments/CollectionDetail/index').then((m) => ({
+    default: m.CollectionDetail,
+  }))
+)
+
 import { WebRoutes } from './DeviceRouter/WebRoute'
 import { MobileRoutes } from './DeviceRouter/MobileRoute'
-import { ProjectAssignmentDetail } from '@/pages/Assignments/DetailProject/ProjectAssigmentDetail'
-import ProjectAssignment from '@/pages/Assignments/ProjectAssignment/Web'
-import { DetailTask } from '@/pages/Assignments/DetailTask/DetailTask'
-import { WorkBoardDetail } from '@/pages/Assignments/WorkBoards/WorkBoardDetail'
-import { WorkBoardsList } from '@/pages/Assignments/WorkBoards/WorkBoardsList'
-import { FilterWorkboard } from '@/pages/Assignments/FilerWorkboard'
-import { CollectionDetail } from '@/pages/Assignments/CollectionDetail'
+
+const SuspenseLayout = ({ children }: { children: React.ReactNode }) => (
+  <Suspense fallback={<PageLoader />}>{children}</Suspense>
+)
+
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <DeviceRouter children={<PrivateRoute children={<MainLayout />} />} />,
+    element: (
+      <DeviceRouter
+        children={
+          <PrivateRoute
+            children={
+              <SuspenseLayout>
+                <MainLayout />
+              </SuspenseLayout>
+            }
+          />
+        }
+      />
+    ),
     children: WebRoutes,
   },
   {
     path: '/mobile',
-    element: <DeviceRouter children={<PrivateRoute children={<MobileLayout />} />} />,
+    element: (
+      <DeviceRouter
+        children={
+          <PrivateRoute
+            children={
+              <SuspenseLayout>
+                <MobileLayout />
+              </SuspenseLayout>
+            }
+          />
+        }
+      />
+    ),
     children: MobileRoutes,
   },
   {
     path: '/assignments',
-    element: <PrivateRoute children={<ResponsiveLayout />} />,
+    element: (
+      <PrivateRoute
+        children={
+          <SuspenseLayout>
+            <ResponsiveLayout />
+          </SuspenseLayout>
+        }
+      />
+    ),
     children: [
       {
         index: true,
@@ -43,7 +105,15 @@ const router = createBrowserRouter([
   },
   {
     path: '/work-boards',
-    element: <PrivateRoute children={<ResponsiveLayout />} />,
+    element: (
+      <PrivateRoute
+        children={
+          <SuspenseLayout>
+            <ResponsiveLayout />
+          </SuspenseLayout>
+        }
+      />
+    ),
     children: [
       {
         index: true,
@@ -57,7 +127,15 @@ const router = createBrowserRouter([
   },
   {
     path: '/tasks/:id',
-    element: <PrivateRoute children={<ResponsiveLayout />} />,
+    element: (
+      <PrivateRoute
+        children={
+          <SuspenseLayout>
+            <ResponsiveLayout />
+          </SuspenseLayout>
+        }
+      />
+    ),
     children: [
       {
         index: true,
@@ -66,7 +144,15 @@ const router = createBrowserRouter([
     ],
   },
   {
-    element: <PublichRoute children={<AuthLayout />} />,
+    element: (
+      <PublichRoute
+        children={
+          <SuspenseLayout>
+            <AuthLayout />
+          </SuspenseLayout>
+        }
+      />
+    ),
     path: '/login',
     children: [
       {
@@ -77,7 +163,15 @@ const router = createBrowserRouter([
   },
   {
     path: '/profile',
-    element: <PrivateRoute children={<ResponsiveLayout />} />,
+    element: (
+      <PrivateRoute
+        children={
+          <SuspenseLayout>
+            <ResponsiveLayout />
+          </SuspenseLayout>
+        }
+      />
+    ),
     children: [
       {
         index: true,
@@ -87,7 +181,15 @@ const router = createBrowserRouter([
   },
   {
     path: '/profile/:id',
-    element: <PrivateRoute children={<ResponsiveLayout />} />,
+    element: (
+      <PrivateRoute
+        children={
+          <SuspenseLayout>
+            <ResponsiveLayout />
+          </SuspenseLayout>
+        }
+      />
+    ),
     children: [
       {
         index: true,
@@ -97,7 +199,15 @@ const router = createBrowserRouter([
   },
   {
     path: '/filter/work-boards',
-    element: <PrivateRoute children={<ResponsiveLayout />} />,
+    element: (
+      <PrivateRoute
+        children={
+          <SuspenseLayout>
+            <ResponsiveLayout />
+          </SuspenseLayout>
+        }
+      />
+    ),
     children: [
       {
         index: true,
@@ -107,7 +217,15 @@ const router = createBrowserRouter([
   },
   {
     path: '/collection/:id',
-    element: <PrivateRoute children={<ResponsiveLayout />} />,
+    element: (
+      <PrivateRoute
+        children={
+          <SuspenseLayout>
+            <ResponsiveLayout />
+          </SuspenseLayout>
+        }
+      />
+    ),
     children: [
       {
         index: true,

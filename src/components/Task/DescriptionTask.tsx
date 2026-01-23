@@ -1,7 +1,11 @@
 import { Button } from '@/components/ui/button'
 import { Check, X } from 'lucide-react'
-import { EditorJSComponent } from '../Editor'
+import { lazy, Suspense } from 'react'
 import { convertHTMLToEditorJS } from '@/utils/editorjs'
+
+const EditorJSComponent = lazy(() =>
+  import('../Editor').then((m) => ({ default: m.EditorJSComponent }))
+)
 
 export const DescriptionTask = ({
   projectAssignmentDetail,
@@ -29,11 +33,13 @@ export const DescriptionTask = ({
       {isEditingDescription ? (
         <div className="space-y-3">
           <div className="border border-border rounded-md p-4 bg-muted/30">
-            <EditorJSComponent
-              data={editedDescription}
-              onChange={setEditedDescription}
-              placeholder="Nhập mô tả công việc..."
-            />
+            <Suspense fallback={<div className="h-[120px] animate-pulse bg-muted rounded-md" />}>
+              <EditorJSComponent
+                data={editedDescription}
+                onChange={setEditedDescription}
+                placeholder="Nhập mô tả công việc..."
+              />
+            </Suspense>
           </div>
           <div className="flex gap-2">
             <Button size="sm" onClick={handleSaveDescription} className="h-8">
@@ -53,12 +59,14 @@ export const DescriptionTask = ({
         >
           {projectAssignmentDetail?.checkList ? (
             <div className="dark:text-gray-100">
-              <EditorJSComponent
-                key={projectAssignmentDetail.checkList} // 🔑 Force remount when checkList changes
-                data={convertHTMLToEditorJS(projectAssignmentDetail.checkList)}
-                readOnly={true}
-                placeholder=""
-              />
+              <Suspense fallback={<div className="h-20 animate-pulse bg-muted rounded-md" />}>
+                <EditorJSComponent
+                  key={projectAssignmentDetail.checkList} // 🔑 Force remount when checkList changes
+                  data={convertHTMLToEditorJS(projectAssignmentDetail.checkList)}
+                  readOnly={true}
+                  placeholder=""
+                />
+              </Suspense>
             </div>
           ) : (
             <span className="italic text-muted-foreground">Chưa có mô tả - Click để thêm</span>

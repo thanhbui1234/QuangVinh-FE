@@ -1,9 +1,16 @@
 import { type RouteObject, Navigate } from 'react-router'
-import { DashboardMobile, PersonnelMobile } from '@/pages'
-import ProjectAssignment from '@/pages/Assignments/ProjectAssignment/Web'
-import { AddMember } from '@/pages/Personnel/AddMember'
-import { NotificationPage } from '@/pages/Notification'
-import ScheduleMobile from '@/pages/Personnel/Schedule/Mobile'
+import { lazy } from 'react'
+
+const DashboardMobile = lazy(() => import('@/pages/Dashboard/Mobile'))
+const PersonnelMobile = lazy(() => import('@/pages/Personnel/Mobile'))
+const ProjectAssignment = lazy(() => import('@/pages/Assignments/ProjectAssignment/Web'))
+const AddMember = lazy(() =>
+  import('@/pages/Personnel/AddMember').then((m) => ({ default: m.AddMember }))
+)
+const NotificationPage = lazy(() =>
+  import('@/pages/Notification/index').then((m) => ({ default: m.NotificationPage }))
+)
+const ScheduleMobile = lazy(() => import('@/pages/Personnel/Schedule/Mobile'))
 
 export const MobileRoutes: RouteObject[] = [
   {
