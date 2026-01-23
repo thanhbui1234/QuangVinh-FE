@@ -68,12 +68,6 @@ export default defineConfig(({ mode }) => {
                 id.includes('node_modules/scheduler/')
               )
                 return 'react-core'
-              // Tách TanStack (Query, Table, Virtual) - Nhóm này rất nặng
-              if (id.includes('@tanstack')) return 'vendor-tanstack'
-
-              // Tách Form & Validation
-              if (id.includes('react-hook-form') || id.includes('@hookform')) return 'vendor-forms'
-
               if (id.includes('emoji-picker-react')) return 'emoji-vendor'
               if (id.includes('react-mentions')) return 'mentions-vendor'
               if (id.includes('@editorjs')) return 'editor-vendor'
