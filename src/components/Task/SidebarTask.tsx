@@ -1,8 +1,7 @@
 import { Card, CardContent } from '@/components/ui/card'
-import { Calendar, Clock4, Repeat, Clock, Power, Pencil } from 'lucide-react'
+import { Calendar, Clock4, Repeat, Clock, Power, Pencil, Copy } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
 import { formatTimestamp, getFormattedEstimate } from '@/utils/CommonUtils'
-import { MdOutlineContentCopy } from 'react-icons/md'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -167,7 +166,7 @@ export const SidebarTask = ({ projectAssignmentDetail }: { projectAssignmentDeta
             <h3 className="text-sm font-semibold text-foreground">Thông tin công việc</h3>
             <DropdownMenu>
               <DropdownMenuTrigger className="cursor-pointer hover:bg-accent hover:text-accent-foreground p-2 rounded-md">
-                <MdOutlineContentCopy className="w-4 h-4" />
+                <Copy className="w-4 h-4" />
               </DropdownMenuTrigger>
               <DropdownMenuContent side="bottom" align="end">
                 <DropdownMenuLabel>Sao chép liên kết</DropdownMenuLabel>

@@ -2,8 +2,13 @@ import { motion, type PanInfo, useMotionValue, useTransform } from 'framer-motio
 import { Clock, CheckCircle2, XCircle, Clock3, Trash2, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { type LeavesListDataResponse, StatusLeaves } from '@/types/Leave.ts'
-import { format, isToday, isYesterday, parseISO } from 'date-fns'
-import { vi } from 'date-fns/locale'
+import dayjs from 'dayjs'
+import isToday from 'dayjs/plugin/isToday'
+import isYesterday from 'dayjs/plugin/isYesterday'
+import 'dayjs/locale/vi'
+
+dayjs.extend(isToday)
+dayjs.extend(isYesterday)
 import { useState, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 
@@ -48,10 +53,10 @@ function getStatusConfig(status: (typeof StatusLeaves)[keyof typeof StatusLeaves
   }
 }
 
-function formatRelativeDate(date: Date): string {
-  if (isToday(date)) return 'Hôm nay'
-  if (isYesterday(date)) return 'Hôm qua'
-  return format(date, 'dd/MM/yyyy', { locale: vi })
+function formatRelativeDate(date: dayjs.Dayjs): string {
+  if (date.isToday()) return 'Hôm nay'
+  if (date.isYesterday()) return 'Hôm qua'
+  return date.locale('vi').format('DD/MM/YYYY')
 }
 
 type SwipeableCardProps = {
@@ -83,8 +88,8 @@ function SwipeableCard({
   const deleteButtonOpacity = useTransform(x, [-100, -50, 0], [1, 0.5, 0])
   const deleteButtonScale = useTransform(x, [-100, -50, 0], [1, 0.8, 0.5])
 
-  const date = parseISO(item.offFrom)
-  const time = format(date, 'HH:mm')
+  const date = dayjs(item.offFrom)
+  const time = date.format('HH:mm')
   const relativeDate = formatRelativeDate(date)
   const statusConfig = getStatusConfig(item.status)
   const StatusIcon = statusConfig.icon

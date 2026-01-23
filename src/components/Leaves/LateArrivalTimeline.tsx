@@ -3,8 +3,13 @@ import { Clock, CheckCircle2, XCircle, Clock3, Edit2, Trash2, Eye } from 'lucide
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { type LeavesListDataResponse, StatusLeaves } from '@/types/Leave.ts'
-import { format, isToday, isYesterday, parseISO } from 'date-fns'
-import { vi } from 'date-fns/locale'
+import dayjs from 'dayjs'
+import isToday from 'dayjs/plugin/isToday'
+import isYesterday from 'dayjs/plugin/isYesterday'
+import 'dayjs/locale/vi'
+
+dayjs.extend(isToday)
+dayjs.extend(isYesterday)
 
 type LateArrivalTimelineProps = {
   data: LeavesListDataResponse[]
@@ -51,18 +56,18 @@ function getStatusConfig(status: (typeof StatusLeaves)[keyof typeof StatusLeaves
   }
 }
 
-function formatDateGroup(date: Date): string {
-  if (isToday(date)) return 'Hôm nay'
-  if (isYesterday(date)) return 'Hôm qua'
-  return format(date, 'EEEE, dd/MM/yyyy', { locale: vi })
+function formatDateGroup(date: dayjs.Dayjs): string {
+  if (date.isToday()) return 'Hôm nay'
+  if (date.isYesterday()) return 'Hôm qua'
+  return date.locale('vi').format('dddd, DD/MM/YYYY')
 }
 
 function groupByDate(data: LeavesListDataResponse[]): Map<string, LeavesListDataResponse[]> {
   const groups = new Map<string, LeavesListDataResponse[]>()
 
   data.forEach((item) => {
-    const date = parseISO(item.offFrom)
-    const dateKey = format(date, 'yyyy-MM-dd')
+    const date = dayjs(item.offFrom)
+    const dateKey = date.format('YYYY-MM-DD')
     const group = groups.get(dateKey) || []
     group.push(item)
     groups.set(dateKey, group)
@@ -117,7 +122,7 @@ export function LateArrivalTimeline({
     <div className="space-y-8">
       <AnimatePresence mode="popLayout">
         {Array.from(groupedData.entries()).map(([dateKey, items], groupIndex) => {
-          const date = parseISO(items[0].offFrom)
+          const date = dayjs(items[0].offFrom)
           const dateLabel = formatDateGroup(date)
 
           return (
@@ -145,7 +150,8 @@ export function LateArrivalTimeline({
               {/* Cards */}
               <div className="space-y-3">
                 {items.map((item, index) => {
-                  const time = format(parseISO(item.offFrom), 'HH:mm')
+                  const date = dayjs(item.offFrom)
+                  const time = date.format('HH:mm')
                   const statusConfig = getStatusConfig(item.status)
                   const StatusIcon = statusConfig.icon
                   const canEdit = canEditOrDelete?.(item)
@@ -181,7 +187,7 @@ export function LateArrivalTimeline({
                                 <span className="text-lg font-bold">{time}</span>
                                 <span className="text-muted-foreground">•</span>
                                 <span className="text-sm text-muted-foreground">
-                                  {format(date, 'dd/MM/yyyy')}
+                                  {date.format('DD/MM/YYYY')}
                                 </span>
                               </div>
                               <div
