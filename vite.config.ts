@@ -60,7 +60,14 @@ export default defineConfig(({ mode }) => {
         output: {
           manualChunks(id) {
             if (id.includes('node_modules')) {
-              if (id.includes('react-dom') || id.includes('react-router')) return 'react-core'
+              if (
+                id.includes('node_modules/react/') ||
+                id.includes('node_modules/react-dom/') ||
+                id.includes('node_modules/react-router/') ||
+                id.includes('node_modules/react-router-dom/') ||
+                id.includes('node_modules/scheduler/')
+              )
+                return 'react-core'
               if (id.includes('emoji-picker-react')) return 'emoji-vendor'
               if (id.includes('react-mentions')) return 'mentions-vendor'
               if (id.includes('@editorjs')) return 'editor-vendor'
