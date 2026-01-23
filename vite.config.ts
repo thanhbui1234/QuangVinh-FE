@@ -3,6 +3,8 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'node:path'
+import { visualizer } from 'rollup-plugin-visualizer'
+import compression from 'vite-plugin-compression'
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
@@ -31,6 +33,20 @@ export default defineConfig(({ mode }) => {
           start_url: '/',
         },
       }),
+      compression({
+        algorithm: 'gzip',
+        ext: '.gz',
+      }),
+      compression({
+        algorithm: 'brotliCompress',
+        ext: '.br',
+      }),
+      visualizer({
+        open: false,
+        filename: 'bundle-report.html',
+        gzipSize: true,
+        brotliSize: true,
+      }),
     ],
     resolve: {
       alias: {
@@ -43,11 +59,26 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         output: {
           manualChunks(id) {
-            if (!id.includes('node_modules')) return
-
-            if (id.includes('react')) return 'react'
-            if (id.includes('@mui')) return 'mui'
-            if (id.includes('axios') || id.includes('dayjs')) return 'vendor'
+            if (id.includes('node_modules')) {
+              if (id.includes('react-dom') || id.includes('react-router')) return 'react-core'
+              if (id.includes('emoji-picker-react')) return 'emoji-vendor'
+              if (id.includes('react-mentions')) return 'mentions-vendor'
+              if (id.includes('@editorjs')) return 'editor-vendor'
+              if (id.includes('recharts')) return 'charts-vendor'
+              if (id.includes('framer-motion')) return 'motion-vendor'
+              if (id.includes('lucide-react')) return 'icons-lucide'
+              if (id.includes('react-icons')) return 'icons-react'
+              if (id.includes('@radix-ui')) return 'radix-vendor'
+              if (
+                id.includes('axios') ||
+                id.includes('zod') ||
+                id.includes('date-fns') ||
+                id.includes('dayjs') ||
+                id.includes('socket.io-client')
+              )
+                return 'utils-vendor'
+              return 'vendor'
+            }
           },
         },
       },

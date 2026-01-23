@@ -109,7 +109,7 @@ export const EditableTable: React.FC<EditableTableProps> = ({
     count: rows,
     getScrollElement: () => parentRef.current,
     estimateSize: (index) => rowHeights[index] || 40,
-    overscan: 20,
+    overscan: 10,
   })
 
   // Helpers
@@ -371,7 +371,7 @@ export const EditableTable: React.FC<EditableTableProps> = ({
   }, [workBoard])
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3 h-full">
       {/* Toolbar */}
       <div className="flex items-center justify-between flex-wrap gap-2 px-3 py-1.5 bg-muted/10 rounded-xl border border-border/20">
         <div className="flex items-center gap-1.5">
@@ -424,7 +424,7 @@ export const EditableTable: React.FC<EditableTableProps> = ({
       {/* Table Content */}
       <Card
         ref={containerRef}
-        className="overflow-hidden border border-border/20 shadow-sm rounded-xl bg-card/30 backdrop-blur-sm relative"
+        className="flex-1 min-h-0 overflow-hidden border border-border/20 shadow-sm rounded-xl bg-card/30 backdrop-blur-sm relative"
       >
         {/* Resize Guidelines - Constrained to Table */}
         {resizeGuide && (
@@ -440,7 +440,7 @@ export const EditableTable: React.FC<EditableTableProps> = ({
         )}
 
         {isFetching && isInitialLoading ? (
-          <div className="flex items-center justify-center h-80">
+          <div className="flex items-center justify-center h-full">
             <div className="flex flex-col items-center gap-6">
               <div className="w-12 h-12 border-3 border-muted border-t-primary rounded-full animate-spin" />
               <p className="text-muted-foreground font-semibold uppercase tracking-widest text-[10px]">
@@ -459,10 +459,7 @@ export const EditableTable: React.FC<EditableTableProps> = ({
             </Button>
           </div>
         ) : (
-          <div
-            ref={parentRef}
-            className="relative w-full overflow-auto h-[calc(100vh-220px)] custom-scrollbar"
-          >
+          <div ref={parentRef} className="relative w-full overflow-auto h-full custom-scrollbar">
             <div
               style={{
                 height: `${rowVirtualizer.getTotalSize() + 40}px`, // +40 for header
