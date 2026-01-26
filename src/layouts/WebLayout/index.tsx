@@ -427,9 +427,6 @@ const NavContent = memo(
             {(!isCollapsed || isMobileNav) && (
               <div className="flex flex-col">
                 <span className="text-lg font-bold text-foreground leading-tight">Quang Vinh</span>
-                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest leading-none">
-                  Mobile App
-                </span>
               </div>
             )}
           </div>

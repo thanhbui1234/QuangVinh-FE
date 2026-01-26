@@ -9,6 +9,9 @@ import { useState } from 'react'
 import { PhotoProvider, PhotoView } from 'react-photo-view'
 import 'react-photo-view/dist/react-photo-view.css'
 import { PageBreadcrumb } from '@/components/common/PageBreadcrumb'
+import { EmptyState } from '@/components/common/EmptyState'
+import PageLoader from '@/components/common/PageLoader'
+import { Inbox, FileStack } from 'lucide-react'
 
 const DocumentsShared = () => {
   const {
@@ -23,9 +26,7 @@ const DocumentsShared = () => {
 
   const [tab, setTab] = useState('all')
 
-  if (isFetching) return <div className="p-8 text-center text-muted-foreground">Đang tải...</div>
-  if (!documents)
-    return <div className="p-8 text-center text-muted-foreground">Không có tài liệu</div>
+  if (isFetching && !documents) return <PageLoader />
 
   const docs = documents || []
 
@@ -79,104 +80,124 @@ const DocumentsShared = () => {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value={tab} className="mt-3">
+        <TabsContent value={tab} className="mt-3 min-h-[400px] flex flex-col">
           <PhotoProvider>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredDocs.map((doc: any) => {
-                const status = { label: 'Đã chia sẻ', variant: 'secondary' as const }
-                const isImage = doc.contentType.startsWith('image/')
+            {filteredDocs.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {filteredDocs.map((doc: any) => {
+                  const status = { label: 'Đã chia sẻ', variant: 'secondary' as const }
+                  const isImage = doc.contentType.startsWith('image/')
 
-                return (
-                  <Card
-                    key={doc.id}
-                    className="group relative h-full border border-border/80 rounded-2xl bg-card/80 backdrop-blur-sm hover:shadow-xl hover:border-border hover:-translate-y-1.5 transition-all duration-300 overflow-hidden"
-                  >
-                    <CardHeader className="pb-3">
-                      {isImage ? (
-                        <PhotoView src={doc.fileUrl}>
-                          <div className="w-full h-40 mb-4 rounded-xl overflow-hidden bg-gray-100 cursor-pointer">
-                            <img
-                              src={doc.fileUrl}
-                              alt={doc.title}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        </PhotoView>
-                      ) : (
-                        <div className="bg-gradient-to-br from-rose-500 to-pink-600 rounded-xl w-full h-40 mb-4 flex items-center justify-center">
-                          <FileText className="w-16 h-16 text-white" />
-                        </div>
-                      )}
-
-                      <CardTitle className="text-lg font-medium text-foreground line-clamp-1 pr-10">
-                        {doc.title || 'Chưa đặt tên'}
-                      </CardTitle>
-                      <CardDescription className="text-sm text-muted-foreground line-clamp-2">
-                        {doc.uploader?.name
-                          ? `Được chia sẻ bởi: ${doc.uploader?.name}`
-                          : 'Không rõ người chia sẻ'}
-                      </CardDescription>
-                    </CardHeader>
-
-                    <CardContent className="pt-2 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <Badge variant={status.variant} className="text-xs font-medium">
-                          {status.label}
-                        </Badge>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <Avatar className="w-7 h-7">
-                          <AvatarImage src={doc.uploader?.avatar} />
-                          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xs font-bold">
-                            {doc.uploader?.name?.charAt(0).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="text-xs text-muted-foreground truncate">
-                          {doc.uploader?.name}
-                        </span>
-                      </div>
-                    </CardContent>
-
-                    <div className="px-6 pb-5 mt-2">
-                      <div className="flex gap-2">
+                  return (
+                    <Card
+                      key={doc.id}
+                      className="group relative h-full border border-border/80 rounded-2xl bg-card/80 backdrop-blur-sm hover:shadow-xl hover:border-border hover:-translate-y-1.5 transition-all duration-300 overflow-hidden"
+                    >
+                      <CardHeader className="pb-3">
                         {isImage ? (
                           <PhotoView src={doc.fileUrl}>
+                            <div className="w-full h-40 mb-4 rounded-xl overflow-hidden bg-gray-100 cursor-pointer">
+                              <img
+                                src={doc.fileUrl}
+                                alt={doc.title}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          </PhotoView>
+                        ) : (
+                          <div className="bg-gradient-to-br from-rose-500 to-pink-600 rounded-xl w-full h-40 mb-4 flex items-center justify-center">
+                            <FileText className="w-16 h-16 text-white" />
+                          </div>
+                        )}
+
+                        <CardTitle className="text-lg font-medium text-foreground line-clamp-1 pr-10">
+                          {doc.title || 'Chưa đặt tên'}
+                        </CardTitle>
+                        <CardDescription className="text-sm text-muted-foreground line-clamp-2">
+                          {doc.uploader?.name
+                            ? `Được chia sẻ bởi: ${doc.uploader?.name}`
+                            : 'Không rõ người chia sẻ'}
+                        </CardDescription>
+                      </CardHeader>
+
+                      <CardContent className="pt-2 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <Badge variant={status.variant} className="text-xs font-medium">
+                            {status.label}
+                          </Badge>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <Avatar className="w-7 h-7">
+                            <AvatarImage src={doc.uploader?.avatar} />
+                            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xs font-bold">
+                              {doc.uploader?.name?.charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="text-xs text-muted-foreground truncate">
+                            {doc.uploader?.name}
+                          </span>
+                        </div>
+                      </CardContent>
+
+                      <div className="px-6 pb-5 mt-2">
+                        <div className="flex gap-2">
+                          {isImage ? (
+                            <PhotoView src={doc.fileUrl}>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="flex-1 h-9 rounded-full text-xs"
+                              >
+                                <Eye className="w-3.5 h-3.5 mr-1" /> Xem
+                              </Button>
+                            </PhotoView>
+                          ) : (
                             <Button
                               size="sm"
                               variant="outline"
                               className="flex-1 h-9 rounded-full text-xs"
+                              asChild
                             >
-                              <Eye className="w-3.5 h-3.5 mr-1" /> Xem
+                              <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer">
+                                <Eye className="w-3.5 h-3.5 mr-1" /> Xem
+                              </a>
                             </Button>
-                          </PhotoView>
-                        ) : (
+                          )}
                           <Button
                             size="sm"
-                            variant="outline"
-                            className="flex-1 h-9 rounded-full text-xs"
+                            className="flex-1 h-9 rounded-full text-xs bg-black hover:bg-gray-800"
                             asChild
                           >
-                            <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer">
-                              <Eye className="w-3.5 h-3.5 mr-1" /> Xem
+                            <a href={doc.downloadUrl} download={doc.title}>
+                              <Download className="w-3.5 h-3.5 mr-1" /> Tải
                             </a>
                           </Button>
-                        )}
-                        <Button
-                          size="sm"
-                          className="flex-1 h-9 rounded-full text-xs bg-black hover:bg-gray-800"
-                          asChild
-                        >
-                          <a href={doc.downloadUrl} download={doc.title}>
-                            <Download className="w-3.5 h-3.5 mr-1" /> Tải
-                          </a>
-                        </Button>
+                        </div>
                       </div>
-                    </div>
-                  </Card>
-                )
-              })}
-            </div>
+                    </Card>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="flex-1 flex items-center justify-center">
+                <EmptyState
+                  icon={tab === 'all' ? Inbox : FileStack}
+                  title={
+                    tab === 'all'
+                      ? 'Chưa có tài liệu nào'
+                      : tab === 'images'
+                        ? 'Chưa có hình ảnh nào'
+                        : 'Chưa có tệp PDF nào'
+                  }
+                  description={
+                    tab === 'all'
+                      ? 'Tất cả tài liệu được chia sẻ với bạn sẽ xuất hiện ở đây.'
+                      : `Hiện không có ${tab === 'images' ? 'hình ảnh' : 'tệp PDF'} nào được chia sẻ.`
+                  }
+                />
+              </div>
+            )}
           </PhotoProvider>
         </TabsContent>
         {hasNextPage && (
