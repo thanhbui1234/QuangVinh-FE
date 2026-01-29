@@ -452,7 +452,7 @@ export const Profile = () => {
               <PhotoProvider maskOpacity={0.9} speed={() => 300}>
                 <PhotoView src={avatarPreview}>
                   <Avatar className="size-32 ring-8 ring-white/50 dark:ring-white/5 shadow-2xl cursor-pointer hover:scale-[1.02] transition-transform duration-500">
-                    <AvatarImage src={avatarPreview} alt="Avatar" />
+                    <AvatarImage className={'object-cover'} src={avatarPreview} alt="Avatar" />
                     <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-4xl font-black">
                       {currentValues.name?.charAt(0).toUpperCase() || 'U'}
                     </AvatarFallback>
