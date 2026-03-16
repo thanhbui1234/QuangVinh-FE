@@ -35,8 +35,10 @@ export const PersonnelDetailDialog = ({ open, onOpenChange, user }: PersonnelDet
         <div className="space-y-6">
           {/* Avatar and Name Section */}
           <div className="flex items-center gap-4 pb-4 border-b">
-            <Avatar className="h-20 w-20">
-              {user.avatar ? <AvatarImage src={user.avatar} alt={user.name} /> : null}
+            <Avatar className="h-20 w-20 object-cover">
+              {user.avatar ? (
+                <AvatarImage className={'object-cover'} src={user.avatar} alt={user.name} />
+              ) : null}
               <AvatarFallback className="bg-primary/10 text-primary font-semibold text-xl">
                 {getInitials(user.name)}
               </AvatarFallback>
