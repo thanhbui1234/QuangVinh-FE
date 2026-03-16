@@ -12,7 +12,7 @@ export const useGetProjectList = (payload: UseGetProjectListParams) => {
   const { data, isFetching, fetchNextPage, hasNextPage, isFetchingNextPage, error } =
     useInfiniteQuery({
       queryKey: [projectsAssignmentsKey.getAll],
-      queryFn: async ({ pageParam = 0 }) => {
+      queryFn: async ({ pageParam = 1 }) => {
         const response = await POST(API_ENDPOINT.GET_PROJECTS, {
           ...payload,
           offset: pageParam,
@@ -37,9 +37,9 @@ export const useGetProjectList = (payload: UseGetProjectListParams) => {
           return undefined
         }
         // Current page is full, there might be more pages
-        return totalFetched
+        return allPages.length + 1
       },
-      initialPageParam: 0,
+      initialPageParam: 1,
     })
 
   // Flatten all pages into a single array
