@@ -6,12 +6,16 @@ import { useEffect } from 'react'
 import { handleCommonError } from '@/utils/handleErrors'
 import { useNavigate } from 'react-router-dom'
 
-export const useGetDetailProject = (id: number) => {
+export const useGetDetailProject = (id: number, offset: number = 1, limit: number = 10) => {
   const navigate = useNavigate()
 
   const { data, isFetching, error } = useQuery({
-    queryKey: [projectAssignmentDetailKey.detail(id.toString()), { taskGroupId: id }],
-    queryFn: () => POST(API_ENDPOINT.GET_PROJECT_DETAIL, { taskGroupId: Number(id) }),
+    queryKey: [
+      projectAssignmentDetailKey.detail(id.toString()),
+      { taskGroupId: id, offset, limit },
+    ],
+    queryFn: () =>
+      POST(API_ENDPOINT.GET_PROJECT_DETAIL, { taskGroupId: Number(id), offset, limit }),
     select: (data) => {
       return data.taskGroup
     },

@@ -56,7 +56,13 @@ export type Project = {
 
 export const ProjectAssignmentDetail: React.FC = () => {
   const { id } = useParams()
-  const { projectAssignmentDetail, isFetching } = useGetDetailProject(Number(id))
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const { projectAssignmentDetail, isFetching } = useGetDetailProject(
+    Number(id),
+    currentPage,
+    pageSize
+  )
   const isMobile = useIsMobile()
   const [openConfirm, setOpenConfirm] = useState(false)
   const [taskToDelete, setTaskToDelete] = useState<string | null>(null)
@@ -282,6 +288,16 @@ export const ProjectAssignmentDetail: React.FC = () => {
             tasks={project.tasks}
             supervisors={supervisors}
             onDelete={handleTaskDeleteClick}
+            paginationProps={{
+              current: currentPage,
+              pageSize: pageSize,
+              total: projectAssignmentDetail?.taskCount || project.tasks.length,
+              onChange: setCurrentPage,
+              onShowSizeChange: (_current: number, size: number) => {
+                setPageSize(size)
+                setCurrentPage(1)
+              },
+            }}
           />
         )}
       </motion.div>

@@ -10,13 +10,18 @@ export default function TaskTable(props: {
   tasks: any
   supervisors?: Supervisor[]
   onDelete?: (id: string) => void
+  paginationProps?: any
 }) {
-  const { tasks, supervisors, onDelete } = props
+  const { tasks, supervisors, onDelete, paginationProps } = props
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([])
-  const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize, setPageSize] = useState(10)
+  const [internalCurrentPage, setInternalCurrentPage] = useState(1)
+  const [internalPageSize, setInternalPageSize] = useState(10)
+
+  const currentPage = paginationProps?.current ?? internalCurrentPage
+  const pageSize = paginationProps?.pageSize ?? internalPageSize
+  const total = paginationProps?.total ?? tasks.length
 
   const supervisorIdToName = useMemo(() => {
     if (!supervisors) return undefined
@@ -28,11 +33,15 @@ export default function TaskTable(props: {
 
   // Reset to page 1 if current page is out of bounds when tasks change
   useEffect(() => {
-    const totalPages = Math.ceil(tasks.length / pageSize)
+    const totalPages = Math.ceil(total / pageSize)
     if (currentPage > totalPages && totalPages > 0) {
-      setCurrentPage(1)
+      if (paginationProps?.onChange) {
+        paginationProps.onChange(1)
+      } else {
+        setInternalCurrentPage(1)
+      }
     }
-  }, [tasks.length, pageSize, currentPage])
+  }, [total, pageSize, currentPage, paginationProps])
 
   const handleRefresh = () => {
     setLoading(true)
@@ -40,12 +49,20 @@ export default function TaskTable(props: {
   }
 
   const handlePageChange = (page: number) => {
-    setCurrentPage(page)
+    if (paginationProps?.onChange) {
+      paginationProps.onChange(page)
+    } else {
+      setInternalCurrentPage(page)
+    }
   }
 
-  const handlePageSizeChange = (_: number, size: number) => {
-    setPageSize(size)
-    setCurrentPage(1)
+  const handlePageSizeChange = (current: number, size: number) => {
+    if (paginationProps?.onShowSizeChange) {
+      paginationProps.onShowSizeChange(current, size)
+    } else {
+      setInternalPageSize(size)
+      setInternalCurrentPage(1)
+    }
   }
 
   return (
@@ -68,7 +85,7 @@ export default function TaskTable(props: {
         pagination={{
           current: currentPage,
           pageSize: pageSize,
-          total: tasks.length,
+          total: total,
           showSizeChanger: true,
           showTotal: (total, range) =>
             `Hiển thị ${range[0]}-${range[1]} trong tổng số ${total} mục`,
