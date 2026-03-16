@@ -11,7 +11,7 @@ export const PersonnelUserCell = ({ name, email, avatar }: PersonnelUserCellProp
   return (
     <div className="flex items-center gap-3">
       <Avatar className="h-10 w-10">
-        {avatar ? <AvatarImage src={avatar} alt={name} /> : null}
+        {avatar ? <AvatarImage className={'object-cover'} src={avatar} alt={name} /> : null}
         <AvatarFallback className="bg-primary/10 text-primary font-semibold">
           {getInitials(name)}
         </AvatarFallback>
